@@ -1,77 +1,81 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
-import { brand, products } from "@/lib/sample-data";
-import { ProductCard } from "@/components/commerce/product-card";
+import { brand } from "@/lib/sample-data";
 import { ComingSoonModal } from "@/components/commerce/coming-soon-modal";
 
 export function MerchFeature() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleShopClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsModalOpen(true);
-  };
-
   return (
     <>
-      <section className="bg-bone py-20 text-ink">
+      <section className="bg-bone py-24 text-ink overflow-hidden">
         <div className="section-shell">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="text-xs font-black uppercase text-lava">
-                {brand.merchName} clothing line
-              </p>
-              <h2 className="mt-3 font-display text-4xl font-black md:text-6xl">
-                Streetwear with access energy.
-              </h2>
-            </div>
-            <Link
-              href="/merch"
-              onClick={handleShopClick}
-              className="focus-ring inline-flex h-11 items-center gap-2 rounded-ui bg-ink px-4 text-sm font-black text-paper transition hover:bg-lava"
-            >
-              Shop {brand.merchName}
-              <ArrowUpRight size={17} />
-            </Link>
-          </div>
+          <div className="flex flex-col items-center text-center gap-8">
+            {/* Eyebrow */}
+            <p className="text-xs font-black uppercase tracking-widest text-lava">
+              {brand.merchName} clothing line
+            </p>
 
-          <div className="relative">
-            <div className="grid gap-4 md:grid-cols-3">
-              {products.map((product) => (
-                <div key={product.slug} className="**:text-inherit">
-                  <ProductCard product={product} />
+            {/* Heading */}
+            <h2 className="font-display text-5xl font-black md:text-7xl max-w-2xl leading-none">
+              Streetwear with access energy.
+            </h2>
+
+            {/* Animated icon lockup */}
+            <div className="relative my-4 flex items-center justify-center">
+              {/* Outer slow-rotating ring */}
+              <div className="absolute h-28 w-28 rounded-full border border-ink/10 animate-spin" style={{ animationDuration: "12s" }} />
+              {/* Dashed middle ring */}
+              <div
+                className="absolute h-20 w-20 rounded-full border border-dashed border-ink/15 animate-spin"
+                style={{ animationDuration: "8s", animationDirection: "reverse" }}
+              />
+              {/* Gold accent ring with gap */}
+              <div className="absolute h-36 w-36 rounded-full border border-gold/20" />
+              {/* Core icon */}
+              <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-ink shadow-md">
+                <Sparkles className="h-7 w-7 text-gold animate-spin-slow" />
+              </div>
+            </div>
+
+            {/* Coming soon badge + text */}
+            <div className="flex flex-col items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-gold">
+                <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
+                Coming Soon
+              </span>
+              <p className="max-w-sm text-sm leading-7 text-ink/55">
+                The drop is in production. Sign up to be the first to know when{" "}
+                <span className="font-bold text-ink">{brand.merchName}</span> lands.
+              </p>
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="focus-ring inline-flex h-12 items-center gap-2 rounded-ui bg-ink px-6 text-sm font-black text-paper transition hover:bg-lava active:scale-95"
+            >
+              Get Early Access
+              <ArrowUpRight size={17} />
+            </button>
+
+            {/* Stat pills */}
+            <div className="mt-2 flex flex-wrap justify-center gap-3">
+              {[
+                { label: "Limited drops", sub: "Exclusive quantities" },
+                { label: "Premium quality", sub: "Designed in Lagos" },
+                { label: "Q2 2026", sub: "Launching soon" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-ui border border-ink/8 bg-paper/60 px-4 py-3 text-left"
+                >
+                  <p className="text-xs font-black text-ink">{item.label}</p>
+                  <p className="mt-0.5 text-xs text-ink/45">{item.sub}</p>
                 </div>
               ))}
-            </div>
-
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-ink/90 backdrop-blur-[2px]">
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gold/20">
-                  <Sparkles className="h-8 w-8 text-gold" />
-                </div>
-                <div>
-                  <p className="text-sm font-black uppercase tracking-widest text-gold">
-                    Coming Soon
-                  </p>
-                  <h3 className="mt-1 font-display text-3xl font-black text-paper">
-                    The Drop Is Loading
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="focus-ring mt-2 inline-flex h-11 items-center gap-2 rounded-ui bg-gold px-6 text-sm font-black text-ink transition hover:bg-paper"
-                >
-                  Get Notified
-                  <ArrowUpRight size={17} />
-                </button>
-                <p className="max-w-xs text-xs text-paper/50">
-                  Our exclusive collection is being crafted. Sign up for early
-                  access.
-                </p>
-              </div>
             </div>
           </div>
         </div>
