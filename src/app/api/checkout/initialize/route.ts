@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   const reference = makePaymentReference();
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const orderItems = [];
 
       for (const item of items) {
