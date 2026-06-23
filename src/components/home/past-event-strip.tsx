@@ -20,7 +20,7 @@ export function PastEventStrip() {
               <Link
                 key={event.slug}
                 href={`/events/${event.slug}`}
-                className="min-h-[300px] rounded-ui border border-white/10 bg-cover bg-center p-5 transition hover:border-gold"
+                className="min-h-75 rounded-ui border border-white/10 bg-cover bg-center p-5 transition hover:border-gold"
                 style={{
                   backgroundImage: `linear-gradient(180deg, rgba(5,5,5,.1), rgba(5,5,5,.86)), url(${event.heroImage})`,
                 }}
