@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  STAFF
+}
+
+enum PostType {
+  ARTICLE
+  MUSIC_RELEASE
+  TREND_UPDATE
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SOLD_OUT
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  FULFILLED
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  ABANDONED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  firstName    String?
+  lastName     String?
+  phone        String?
+  role         Role     @default(USER)
+  orders       Order[]
+  tickets      Ticket[]
+  posts        Post[]   @relation("PostAuthor")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  body        String
+  type        PostType  @default(ARTICLE)
+  coverImage  String?
+  videoUrl    String?
+  audioUrl    String?
+  category    String?
+  tags        String[]
+  isFeatured  Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String?
+  author      User?     @relation("PostAuthor", fields: [authorId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Artist {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  role        String
+  city        String?
+  bio         String
+  image       String?
+  genres      String[]
+  stats       Json?
+  socials     Json?
+  isFeatured  Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Event {
+  id            String       @id @default(cuid())
+  title         String
+  slug          String       @unique
+  description   String
+  venue         String
+  city          String       @default("Lagos")
+  startsAt      DateTime
+  endsAt        DateTime?
+  status        EventStatus  @default(DRAFT)
+  heroImage     String?
+  recapVideoUrl String?
+  gallery       EventMedia[]
+  ticketTiers   TicketTier[]
+  tickets       Ticket[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([startsAt, status])
+}
+
+model EventMedia {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  url       String
+  type      String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model TicketTier {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  priceKobo Int
+  capacity  Int
+  soldCount Int      @default(0)
+  perks     String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, name])
+}
+
+model Ticket {
+  id            String    @id @default(cuid())
+  eventId       String
+  event         Event     @relation(fields: [eventId], references: [id])
+  tierId        String
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id])
+  attendeeName  String?
+  attendeeEmail String?
+  qrCode        String    @unique
+  qrImageUrl    String?
+  checkedInAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([eventId, qrCode])
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  description String
+  status      ProductStatus    @default(DRAFT)
+  images      String[]
+  variants    ProductVariant[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model ProductVariant {
+  id         String      @id @default(cuid())
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku        String      @unique
+  size       String?
+  color      String?
+  priceKobo  Int
+  stock      Int         @default(0)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Order {
+  id              String       @id @default(cuid())
+  userId          String?
+  user            User?        @relation(fields: [userId], references: [id])
+  email           String
+  phone           String?
+  status          OrderStatus  @default(PENDING)
+  subtotalKobo    Int
+  platformFeeKobo Int
+  transactionFeeKobo Int     @default(0)
+  totalKobo       Int
+  currency        String       @default("NGN")
+  items           OrderItem[]
+  tickets         Ticket[]
+  transaction     Transaction?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model OrderItem {
+  id           String          @id @default(cuid())
+  orderId      String
+  order        Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId    String?
+  variant      ProductVariant? @relation(fields: [variantId], references: [id])
+  ticketTierId String?
+  itemType     String
+  title        String
+  quantity     Int
+  unitKobo     Int
+  totalKobo    Int
+  metadata     Json?
+}
+
+model Transaction {
+  id                String            @id @default(cuid())
+  orderId           String            @unique
+  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway           String            @default("paystack")
+  reference         String            @unique
+  gatewayAccessCode String?
+  gatewayAuthUrl    String?
+  status            TransactionStatus @default(PENDING)
+  amountKobo        Int
+  developerFeeKobo  Int
+  adonisAmountKobo  Int
+  transactionFeeKobo Int      @default(0)
+  splitCode         String?
+  gatewayResponse   Json?
+  paidAt            DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
