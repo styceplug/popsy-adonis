@@ -1,0 +1,32 @@
+name: Deploy Website
+
+on:
+  push:
+    branches:
+      - main # Change this to 'master' if that is your default branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # (Optional) If your project requires a build step before deployment, add it here.
+      # e.g., npm install && npm run build
+      # And change the SOURCE below to your output folder (e.g., "dist/" or "build/")
+
+      - name: Sync files to VPS
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.VPS_HOST }}
+          REMOTE_USER: ${{ secrets.VPS_USER }}
+          SOURCE: "./"
+          TARGET: "/var/www/popsyadonis.com/html"
+          EXCLUDE: "/.git/, /.github/"
+          SCRIPT_AFTER: |
+            chown -R www-data:www-data /var/www/popsyadonis.com/html
+            find /var/www/popsyadonis.com/html -type d -exec chmod 755 {} \;
+            find /var/www/popsyadonis.com/html -type f -exec chmod 644 {} \;
