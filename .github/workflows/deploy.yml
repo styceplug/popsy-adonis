@@ -25,8 +25,26 @@ jobs:
           REMOTE_USER: ${{ secrets.VPS_USER }}
           SOURCE: "./"
           TARGET: "/var/www/popsyadonis.com/html"
-          EXCLUDE: "/.git/, /.github/"
+          EXCLUDE: "/.git/, /.github/, /.next/, /node_modules/"
           SCRIPT_AFTER: |
+            set -e
+            cd /var/www/popsyadonis.com/html
+
+            if [ -f /var/www/popsyadonis.com/.env ]; then
+              cp /var/www/popsyadonis.com/.env .env
+            fi
+
+            npm ci
+            npm run db:generate
+            npm run build
+
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm install -g pm2
+            fi
+
+            pm2 reload popsy-adonis --update-env || pm2 start npm --name popsy-adonis -- start
+            pm2 save
+
             chown -R www-data:www-data /var/www/popsyadonis.com/html
             find /var/www/popsyadonis.com/html -type d -exec chmod 755 {} \;
             find /var/www/popsyadonis.com/html -type f -exec chmod 644 {} \;
