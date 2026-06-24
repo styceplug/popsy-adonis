@@ -38,7 +38,7 @@ export default function MerchPage() {
                 </h2>
               </div>
               <p className="max-w-lg text-sm leading-6 text-ink/50">
-                {brand.merchName} is currently in production. We're crafting
+                {brand.merchName} is currently in production. We&apos;re crafting
                 premium streetwear that embodies the energy of our community. Be
                 the first to know when we drop.
               </p>

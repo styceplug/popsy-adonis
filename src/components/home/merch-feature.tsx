@@ -20,7 +20,7 @@ export function MerchFeature() {
 
             {/* Heading */}
             <h2 className="font-display text-5xl font-black md:text-7xl max-w-2xl leading-none">
-              Streetwear with access energy.
+              Campus heat. Culture uniform.
             </h2>
 
             {/* Animated icon lockup */}
@@ -47,7 +47,7 @@ export function MerchFeature() {
                 Coming Soon
               </span>
               <p className="max-w-sm text-sm leading-7 text-ink/55">
-                The drop is in production. Sign up to be the first to know when{" "}
+                The first drop is being shaped for the people who move the room. Sign up to know when{" "}
                 <span className="font-bold text-ink">{brand.merchName}</span> lands.
               </p>
             </div>
@@ -65,7 +65,7 @@ export function MerchFeature() {
             <div className="mt-2 flex flex-wrap justify-center gap-3">
               {[
                 { label: "Limited drops", sub: "Exclusive quantities" },
-                { label: "Premium quality", sub: "Designed in Lagos" },
+                { label: "Premium quality", sub: "Built for Adonites" },
                 { label: "Q2 2026", sub: "Launching soon" },
               ].map((item) => (
                 <div

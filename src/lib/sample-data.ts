@@ -65,15 +65,17 @@ export type Product = {
 export const brand = {
   siteName: "Popsy Adonis",
   merchName: "PA FLUX",
-  email: "bookings@popsyadonis.com",
-  phone: "+234 812 345 6789",
-  whatsapp: "+234 812 345 6789",
-  address: "Victoria Island, Lagos, Nigeria",
+  email: "adonistv.001@gmail.com",
+  phone: "+234 707 640 1108",
+  whatsapp: "+234 707 640 1108",
+  whatsappHref: "https://wa.me/2347076401108",
+  address: "Ekiti, Nigeria",
   socials: [
-    { label: "Instagram", href: "https://instagram.com/popsyadonis" },
-    { label: "TikTok", href: "https://tiktok.com/@popsyadonis" },
-    { label: "X", href: "https://x.com/popsyadonis" },
-    { label: "YouTube", href: "https://youtube.com/@popsyadonis" },
+    { label: "TikTok", href: "https://www.tiktok.com/@popsyadonis?_r=1&_t=ZS-97QiYPG83SW" },
+    { label: "Instagram", href: "https://www.instagram.com/popsyadonis" },
+    { label: "X", href: "https://x.com/popsyadonis?s=11" },
+    { label: "Telegram", href: "https://t.me/adonistvchannel" },
+    { label: "Facebook", href: "https://www.facebook.com/share/1CiZwqenYQ/?mibextid=wwXIfr" },
   ],
 };
 
@@ -191,7 +193,7 @@ export const events: Event[] = [
       {
         id: "tier-summer-time-ekiti-early-bird",
         name: "Early Bird",
-        priceKobo: 300000,
+        priceKobo: 20000,
         perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
       },
     ],
@@ -344,7 +346,7 @@ export const artists: Artist[] = [
     slug: "crux",
     role: "Afro-fusion storyteller",
     city: "EKSU",
-    image: "/ADDITIONAL%20IMAGES/WhatsApp%20Image%202026-06-19%20at%206.55.06%E2%80%AFAM.jpeg",
+    image: "/ARTISTS/crux.jpeg",
     bio: "Crux is a Nigerian artist and EKSU graduate whose music blends raw emotion with Afrobeats, Afro-fusion, and street-inspired melodies.",
     genres: ["Afrobeats", "Afro-fusion", "Street Pop"],
     stats: [
@@ -361,7 +363,7 @@ export const artists: Artist[] = [
     slug: "diamond-boy",
     role: "Afro / Amapiano / Gqom artist",
     city: "Ondo / Lagos",
-    image: "/ADDITIONAL%20IMAGES/WhatsApp%20Image%202026-06-19%20at%206.55.07%E2%80%AFAM.jpeg",
+    image: "/ARTISTS/diamond-boy.jpeg",
     bio: "Diamond Boy is a rising Afro, Amapiano, and Gqom artist with heartfelt lyrics, spiritual rhythms, and a growing Spotify audience.",
     genres: ["Afro", "Amapiano", "Gqom"],
     stats: [
@@ -395,7 +397,7 @@ export const artists: Artist[] = [
     slug: "blaizeman",
     role: "Afrobeats artist",
     city: "EKSU",
-    image: "/TEAM%20PICTURES/WhatsApp%20Image%202026-06-19%20at%206.40.12%E2%80%AFAM.jpeg",
+    image: "/ARTISTS/blaizeman.jpeg",
     bio: "Blaizeman is an Afrobeats artist known for smooth melodies, relatable songwriting, and collaborations across Nigeria's independent scene.",
     genres: ["Afrobeats", "Pop", "Afro-fusion"],
     stats: [
@@ -412,7 +414,7 @@ export const artists: Artist[] = [
     slug: "emmey-boy",
     role: "Afrobeat artist",
     city: "Lagos",
-    image: "/TEAM%20PICTURES/WhatsApp%20Image%202026-06-19%20at%206.40.13%E2%80%AFAM.jpeg",
+    image: "/ARTISTS/Emmey%20boy.jpeg",
     bio: "Emmey Boy channels the pulse of Lagos into Afrobeat records with infectious grooves, storytelling, and collaborative energy.",
     genres: ["Afrobeat", "Afropop", "Dance"],
     stats: [
@@ -429,7 +431,7 @@ export const artists: Artist[] = [
     slug: "teazyand99others",
     role: "Afrobeats / Amapiano artist",
     city: "EKSU",
-    image: "/TEAM%20PICTURES/WhatsApp%20Image%202026-06-19%20at%206.40.14%E2%80%AFAM.jpeg",
+    image: "/ARTISTS/teazy.jpeg",
     bio: "Teazyand99others blends Afrobeats, Amapiano, and street-inspired sounds into a distinct independent style.",
     genres: ["Afrobeats", "Amapiano", "Street Pop"],
     stats: [
@@ -440,6 +442,21 @@ export const artists: Artist[] = [
     socials: [
       { label: "Spotify", href: "https://open.spotify.com/artist/3RmI7ezPZ3mDU9mGL4bkKM?si=gk-_1YbbS1Sw7_7K2A4brQ" },
     ],
+  },
+  {
+    name: "Pili Chara",
+    slug: "pili-chara",
+    role: "Afrobeats collaborator",
+    city: "EKSU",
+    image: "/ARTISTS/Pilichara.jpeg",
+    bio: "Pili Chara is part of the Popsy Adonis collaborator circle, bringing campus pop energy and a featured presence on Old Taker.",
+    genres: ["Afrobeats", "Campus Pop", "Street Pop"],
+    stats: [
+      { label: "Featured on", value: "Old Taker" },
+      { label: "Scene", value: "EKSU" },
+      { label: "Format", value: "Live + studio" },
+    ],
+    socials: [],
   },
 ];
 

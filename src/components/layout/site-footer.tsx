@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { SocialLinks } from "@/components/layout/social-links";
 import { brand } from "@/lib/sample-data";
 
 export function SiteFooter() {
@@ -13,17 +14,8 @@ export function SiteFooter() {
               Entertainment, artist development, lifestyle events, music promotions, and {brand.merchName} clothing
               for Nigeria&apos;s culture-forward crowd.
             </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              {brand.socials.map((social) => (
-                <Link
-                  key={social.label}
-                  href={social.href}
-                  className="focus-ring inline-flex h-10 items-center rounded-ui border border-white/12 px-3 text-xs font-black uppercase text-paper/70 transition hover:border-gold hover:text-gold"
-                  target="_blank"
-                >
-                  {social.label}
-                </Link>
-              ))}
+            <div className="mt-6">
+              <SocialLinks socials={brand.socials} />
             </div>
           </div>
 
@@ -60,21 +52,17 @@ export function SiteFooter() {
                 <Phone size={15} />
                 {brand.phone}
               </Link>
+              <Link href={brand.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-paper">
+                <MessageCircle size={15} />
+                WhatsApp bookings
+              </Link>
               <p className="inline-flex items-center gap-2">
                 <MapPin size={15} />
                 {brand.address}
               </p>
             </div>
-            <div className="mt-5 flex gap-2">
-              <Link href={brand.socials[0].href} className="focus-ring grid size-9 place-items-center rounded-ui border border-white/12 text-xs font-black text-paper/70 hover:text-gold" target="_blank" aria-label="Instagram">
-                IG
-              </Link>
-              <Link href={brand.socials[1].href} className="focus-ring grid size-9 place-items-center rounded-ui border border-white/12 text-xs font-black text-paper/70 hover:text-gold" target="_blank" aria-label="TikTok">
-                TK
-              </Link>
-              <Link href={brand.socials[3].href} className="focus-ring grid size-9 place-items-center rounded-ui border border-white/12 text-xs font-black text-paper/70 hover:text-gold" target="_blank" aria-label="YouTube">
-                YT
-              </Link>
+            <div className="mt-5">
+              <SocialLinks socials={brand.socials} compact />
             </div>
           </div>
         </div>

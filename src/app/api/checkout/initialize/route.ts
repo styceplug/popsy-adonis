@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import {
   initializePaystackTransaction,
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   const reference = makePaymentReference();
 
   try {
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const orderItems = [];
 
       for (const item of items) {
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
           developerFeeKobo,
           adonisAmountKobo,
           transactionFeeKobo,
-          splitCode: process.env.PAYSTACK_POPSY_ADONIS_SPLIT_CODE ?? process.env.PAYSTACK_ADONIS_SPLIT_CODE,
+          splitCode: process.env.PAYSTACK_ADONIS_SUBACCOUNT_CODE,
         },
       });
 

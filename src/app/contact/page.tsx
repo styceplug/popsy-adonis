@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
+import { SocialLinks } from "@/components/layout/social-links";
 import { brand } from "@/lib/sample-data";
 
 export default function ContactPage() {
@@ -19,22 +20,17 @@ export default function ContactPage() {
               <Phone size={16} />
               {brand.phone}
             </Link>
+            <Link href={brand.whatsappHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-paper">
+              <MessageCircle size={16} />
+              Chat on WhatsApp
+            </Link>
             <p className="inline-flex items-center gap-2">
               <MapPin size={16} />
               {brand.address}
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {brand.socials.map((social) => (
-              <Link
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                className="focus-ring rounded-ui border border-white/12 px-3 py-2 text-xs font-black uppercase text-paper/70 hover:border-gold hover:text-gold"
-              >
-                {social.label}
-              </Link>
-            ))}
+          <div className="mt-6">
+            <SocialLinks socials={brand.socials} />
           </div>
         </div>
         <ContactForm />

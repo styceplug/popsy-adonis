@@ -93,7 +93,7 @@ export function OrderStatus({ reference }: { reference?: string }) {
           <span>{formatNaira(orderStatus.order.subtotalKobo)}</span>
         </div>
         <div className="flex justify-between text-paper/62">
-          <span>Transaction fee</span>
+          <span>Platform charge</span>
           <span>{formatNaira(orderStatus.order.transactionFeeKobo)}</span>
         </div>
         <div className="flex justify-between text-lg font-black">

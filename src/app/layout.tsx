@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "Popsy Adonis | Nigerian Entertainment, Artists, Events & PA FLUX",
   description:
     "A high-end Nigerian entertainment and lifestyle platform for trends, artist portfolios, events, promotions, ticketing, and PA FLUX clothing.",
+  icons: {
+    icon: "/favicon.jpg",
+    shortcut: "/favicon.jpg",
+    apple: "/favicon.jpg",
+  },
   openGraph: {
     siteName: "Popsy Adonis",
     type: "website",

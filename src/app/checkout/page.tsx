@@ -163,10 +163,10 @@ export default function CheckoutPage() {
               <span>{formatNaira(subtotalKobo)}</span>
             </div>
             <div className="flex justify-between text-paper/62">
-              <span>Transaction fee</span>
+              <span>Platform charge</span>
               <span>{formatNaira(transactionFeeKobo)}</span>
             </div>
-            <p className="text-xs leading-5 text-paper/40">5% fee, capped at ₦5,000 per checkout transaction.</p>
+            <p className="text-xs leading-5 text-paper/40">5% platform charge, capped at ₦5,000 per checkout.</p>
             <div className="flex justify-between border-t border-white/10 pt-4 text-lg font-black">
               <span>Total</span>
               <span>{formatNaira(totalKobo)}</span>
@@ -188,4 +188,3 @@ export default function CheckoutPage() {
     </main>
   );
 }
-

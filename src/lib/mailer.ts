@@ -136,7 +136,7 @@ function ctaButton(label: string, href: string) {
 
 export async function sendContactMessage(message: ContactMessage) {
   return sendEmail({
-    to: process.env.MAIL_TO ?? "bookings@popsyadonis.com",
+    to: process.env.MAIL_TO ?? "adonistv.001@gmail.com",
     subject: `New Popsy Adonis inquiry from ${message.name}`,
     text: [
       `Name: ${message.name}`,
@@ -176,7 +176,7 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
       ...message.items.map((item) => `- ${item.title} x${item.quantity}: ${formatNairaForEmail(item.totalKobo)}`),
       "",
       `Subtotal: ${formatNairaForEmail(message.subtotalKobo)}`,
-      `Transaction fee: ${formatNairaForEmail(message.transactionFeeKobo)}`,
+      `Platform charge: ${formatNairaForEmail(message.transactionFeeKobo)}`,
       `Total paid: ${formatNairaForEmail(message.totalKobo)}`,
     ].join("\n"),
     html: emailShell(`
@@ -196,7 +196,7 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
               <td align="right" style="padding:14px 0 6px;font-size:14px;color:rgba(255,253,248,.62);">${formatNairaForEmail(message.subtotalKobo)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">Transaction fee</td>
+              <td style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">Platform charge</td>
               <td align="right" style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">${formatNairaForEmail(message.transactionFeeKobo)}</td>
             </tr>
             <tr>

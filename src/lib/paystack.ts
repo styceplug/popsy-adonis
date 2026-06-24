@@ -29,6 +29,12 @@ export async function initializePaystackTransaction(payload: {
     throw new Error("PAYSTACK_SECRET_KEY must be a valid Paystack secret key.");
   }
 
+  const adonisSubaccount = process.env.PAYSTACK_ADONIS_SUBACCOUNT_CODE;
+
+  if (!adonisSubaccount) {
+    throw new Error("PAYSTACK_ADONIS_SUBACCOUNT_CODE is not configured.");
+  }
+
   const response = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
     headers: {
@@ -41,12 +47,16 @@ export async function initializePaystackTransaction(payload: {
       reference: payload.reference,
       currency: "NGN",
       callback_url: `${getAppBaseUrl()}/checkout/success?reference=${payload.reference}`,
-      split_code: process.env.PAYSTACK_POPSY_ADONIS_SPLIT_CODE ?? process.env.PAYSTACK_ADONIS_SPLIT_CODE,
+      subaccount: adonisSubaccount,
+      transaction_charge: payload.developerFeeKobo,
       metadata: {
         orderId: payload.orderId,
         developerFeeKobo: payload.developerFeeKobo,
         adonisAmountKobo: payload.adonisAmountKobo,
         transactionFeeKobo: payload.transactionFeeKobo ?? payload.developerFeeKobo,
+        adonisSubaccount,
+        dreamSubaccount: process.env.PAYSTACK_DREAM_SUBACCOUNT_CODE,
+        splitCode: process.env.PAYSTACK_ADONIS_SPLIT_CODE,
       },
     }),
   });
@@ -55,7 +65,7 @@ export async function initializePaystackTransaction(payload: {
 
   if (!response.ok || !data.status) {
     const message = data.message === "Invalid key"
-      ? "Paystack rejected the secret key. Confirm or regenerate the test secret key in your Paystack dashboard."
+      ? "Paystack rejected the secret key. Confirm or regenerate the Paystack secret key in your dashboard."
       : data.message;
 
     throw new Error(message ?? "Unable to initialize Paystack transaction.");
