@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createAdminAuditLog } from "@/lib/admin-audit";
+import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import type { NextRequest } from "next/server";
 
 const validateTicketSchema = z.object({
   qrCode: z.string().min(16),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const session = getAdminSessionFromRequest(request);
+
+  if (!session) {
+    return NextResponse.json({ valid: false, message: "Admin session required." }, { status: 401 });
+  }
+
   const body = await request.json();
   const parsed = validateTicketSchema.safeParse(body);
 
@@ -35,10 +44,18 @@ export async function POST(request: Request) {
     data: { checkedInAt: new Date() },
   });
 
+  await createAdminAuditLog({
+    actorName: session.name,
+    action: "ticket.validate.legacy_success",
+    entityType: "Ticket",
+    entityId: ticket.id,
+    metadata: { qrCode: ticket.qrCode, eventId: ticket.eventId },
+    request,
+  });
+
   return NextResponse.json({
     valid: true,
     message: "Ticket validated.",
     ticket: updatedTicket,
   });
 }
-

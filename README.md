@@ -41,6 +41,8 @@ DEVELOPER_COMMISSION_BPS="500"
 RESEND_API_KEY="re_xxx"
 MAIL_FROM="Popsy Adonis <hello@popsyadonis.com>"
 MAIL_TO="adonistv.001@gmail.com"
+ADMIN_ACCESS_PASSWORD="Popsysummerparty"
+ADMIN_SESSION_SECRET="generate-a-long-random-secret"
 CLOUDINARY_CLOUD_NAME="xxx"
 CLOUDINARY_API_KEY="xxx"
 CLOUDINARY_API_SECRET="xxx"
@@ -63,6 +65,10 @@ CLOUDINARY_API_SECRET="xxx"
 - `/api/contact` - contact-form email notification endpoint
 - `/api/payments/paystack/webhook` - payment confirmation, inventory updates, QR ticket issuance
 - `/api/tickets/validate` - gate validation endpoint
+- `/admin/login` - staff/admin login
+- `/admin/checkin` - ticket scanner and manual check-in
+- `/admin/tickets` - ticket record lookup
+- `/admin/logs` - staff action audit logs
 
 ## Notes
 
