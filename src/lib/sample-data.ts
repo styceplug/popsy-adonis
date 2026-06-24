@@ -181,10 +181,10 @@ export const events: Event[] = [
     id: "event-summer-time-ekiti",
     title: "Summer Time in Ekiti",
     slug: "summer-time-in-ekiti",
-    venue: "To be announced",
+    venue: "Location to be announced soon",
     city: "Ekiti",
     startsAt: "2026-08-16T17:00:00.000Z",
-    displayDate: "Date to be announced",
+    displayDate: "Date to be announced soon",
     heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
     summary:
       "After the success of EKSU Fest 2.0, Popsy Adonis returns with a first-of-its-kind summer party in Ekiti. Expect free swimming, free piercing, free tattoo sessions, music, entertainment, and a crowd built for unforgettable campus memories.",
@@ -193,7 +193,7 @@ export const events: Event[] = [
       {
         id: "tier-summer-time-ekiti-early-bird",
         name: "Early Bird",
-        priceKobo: 20000,
+        priceKobo: 300000,
         perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
       },
     ],

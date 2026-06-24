@@ -112,7 +112,7 @@ async function main() {
       slug: "summer-time-in-ekiti",
       description:
         "A first-of-its-kind summer party in Ekiti with free swimming, piercing, tattoo sessions, music, entertainment, and unforgettable campus memories.",
-      venue: "To be announced",
+      venue: "Location to be announced soon",
       city: "Ekiti",
       startsAt: new Date("2026-08-16T17:00:00.000Z"),
       heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
@@ -120,7 +120,7 @@ async function main() {
         {
           id: "tier-summer-time-ekiti-early-bird",
           name: "Early Bird",
-          priceKobo: 20000,
+          priceKobo: 300000,
           capacity: 500,
           perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },
