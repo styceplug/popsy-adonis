@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import jsQR from "jsqr";
 import { Camera, CheckCircle2, Keyboard, RotateCcw, XCircle } from "lucide-react";
 
 type CheckInPayload = {
@@ -38,6 +39,7 @@ declare global {
 
 export function AdminCheckInPanel() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isScanningRef = useRef(false);
   const [code, setCode] = useState("");
@@ -96,11 +98,7 @@ export function AdminCheckInPanel() {
       streamRef.current = stream;
       setIsCameraActive(true);
 
-      if (!window.BarcodeDetector) {
-        setScannerNotice(
-          "Camera is open, but this browser cannot scan QR codes automatically. Paste the ticket URL or QR code manually.",
-        );
-      }
+      setScannerNotice("Scanner is active. Hold the ticket QR code inside the camera frame.");
     } catch (cameraError) {
       const errorName = cameraError instanceof DOMException ? cameraError.name : "";
 
@@ -128,17 +126,34 @@ export function AdminCheckInPanel() {
   }, [isCameraActive]);
 
   useEffect(() => {
-    if (!isCameraActive || !videoRef.current || !window.BarcodeDetector) return;
+    if (!isCameraActive || !videoRef.current) return;
 
     let cancelled = false;
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    const detector = window.BarcodeDetector ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
 
     async function scan() {
       if (cancelled || isScanningRef.current || !videoRef.current) return;
 
       try {
-        const barcodes = await detector.detect(videoRef.current);
-        const rawValue = barcodes[0]?.rawValue;
+        let rawValue = "";
+
+        if (detector) {
+          const barcodes = await detector.detect(videoRef.current);
+          rawValue = barcodes[0]?.rawValue ?? "";
+        } else {
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          const context = canvas?.getContext("2d", { willReadFrequently: true });
+
+          if (canvas && context && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+            rawValue = jsQR(frame.data, frame.width, frame.height)?.data ?? "";
+          }
+        }
 
         if (rawValue) {
           isScanningRef.current = true;
@@ -176,7 +191,10 @@ export function AdminCheckInPanel() {
       <div className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
         <div className="aspect-video overflow-hidden rounded-ui border border-white/10 bg-ink">
           {isCameraActive ? (
-            <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+            <>
+              <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+              <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+            </>
           ) : (
             <div className="grid h-full place-items-center text-center">
               <div>
