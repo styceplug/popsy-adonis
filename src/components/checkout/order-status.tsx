@@ -35,9 +35,14 @@ export function OrderStatus({ reference }: { reference?: string }) {
     let cancelled = false;
 
     async function loadOrderStatus() {
-      await fetch(`/api/payments/paystack/verify/${reference}`, {
+      const verifyResponse = await fetch(`/api/payments/paystack/verify/${reference}`, {
         method: "POST",
-      }).catch(() => undefined);
+      });
+
+      if (!verifyResponse.ok) {
+        const verifyPayload = await verifyResponse.json().catch(() => null);
+        throw new Error(verifyPayload?.message ?? "Unable to verify payment with Paystack.");
+      }
 
       const response = await fetch(`/api/orders/${reference}`);
       const payload = await response.json();

@@ -9,37 +9,45 @@ export async function POST(
 ) {
   const { reference } = await params;
 
-  const transaction = await prisma.transaction.findUnique({
-    where: { reference },
-    select: { status: true },
-  });
-
-  if (!transaction) {
-    return NextResponse.json({ message: "Transaction not found." }, { status: 404 });
-  }
-
-  if (transaction.status === "SUCCESS") {
-    return NextResponse.json({ verified: true, fulfilled: false, reason: "Already fulfilled." });
-  }
-
-  const paystackTransaction = await verifyPaystackTransaction(reference);
-
-  if (paystackTransaction.status !== "success") {
-    return NextResponse.json({
-      verified: false,
-      status: paystackTransaction.status,
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { reference },
+      select: { status: true },
     });
+
+    if (!transaction) {
+      return NextResponse.json({ message: "Transaction not found." }, { status: 404 });
+    }
+
+    if (transaction.status === "SUCCESS") {
+      return NextResponse.json({ verified: true, fulfilled: false, reason: "Already fulfilled." });
+    }
+
+    const paystackTransaction = await verifyPaystackTransaction(reference);
+
+    if (paystackTransaction.status !== "success") {
+      return NextResponse.json({
+        verified: false,
+        status: paystackTransaction.status,
+      });
+    }
+
+    const fulfillment = await fulfillSuccessfulTransaction(
+      reference,
+      { event: "manual.verify.success", data: paystackTransaction },
+      paystackTransaction.paid_at,
+    );
+
+    return NextResponse.json({
+      verified: true,
+      ...fulfillment,
+    });
+  } catch (error) {
+    console.error("Unable to verify Paystack transaction", error);
+
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Unable to verify payment." },
+      { status: 502 },
+    );
   }
-
-  const fulfillment = await fulfillSuccessfulTransaction(
-    reference,
-    { event: "manual.verify.success", data: paystackTransaction },
-    paystackTransaction.paid_at,
-  );
-
-  return NextResponse.json({
-    verified: true,
-    ...fulfillment,
-  });
 }
-

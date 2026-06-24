@@ -132,6 +132,9 @@ export async function POST(request: Request) {
       });
 
       return { order, transaction };
+    }, {
+      maxWait: 10_000,
+      timeout: 20_000,
     });
 
     const paystack = await initializePaystackTransaction({
