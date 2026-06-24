@@ -42,6 +42,7 @@ export function AdminLoginForm() {
           onChange={(event) => setName(event.target.value)}
           className="h-12 rounded-ui border border-white/10 bg-ink px-4 text-paper"
           placeholder="Staff name"
+          suppressHydrationWarning
         />
       </label>
       <label className="grid gap-2 text-sm font-bold text-paper/72">
@@ -52,6 +53,7 @@ export function AdminLoginForm() {
           className="h-12 rounded-ui border border-white/10 bg-ink px-4 text-paper"
           placeholder="Admin password"
           type="password"
+          suppressHydrationWarning
           onKeyDown={(event) => {
             if (event.key === "Enter") login();
           }}

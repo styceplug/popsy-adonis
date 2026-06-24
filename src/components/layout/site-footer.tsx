@@ -5,7 +5,7 @@ import { brand } from "@/lib/sample-data";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-ink">
+    <footer data-site-footer className="border-t border-white/10 bg-ink">
       <div className="section-shell py-14">
         <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[1.35fr_.65fr_.65fr_.85fr]">
           <div>

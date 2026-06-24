@@ -17,7 +17,7 @@ export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-ink/80 backdrop-blur-xl">
+    <header data-site-header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-ink/80 backdrop-blur-xl">
       <div className="section-shell flex h-16 items-center justify-between">
         <Link href="/" className="font-display text-xl font-black uppercase text-paper" onClick={() => setIsOpen(false)}>
           {brand.siteName}

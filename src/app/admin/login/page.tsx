@@ -7,6 +7,15 @@ export const metadata = {
 export default function AdminLoginPage() {
   return (
     <main className="min-h-screen bg-ink text-paper">
+      <style>
+        {`
+          [data-site-header],
+          [data-site-footer],
+          [data-cart-link] {
+            display: none !important;
+          }
+        `}
+      </style>
       <section className="section-shell flex min-h-screen items-center justify-center py-16">
         <div className="w-full max-w-md rounded-ui border border-white/10 bg-white/[0.035] p-6">
           <p className="text-xs font-black uppercase text-gold">Popsy Adonis Admin</p>

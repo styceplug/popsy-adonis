@@ -12,6 +12,7 @@ export function CartLink() {
 
   return (
     <Link
+      data-cart-link
       href="/checkout"
       className="focus-ring fixed bottom-5 right-5 z-50 inline-flex h-14 items-center gap-3 rounded-ui bg-gold px-5 text-sm font-black text-ink shadow-[0_18px_60px_rgba(0,0,0,.35)] transition hover:bg-paper"
     >

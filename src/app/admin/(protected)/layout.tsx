@@ -15,6 +15,15 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
 
   return (
     <main className="min-h-screen bg-ink text-paper">
+      <style>
+        {`
+          [data-site-header],
+          [data-site-footer],
+          [data-cart-link] {
+            display: none !important;
+          }
+        `}
+      </style>
       <div className="section-shell py-6">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div>

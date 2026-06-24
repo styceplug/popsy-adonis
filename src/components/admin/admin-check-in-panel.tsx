@@ -43,6 +43,7 @@ export function AdminCheckInPanel() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState<CheckInPayload | null>(null);
   const [error, setError] = useState("");
+  const [scannerNotice, setScannerNotice] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,33 +70,62 @@ export function AdminCheckInPanel() {
     setResult(payload);
   }, [isSubmitting]);
 
-  async function startCamera() {
-    setError("");
-
-    if (!window.BarcodeDetector) {
-      setError("This browser does not support camera QR scanning. Use manual entry on this device.");
-      return;
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false,
-    });
-    streamRef.current = stream;
-    setIsCameraActive(true);
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
-    }
-  }
-
-  function stopCamera() {
+  const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     isScanningRef.current = false;
     setIsCameraActive(false);
+    setScannerNotice("");
+  }, []);
+
+  async function startCamera() {
+    setError("");
+    setScannerNotice("");
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera access needs HTTPS or localhost. Open the live check-in domain, use localhost, or enter the ticket manually.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+      setIsCameraActive(true);
+
+      if (!window.BarcodeDetector) {
+        setScannerNotice(
+          "Camera is open, but this browser cannot scan QR codes automatically. Paste the ticket URL or QR code manually.",
+        );
+      }
+    } catch (cameraError) {
+      const errorName = cameraError instanceof DOMException ? cameraError.name : "";
+
+      if (errorName === "NotAllowedError") {
+        setError("Camera permission was blocked. Allow camera access in the browser, then start the scanner again.");
+        return;
+      }
+
+      if (errorName === "NotFoundError") {
+        setError("No usable camera was found on this device. Use manual entry instead.");
+        return;
+      }
+
+      setError("Camera could not start. Use HTTPS, localhost, or the live check-in domain, then try again.");
+    }
   }
+
+  useEffect(() => {
+    if (!isCameraActive || !videoRef.current || !streamRef.current) return;
+
+    videoRef.current.srcObject = streamRef.current;
+    videoRef.current.play().catch(() => {
+      setError("Camera opened, but the video preview could not start. Try refreshing this admin page.");
+    });
+  }, [isCameraActive]);
 
   useEffect(() => {
     if (!isCameraActive || !videoRef.current || !window.BarcodeDetector) return;
@@ -129,9 +159,9 @@ export function AdminCheckInPanel() {
     return () => {
       cancelled = true;
     };
-  }, [checkIn, isCameraActive]);
+  }, [checkIn, isCameraActive, stopCamera]);
 
-  useEffect(() => () => stopCamera(), []);
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
   const statusStyles = {
     success: "border-gold/40 bg-gold/10 text-gold",
@@ -171,6 +201,7 @@ export function AdminCheckInPanel() {
               setCode("");
               setResult(null);
               setError("");
+              setScannerNotice("");
             }}
             className="focus-ring inline-flex h-11 items-center gap-2 rounded-ui border border-white/12 px-4 text-sm font-black text-paper/68 transition hover:border-paper hover:text-paper"
           >
@@ -178,6 +209,9 @@ export function AdminCheckInPanel() {
             Reset
           </button>
         </div>
+        {scannerNotice ? (
+          <p className="mt-4 rounded-ui border border-gold/35 bg-gold/10 p-3 text-sm text-gold">{scannerNotice}</p>
+        ) : null}
         {error ? <p className="mt-4 rounded-ui border border-lava/40 bg-lava/10 p-3 text-sm text-lava">{error}</p> : null}
       </div>
 
