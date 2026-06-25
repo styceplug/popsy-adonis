@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardCheck, ScrollText, Ticket } from "lucide-react";
+import { ClipboardCheck, Mail, ScrollText, Ticket } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = {
@@ -16,21 +16,24 @@ export default async function AdminDashboardPage() {
       count: () => Promise<number>;
     };
   }).adminAuditLog;
-  const [ticketCount, checkedInCount, logCount] = await Promise.all([
+  const [ticketCount, checkedInCount, subscriberCount, logCount] = await Promise.all([
     prisma.ticket.count(),
     prisma.ticket.count({ where: { checkedInAt: { not: null } } }),
+    prisma.waitlistSubscriber.count({ where: { isActive: true } }),
     auditLogDelegate?.count().catch(() => 0) ?? Promise.resolve(0),
   ]);
 
   const stats = [
     { label: "Tickets issued", value: ticketCount },
     { label: "Checked in", value: checkedInCount },
+    { label: "Subscribers", value: subscriberCount },
     { label: "Audit logs", value: logCount },
   ];
 
   const actions = [
     { label: "Open scanner", href: "/admin/checkin", icon: ClipboardCheck },
     { label: "View tickets", href: "/admin/tickets", icon: Ticket },
+    { label: "Mail subscribers", href: "/admin/subscribers", icon: Mail },
     { label: "View logs", href: "/admin/logs", icon: ScrollText },
   ];
 
@@ -38,7 +41,7 @@ export default async function AdminDashboardPage() {
     <div>
       <p className="text-xs font-black uppercase text-gold">Overview</p>
       <h2 className="mt-2 font-display text-5xl font-black">Admin dashboard</h2>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
             <p className="font-display text-4xl font-black">{stat.value}</p>
@@ -46,7 +49,7 @@ export default async function AdminDashboardPage() {
           </div>
         ))}
       </div>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
         {actions.map((action) => {
           const Icon = action.icon;
           return (

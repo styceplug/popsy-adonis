@@ -13,6 +13,7 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number>(0);
   const isDraggingRef = useRef<boolean>(false);
@@ -81,18 +82,35 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "PA_FLUX" }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(payload?.message ?? "Unable to join the list.");
+      }
+
       setIsSubmitted(true);
-      setIsLoading(false);
       setTimeout(() => {
         onClose();
         setEmail("");
         setIsSubmitted(false);
+        setError("");
       }, 3000);
-    }, 1500);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Unable to join the list.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -190,6 +208,7 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
                 <p className="mt-3 text-xs text-ink/40">
                   No spam, just the drop date and early access.
                 </p>
+                {error ? <p className="mt-3 rounded-ui bg-lava/10 p-3 text-xs font-bold text-lava">{error}</p> : null}
               </form>
             ) : (
               <div className="mt-6 flex items-center gap-3 rounded-ui bg-emerald-50 p-3 text-emerald-700">

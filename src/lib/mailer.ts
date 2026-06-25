@@ -33,6 +33,12 @@ type TicketMessage = ReceiptMessage & {
   }>;
 };
 
+type SubscriberBroadcastMessage = {
+  to: string;
+  subject: string;
+  message: string;
+};
+
 async function sendEmail(payload: {
   to: string;
   subject: string;
@@ -132,6 +138,15 @@ function emailShell(content: string) {
 
 function ctaButton(label: string, href: string) {
   return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#c8a24a;color:#050505;text-decoration:none;font-size:14px;font-weight:900;padding:14px 18px;border-radius:8px;">${escapeHtml(label)}</a>`;
+}
+
+function paragraphsToHtml(message: string) {
+  return message
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => `<p style="margin:0 0 16px;font-size:14px;line-height:23px;color:rgba(255,253,248,.72);">${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`)
+    .join("");
 }
 
 export async function sendContactMessage(message: ContactMessage) {
@@ -270,6 +285,30 @@ export async function sendTicketReceipt(message: TicketMessage) {
           ${ticketsHtml}
           <div style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:13px;line-height:20px;color:#f5f0e8;">
             Total paid: <strong>${formatNairaForEmail(message.totalKobo)}</strong>. Keep this email available on arrival.
+          </div>
+        </td>
+      </tr>`),
+  });
+}
+
+export async function sendSubscriberBroadcast(message: SubscriberBroadcastMessage) {
+  return sendEmail({
+    to: message.to,
+    subject: message.subject,
+    text: [
+      message.message,
+      "",
+      "You are receiving this because you joined the PA FLUX early access list.",
+      "To unsubscribe, reply to this email with UNSUBSCRIBE.",
+    ].join("\n"),
+    html: emailShell(`
+      <tr>
+        <td style="padding:28px;">
+          <div style="font-size:13px;font-weight:800;color:#c8a24a;text-transform:uppercase;letter-spacing:.08em;">PA FLUX update</div>
+          <h1 style="margin:8px 0 18px;font-size:28px;line-height:1.15;color:#fffdf8;">${escapeHtml(message.subject)}</h1>
+          ${paragraphsToHtml(message.message)}
+          <div style="margin-top:22px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:12px;line-height:19px;color:rgba(255,253,248,.62);">
+            You are receiving this because you joined the PA FLUX early access list. To unsubscribe, reply with <strong style="color:#fffdf8;">UNSUBSCRIBE</strong>.
           </div>
         </td>
       </tr>`),
