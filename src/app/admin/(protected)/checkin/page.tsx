@@ -2,6 +2,10 @@ import { AdminCheckInPanel } from "@/components/admin/admin-check-in-panel";
 
 export const metadata = {
   title: "Check In | Popsy Adonis Admin",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AdminCheckInPage() {

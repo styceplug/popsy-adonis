@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "Audit Logs | Popsy Adonis Admin",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminLogsPage({

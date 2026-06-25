@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { aboutCopy, brand, songs } from "@/lib/sample-data";
+
+export const metadata: Metadata = {
+  title: "About Popsy Adonis | EKSU Media, Music & Culture",
+  description:
+    "Learn about Popsy Adonis, the EKSU-rooted media, music, events, and entertainment platform shaping student culture in Ekiti and beyond.",
+  alternates: {
+    canonical: "/about",
+  },
+};
 
 export default function AboutPage() {
   return (

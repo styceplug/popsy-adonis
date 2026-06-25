@@ -2,6 +2,10 @@ import { AdminLoginForm } from "@/components/admin/admin-login-form";
 
 export const metadata = {
   title: "Admin Login | Popsy Adonis",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AdminLoginPage() {

@@ -1,10 +1,48 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AddProductToCart } from "@/components/commerce/add-product-to-cart";
 import { formatNaira } from "@/lib/format-money";
 import { products } from "@/lib/sample-data";
 
+const SITE_URL = "https://popsyadonis.com";
+
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const product = products.find((item) => item.slug === slug);
+
+  if (!product) {
+    return {
+      title: "PA FLUX Product Not Found | Popsy Adonis",
+    };
+  }
+
+  const title = `${product.name} | PA FLUX`;
+  const imageUrl = `${SITE_URL}${product.images[0]}`;
+
+  return {
+    title,
+    description: product.description,
+    alternates: {
+      canonical: `/merch/${product.slug}`,
+    },
+    openGraph: {
+      type: "website",
+      url: `${SITE_URL}/merch/${product.slug}`,
+      title,
+      description: product.description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: product.description,
+      images: [imageUrl],
+    },
+  };
 }
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {

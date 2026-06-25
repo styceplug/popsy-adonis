@@ -1,8 +1,46 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { posts } from "@/lib/sample-data";
 
+const SITE_URL = "https://popsyadonis.com";
+
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = posts.find((item) => item.slug === slug);
+
+  if (!post) {
+    return {
+      title: "Post Not Found | Popsy Adonis",
+    };
+  }
+
+  const title = `${post.title} | Popsy Adonis`;
+  const imageUrl = `${SITE_URL}${post.coverImage}`;
+
+  return {
+    title,
+    description: post.excerpt,
+    alternates: {
+      canonical: `/trends/${post.slug}`,
+    },
+    openGraph: {
+      type: "article",
+      url: `${SITE_URL}/trends/${post.slug}`,
+      title,
+      description: post.excerpt,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: post.excerpt,
+      images: [imageUrl],
+    },
+  };
 }
 
 export default async function TrendDetailPage({ params }: { params: Promise<{ slug: string }> }) {

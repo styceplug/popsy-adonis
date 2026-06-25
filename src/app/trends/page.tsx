@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { PostCard } from "@/components/trends/post-card";
 import { posts } from "@/lib/sample-data";
+
+export const metadata: Metadata = {
+  title: "Trends & Promotions | Popsy Adonis",
+  description:
+    "Read Popsy Adonis culture updates, event announcements, music releases, promotional drops, and EKSU entertainment stories.",
+  alternates: {
+    canonical: "/trends",
+  },
+};
 
 export default function TrendsPage() {
   return (
@@ -19,4 +29,3 @@ export default function TrendsPage() {
     </main>
   );
 }
-

@@ -21,6 +21,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     qrImageHttpUrl?: string;
     ticketUrl: string;
   }> = [];
+  let createdTicketsCount = 0;
   const transaction = await prisma.transaction.findUnique({
     where: { reference },
     include: { order: { include: { items: true } } },
@@ -30,9 +31,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     return { fulfilled: false, reason: "Transaction not found." };
   }
 
-  if (transaction.status === "SUCCESS") {
-    return { fulfilled: false, reason: "Transaction already fulfilled." };
-  }
+  const wasAlreadySuccessful = transaction.status === "SUCCESS";
 
   const receipt = {
     to: transaction.order.email,
@@ -47,22 +46,26 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     })),
   };
 
-  await prisma.transaction.update({
-    where: { reference },
-    data: {
-      status: "SUCCESS",
-      paidAt: paidAt ? new Date(paidAt) : new Date(),
-      gatewayResponse: gatewayResponse as object,
-    },
-  });
+  if (!wasAlreadySuccessful) {
+    await prisma.transaction.update({
+      where: { reference },
+      data: {
+        status: "SUCCESS",
+        paidAt: paidAt ? new Date(paidAt) : new Date(),
+        gatewayResponse: gatewayResponse as object,
+      },
+    });
+  }
 
-  await prisma.order.update({
-    where: { id: transaction.orderId },
-    data: { status: "PAID" },
-  });
+  if (transaction.order.status !== "PAID" && transaction.order.status !== "FULFILLED") {
+    await prisma.order.update({
+      where: { id: transaction.orderId },
+      data: { status: "PAID" },
+    });
+  }
 
   for (const item of transaction.order.items) {
-    if (item.itemType === "product" && item.variantId) {
+    if (!wasAlreadySuccessful && item.itemType === "product" && item.variantId) {
       await prisma.productVariant.update({
         where: { id: item.variantId },
         data: { stock: { decrement: item.quantity } },
@@ -139,6 +142,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
             },
           },
         });
+        createdTicketsCount += 1;
 
         issuedTickets.push({
           eventTitle: ticket.event.title,
@@ -154,15 +158,21 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     }
   }
 
-  await sendPurchaseReceipt(receipt).catch((mailError) => {
-    console.error("Unable to send purchase receipt", mailError);
-  });
+  if (!wasAlreadySuccessful) {
+    await sendPurchaseReceipt(receipt).catch((mailError) => {
+      console.error("Unable to send purchase receipt", mailError);
+    });
+  }
 
-  if (issuedTickets.length > 0) {
+  if (issuedTickets.length > 0 && (!wasAlreadySuccessful || createdTicketsCount > 0)) {
     await sendTicketReceipt({ ...receipt, tickets: issuedTickets }).catch((mailError) => {
       console.error("Unable to send ticket receipt", mailError);
     });
   }
 
-  return { fulfilled: true, ticketsIssued: issuedTickets.length };
+  return {
+    fulfilled: true,
+    alreadySuccessful: wasAlreadySuccessful,
+    ticketsIssued: createdTicketsCount || issuedTickets.length,
+  };
 }

@@ -30,9 +30,14 @@ export async function initializePaystackTransaction(payload: {
   }
 
   const adonisSubaccount = process.env.PAYSTACK_ADONIS_SUBACCOUNT_CODE;
+  const dreamSubaccount = process.env.PAYSTACK_DREAM_SUBACCOUNT_CODE;
 
   if (!adonisSubaccount) {
     throw new Error("PAYSTACK_ADONIS_SUBACCOUNT_CODE is not configured.");
+  }
+
+  if (!dreamSubaccount) {
+    throw new Error("PAYSTACK_DREAM_SUBACCOUNT_CODE is not configured.");
   }
 
   const response = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -47,16 +52,29 @@ export async function initializePaystackTransaction(payload: {
       reference: payload.reference,
       currency: "NGN",
       callback_url: `${getAppBaseUrl()}/checkout/success?reference=${payload.reference}`,
-      subaccount: adonisSubaccount,
-      transaction_charge: payload.developerFeeKobo,
+      split: {
+        type: "flat",
+        bearer_type: "all",
+        subaccounts: [
+          {
+            subaccount: adonisSubaccount,
+            share: payload.adonisAmountKobo,
+          },
+          {
+            subaccount: dreamSubaccount,
+            share: payload.developerFeeKobo,
+          },
+        ],
+      },
       metadata: {
         orderId: payload.orderId,
         developerFeeKobo: payload.developerFeeKobo,
         adonisAmountKobo: payload.adonisAmountKobo,
         transactionFeeKobo: payload.transactionFeeKobo ?? payload.developerFeeKobo,
         adonisSubaccount,
-        dreamSubaccount: process.env.PAYSTACK_DREAM_SUBACCOUNT_CODE,
+        dreamSubaccount,
         splitCode: process.env.PAYSTACK_ADONIS_SPLIT_CODE,
+        splitType: "dynamic_flat",
       },
     }),
   });

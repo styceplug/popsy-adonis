@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Past Events Archive | Popsy Adonis",
   description:
     "A full archive of Popsy Adonis events — EKSU Fest 1.0 & 2.0, house parties, hangouts, football competitions, birthday activations, and campus experiences in Ekiti and Lagos.",
+  alternates: {
+    canonical: "/events/archive",
+  },
   openGraph: {
     type: "website",
     url: "https://popsyadonis.com/events/archive",

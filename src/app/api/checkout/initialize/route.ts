@@ -127,7 +127,7 @@ export async function POST(request: Request) {
           developerFeeKobo,
           adonisAmountKobo,
           transactionFeeKobo,
-          splitCode: process.env.PAYSTACK_ADONIS_SUBACCOUNT_CODE,
+          splitCode: "dynamic_flat",
         },
       });
 

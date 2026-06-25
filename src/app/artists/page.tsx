@@ -1,6 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { artists, brand } from "@/lib/sample-data";
+
+export const metadata: Metadata = {
+  title: "Artists Catalog | Popsy Adonis",
+  description:
+    "Explore the Popsy Adonis artists catalog: musicians, performers, DJs, collaborators, and campus culture talent available for bookings and promotions.",
+  alternates: {
+    canonical: "/artists",
+  },
+};
 
 export default function ArtistsPage() {
   return (
@@ -41,4 +51,3 @@ export default function ArtistsPage() {
     </main>
   );
 }
-

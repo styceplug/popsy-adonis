@@ -1,9 +1,48 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { artists } from "@/lib/sample-data";
 
+const SITE_URL = "https://popsyadonis.com";
+
 export function generateStaticParams() {
   return artists.map((artist) => ({ slug: artist.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const artist = artists.find((item) => item.slug === slug);
+
+  if (!artist) {
+    return {
+      title: "Artist Not Found | Popsy Adonis",
+    };
+  }
+
+  const title = `${artist.name} | Popsy Adonis Artists Catalog`;
+  const description = `${artist.name} is a ${artist.role} connected to the Popsy Adonis culture network. ${artist.bio}`;
+  const imageUrl = `${SITE_URL}${artist.image}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/artists/${artist.slug}`,
+    },
+    openGraph: {
+      type: "profile",
+      url: `${SITE_URL}/artists/${artist.slug}`,
+      title,
+      description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: artist.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
 }
 
 export default async function ArtistDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -57,4 +96,3 @@ export default async function ArtistDetailPage({ params }: { params: Promise<{ s
     </main>
   );
 }
-

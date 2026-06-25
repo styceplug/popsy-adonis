@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "Admin | Popsy Adonis",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminDashboardPage() {

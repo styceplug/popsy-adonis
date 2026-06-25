@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "Tickets | Popsy Adonis Admin",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminTicketsPage({
@@ -27,6 +31,7 @@ export default async function AdminTicketsPage({
               { attendeeEmail: { contains: query, mode: "insensitive" } },
               { event: { title: { contains: query, mode: "insensitive" } } },
               { order: { email: { contains: query, mode: "insensitive" } } },
+              { order: { phone: { contains: query, mode: "insensitive" } } },
               { order: { transaction: { reference: { contains: query, mode: "insensitive" } } } },
             ],
           }
@@ -55,7 +60,7 @@ export default async function AdminTicketsPage({
             name="q"
             defaultValue={query}
             className="h-11 w-full rounded-ui border border-white/10 bg-ink pl-10 pr-3 text-sm text-paper"
-            placeholder="Search name, email, QR, reference, event"
+            placeholder="Search name, email, phone, QR, reference, event"
           />
         </label>
         <select
@@ -87,6 +92,7 @@ export default async function AdminTicketsPage({
                 <div>
                   <p className="font-black text-paper">{ticket.attendeeName ?? "Guest"}</p>
                   <p className="mt-1 text-xs text-paper/45">{ticket.attendeeEmail ?? ticket.order.email}</p>
+                  <p className="mt-1 text-xs text-paper/45">{ticket.order.phone || "No phone number"}</p>
                   <Link href={`/tickets/${ticket.qrCode}`} target="_blank" className="mt-2 inline-flex text-xs font-black text-gold">
                     Open ticket
                   </Link>

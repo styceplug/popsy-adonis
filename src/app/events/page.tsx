@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
   description:
     "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets on sale now at ₦3,000. Campus parties, festivals, and live experiences.",
+  alternates: {
+    canonical: "/events",
+  },
   openGraph: {
     type: "website",
     url: "https://popsyadonis.com/events",

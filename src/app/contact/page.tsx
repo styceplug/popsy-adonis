@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
 import { SocialLinks } from "@/components/layout/social-links";
 import { brand } from "@/lib/sample-data";
+
+export const metadata: Metadata = {
+  title: "Contact & Bookings | Popsy Adonis",
+  description:
+    "Contact Popsy Adonis for event hosting, artist bookings, music promotions, brand activations, PA FLUX, and culture partnerships.",
+  alternates: {
+    canonical: "/contact",
+  },
+};
 
 export default function ContactPage() {
   return (
