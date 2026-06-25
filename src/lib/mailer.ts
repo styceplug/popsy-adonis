@@ -1,3 +1,5 @@
+import nodemailer from "nodemailer";
+
 type ContactMessage = {
   name: string;
   email: string;
@@ -45,10 +47,30 @@ async function sendEmail(payload: {
   text: string;
   html?: string;
 }) {
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT ?? 587),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    return transporter.sendMail({
+      from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
+      to: payload.to,
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
+  }
+
   if (!process.env.RESEND_API_KEY) {
     return {
       skipped: true,
-      reason: "RESEND_API_KEY is not configured.",
+      reason: "No mail provider is configured. Add SMTP credentials or RESEND_API_KEY.",
     };
   }
 

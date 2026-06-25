@@ -158,7 +158,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     }
   }
 
-  if (!wasAlreadySuccessful) {
+  if (!wasAlreadySuccessful && issuedTickets.length === 0) {
     await sendPurchaseReceipt(receipt).catch((mailError) => {
       console.error("Unable to send purchase receipt", mailError);
     });

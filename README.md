@@ -39,6 +39,11 @@ PAYSTACK_DREAM_SUBACCOUNT_CODE="ACCT_xxx"
 PAYSTACK_ADONIS_SPLIT_CODE="SPL_xxx"
 DEVELOPER_COMMISSION_BPS="500"
 RESEND_API_KEY="re_xxx"
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="hello@popsyadonis.com"
+SMTP_PASS="smtp-password"
 MAIL_FROM="Popsy Adonis <hello@popsyadonis.com>"
 MAIL_TO="adonistv.001@gmail.com"
 ADMIN_ACCESS_PASSWORD="Popsysummerparty"
@@ -77,7 +82,7 @@ The current public pages use sample data in `src/lib/sample-data.ts`. Checkout u
 ## Third-Party Setup Roadmap
 
 1. **Payments:** create a Paystack business account, add Adonis as a subaccount, then place the Adonis subaccount code in `PAYSTACK_ADONIS_SUBACCOUNT_CODE`. Checkout sends `transaction_charge` dynamically so Dream receives 5% capped at ₦5,000 and Adonis receives the balance.
-2. **Mail:** create a Resend account, verify the sending domain, add `RESEND_API_KEY`, then send purchase receipts, QR ticket emails, order confirmations, and contact-form notifications.
+2. **Mail:** configure SMTP credentials for Nodemailer using `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS`. Resend remains supported as a fallback through `RESEND_API_KEY`. Ticket orders send one QR email to reduce quota usage.
 3. **Media:** create a Cloudinary account for artist photos, event galleries, recap thumbnails, product images, and CMS media.
 4. **Database:** provision PostgreSQL, set `DATABASE_URL`, run Prisma migrations, and seed posts/events/products/artists.
 5. **Operations:** optionally add WhatsApp Business API for booking alerts and ticket support.
