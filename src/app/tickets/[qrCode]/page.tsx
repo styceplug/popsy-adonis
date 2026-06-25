@@ -20,10 +20,12 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
 
   if (!ticket) notFound();
 
-  const date = new Intl.DateTimeFormat("en-NG", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(ticket.event.startsAt);
+  const date = ticket.event.slug === "summer-time-in-ekiti"
+    ? "Date to be announced soon"
+    : new Intl.DateTimeFormat("en-NG", {
+        dateStyle: "full",
+        timeStyle: "short",
+      }).format(ticket.event.startsAt);
   const isPaid = ticket.order.status === "PAID" || ticket.order.transaction?.status === "SUCCESS";
   const hasCheckedIn = Boolean(ticket.checkedInAt);
 
@@ -93,4 +95,3 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
     </main>
   );
 }
-

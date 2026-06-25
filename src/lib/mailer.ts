@@ -213,8 +213,8 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
       ...message.items.map((item) => `- ${item.title} x${item.quantity}: ${formatNairaForEmail(item.totalKobo)}`),
       "",
       `Subtotal: ${formatNairaForEmail(message.subtotalKobo)}`,
-      `Platform charge: ${formatNairaForEmail(message.transactionFeeKobo)}`,
-      `Total paid: ${formatNairaForEmail(message.totalKobo)}`,
+      `Transaction Fee: ${formatNairaForEmail(message.transactionFeeKobo)}`,
+      `Total Payable: ${formatNairaForEmail(message.totalKobo)}`,
     ].join("\n"),
     html: emailShell(`
       <tr>
@@ -233,11 +233,11 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
               <td align="right" style="padding:14px 0 6px;font-size:14px;color:rgba(255,253,248,.62);">${formatNairaForEmail(message.subtotalKobo)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">Platform charge</td>
+              <td style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">Transaction Fee</td>
               <td align="right" style="padding:6px 0;font-size:14px;color:rgba(255,253,248,.62);">${formatNairaForEmail(message.transactionFeeKobo)}</td>
             </tr>
             <tr>
-              <td style="padding:14px 0 0;font-size:18px;font-weight:900;color:#fffdf8;">Total paid</td>
+              <td style="padding:14px 0 0;font-size:18px;font-weight:900;color:#fffdf8;">Total Payable</td>
               <td align="right" style="padding:14px 0 0;font-size:18px;font-weight:900;color:#fffdf8;">${formatNairaForEmail(message.totalKobo)}</td>
             </tr>
           </table>
@@ -293,7 +293,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
           .join("\n"),
       ),
       "",
-      `Total paid: ${formatNairaForEmail(message.totalKobo)}`,
+      `Total Payable: ${formatNairaForEmail(message.totalKobo)}`,
       "",
       "Show the QR code at the gate for validation.",
     ].join("\n"),
@@ -306,7 +306,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
           <div style="font-family:Consolas,monospace;font-size:12px;color:rgba(255,253,248,.5);margin-bottom:18px;">${escapeHtml(message.reference)}</div>
           ${ticketsHtml}
           <div style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:13px;line-height:20px;color:#f5f0e8;">
-            Total paid: <strong>${formatNairaForEmail(message.totalKobo)}</strong>. Keep this email available on arrival.
+            Total Payable: <strong>${formatNairaForEmail(message.totalKobo)}</strong>. Keep this email available on arrival.
           </div>
         </td>
       </tr>`),

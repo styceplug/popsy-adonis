@@ -5,7 +5,7 @@ import {
   initializePaystackTransaction,
   makePaymentReference,
 } from "@/lib/paystack";
-import { calculateTransactionFee } from "@/lib/fees";
+import { calculateTicketPaymentBreakdown } from "@/lib/fees";
 import { prisma } from "@/lib/prisma";
 
 const checkoutSchema = z.object({
@@ -101,9 +101,15 @@ export async function POST(request: Request) {
       }
 
       const subtotalKobo = orderItems.reduce((sum, item) => sum + item.totalKobo, 0);
-      const transactionFeeKobo = calculateTransactionFee(subtotalKobo);
-      const developerFeeKobo = transactionFeeKobo;
-      const adonisAmountKobo = subtotalKobo;
+      const ticketSubtotalKobo = orderItems
+        .filter((item) => item.itemType === "ticket")
+        .reduce((sum, item) => sum + item.totalKobo, 0);
+      const productSubtotalKobo = subtotalKobo - ticketSubtotalKobo;
+      const breakdown = calculateTicketPaymentBreakdown(ticketSubtotalKobo);
+      const transactionFeeKobo = breakdown.transactionFeeKobo;
+      const developerFeeKobo = breakdown.dreamAmountKobo;
+      const adonisAmountKobo = productSubtotalKobo + breakdown.adonisAmountKobo;
+      const organizerCommissionKobo = breakdown.organizerCommissionKobo;
       const totalKobo = subtotalKobo + transactionFeeKobo;
 
       const order = await tx.order.create({
@@ -127,6 +133,12 @@ export async function POST(request: Request) {
           developerFeeKobo,
           adonisAmountKobo,
           transactionFeeKobo,
+          gatewayResponse: {
+            ticketSubtotalKobo,
+            productSubtotalKobo,
+            organizerCommissionKobo,
+            dreamGrossKobo: developerFeeKobo,
+          },
           splitCode: "dynamic_flat",
         },
       });
@@ -145,6 +157,12 @@ export async function POST(request: Request) {
       developerFeeKobo: result.transaction.developerFeeKobo,
       adonisAmountKobo: result.transaction.adonisAmountKobo,
       transactionFeeKobo: result.transaction.transactionFeeKobo,
+      organizerCommissionKobo:
+        typeof result.transaction.gatewayResponse === "object" &&
+        result.transaction.gatewayResponse &&
+        "organizerCommissionKobo" in result.transaction.gatewayResponse
+          ? Number(result.transaction.gatewayResponse.organizerCommissionKobo)
+          : undefined,
     });
 
     await prisma.transaction.update({

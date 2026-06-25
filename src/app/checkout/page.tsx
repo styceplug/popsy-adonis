@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
-import { calculateTransactionFee } from "@/lib/fees";
+import { calculateTicketPaymentBreakdown } from "@/lib/fees";
 import { formatNaira } from "@/lib/format-money";
 
 export default function CheckoutPage() {
@@ -14,7 +14,12 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const transactionFeeKobo = useMemo(() => calculateTransactionFee(subtotalKobo), [subtotalKobo]);
+  const ticketSubtotalKobo = useMemo(
+    () => items.filter((item) => item.type === "ticket").reduce((sum, item) => sum + item.unitKobo * item.quantity, 0),
+    [items],
+  );
+  const feeBreakdown = useMemo(() => calculateTicketPaymentBreakdown(ticketSubtotalKobo), [ticketSubtotalKobo]);
+  const transactionFeeKobo = feeBreakdown.transactionFeeKobo;
   const totalKobo = subtotalKobo + transactionFeeKobo;
 
   async function initializeCheckout() {
@@ -159,16 +164,19 @@ export default function CheckoutPage() {
 
           <div className="mt-6 grid gap-3 border-t border-white/10 pt-5 text-sm">
             <div className="flex justify-between text-paper/62">
+              <span>Ticket price</span>
+              <span>{formatNaira(ticketSubtotalKobo)}</span>
+            </div>
+            <div className="flex justify-between text-paper/62">
               <span>Subtotal</span>
               <span>{formatNaira(subtotalKobo)}</span>
             </div>
             <div className="flex justify-between text-paper/62">
-              <span>Platform charge</span>
+              <span>Transaction Fee</span>
               <span>{formatNaira(transactionFeeKobo)}</span>
             </div>
-            <p className="text-xs leading-5 text-paper/40">5% platform charge, capped at ₦5,000 per checkout.</p>
             <div className="flex justify-between border-t border-white/10 pt-4 text-lg font-black">
-              <span>Total</span>
+              <span>Total Payable</span>
               <span>{formatNaira(totalKobo)}</span>
             </div>
           </div>

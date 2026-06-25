@@ -124,6 +124,13 @@ async function main() {
           capacity: 500,
           perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },
+        {
+          id: "tier-summer-time-ekiti-vip",
+          name: "VIP",
+          priceKobo: 2_000_000,
+          capacity: 100,
+          perks: ["VIP access", "Priority entry", "Free swimming", "Free piercing", "Free tattoo sessions"],
+        },
       ],
     },
   ];

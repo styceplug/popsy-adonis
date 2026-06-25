@@ -5,11 +5,6 @@ export function makePaymentReference() {
   return `ADONIS_${Date.now()}_${crypto.randomBytes(8).toString("hex").toUpperCase()}`;
 }
 
-export function calculateDeveloperFee(totalKobo: number) {
-  const basisPoints = Number(process.env.DEVELOPER_COMMISSION_BPS ?? 1000);
-  return Math.round((totalKobo * basisPoints) / 10_000);
-}
-
 export async function initializePaystackTransaction(payload: {
   email: string;
   amount: number;
@@ -18,6 +13,7 @@ export async function initializePaystackTransaction(payload: {
   developerFeeKobo: number;
   adonisAmountKobo: number;
   transactionFeeKobo?: number;
+  organizerCommissionKobo?: number;
 }) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
 
@@ -71,6 +67,7 @@ export async function initializePaystackTransaction(payload: {
         orderId: payload.orderId,
         developerFeeKobo: payload.developerFeeKobo,
         adonisAmountKobo: payload.adonisAmountKobo,
+        organizerCommissionKobo: payload.organizerCommissionKobo,
         transactionFeeKobo: payload.transactionFeeKobo ?? payload.developerFeeKobo,
         adonisSubaccount,
         dreamSubaccount,

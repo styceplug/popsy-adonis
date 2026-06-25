@@ -10,7 +10,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:backfill-ticket-qrs": "node prisma/backfill-ticket-qrs.js"
+    "db:backfill-ticket-qrs": "node prisma/backfill-ticket-qrs.js",
+    "check:ticket-fees": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-ticket-fees.mjs"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

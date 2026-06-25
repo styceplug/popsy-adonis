@@ -98,11 +98,11 @@ export function OrderStatus({ reference }: { reference?: string }) {
           <span>{formatNaira(orderStatus.order.subtotalKobo)}</span>
         </div>
         <div className="flex justify-between text-paper/62">
-          <span>Platform charge</span>
+          <span>Transaction Fee</span>
           <span>{formatNaira(orderStatus.order.transactionFeeKobo)}</span>
         </div>
         <div className="flex justify-between text-lg font-black">
-          <span>Total</span>
+          <span>Total Payable</span>
           <span>{formatNaira(orderStatus.order.totalKobo)}</span>
         </div>
       </div>
