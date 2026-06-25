@@ -54,7 +54,8 @@ export async function initializePaystackTransaction(payload: {
       callback_url: `${getAppBaseUrl()}/checkout/success?reference=${payload.reference}`,
       split: {
         type: "flat",
-        bearer_type: "all",
+        bearer_type: "subaccount",
+        bearer_subaccount: dreamSubaccount,
         subaccounts: [
           {
             subaccount: adonisSubaccount,
