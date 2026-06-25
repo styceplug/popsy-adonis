@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { ResendTicketButton } from "@/components/admin/resend-ticket-button";
 import { prisma } from "@/lib/prisma";
 
 export const metadata = {
@@ -96,6 +97,7 @@ export default async function AdminTicketsPage({
                   <Link href={`/tickets/${ticket.qrCode}`} target="_blank" className="mt-2 inline-flex text-xs font-black text-gold">
                     Open ticket
                   </Link>
+                  <ResendTicketButton ticketId={ticket.id} disabled={!isPaid} />
                 </div>
                 <div>
                   <p className="font-bold">{ticket.event.title}</p>
