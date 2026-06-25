@@ -120,7 +120,7 @@ async function main() {
         {
           id: "tier-summer-time-ekiti-early-bird",
           name: "Early Bird",
-          priceKobo: 300000,
+          priceKobo: 10000,
           capacity: 500,
           perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },

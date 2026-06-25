@@ -6,7 +6,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
   description:
-    "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets on sale now at ₦3,000. Campus parties, festivals, and live experiences.",
+    "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets temporarily available at ₦100 for payment testing. Campus parties, festivals, and live experiences.",
   alternates: {
     canonical: "/events",
   },
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     url: "https://popsyadonis.com/events",
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets on sale now at ₦3,000. Campus parties, festivals, and live experiences.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets temporarily available at ₦100 for payment testing. Campus parties, festivals, and live experiences.",
     images: [
       {
         // Use the upcoming event hero as the share image
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets on sale now at ₦3,000.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets temporarily available at ₦100 for payment testing.",
     images: ["/POPSY%20ADONIS%20FLUX%20PARTY.png"],
   },
 };
@@ -49,7 +49,7 @@ export default function EventsPage() {
           Upcoming Events
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-paper/64">
-          Tickets currently on sale: Summer Time in Ekiti early birds at ₦3,000.
+          Tickets currently on sale: Summer Time in Ekiti early birds at ₦100 for payment testing.
         </p>
         <div className="mt-12 grid gap-5">
           {upcomingEvents.map((event) => (
