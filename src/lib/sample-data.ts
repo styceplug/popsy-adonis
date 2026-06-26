@@ -200,7 +200,7 @@ export const events: Event[] = [
         id: "tier-summer-time-ekiti-vip",
         name: "VIP",
         priceKobo: 2_000_000,
-        perks: ["VIP access", "Priority entry", "Money for water gun", "Free swimming", "Free piercing", "Free tattoo sessions"],
+        perks: ["VIP access", "Priority entry", "Free Water Gun", "Free swimming", "Free piercing", "Free tattoo sessions"],
       },
     ],
   },
