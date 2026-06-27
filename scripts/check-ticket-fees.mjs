@@ -24,7 +24,7 @@ const cases = [
     },
   },
   {
-    name: "8AM Early Bird promo",
+    name: "10PM Early Bird promo",
     ticketSubtotalKobo: 150_000,
     expected: {
       transactionFeeKobo: 15_000,
