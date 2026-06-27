@@ -10,6 +10,20 @@ type TicketMetadata = {
   attendeeNames?: string[];
 };
 
+type TicketGroup = TicketMetadata & {
+  quantity: number;
+};
+
+function isTicketMetadata(metadata: unknown): metadata is TicketMetadata {
+  return Boolean(
+    metadata &&
+      typeof metadata === "object" &&
+      !Array.isArray(metadata) &&
+      "eventId" in metadata &&
+      "ticketTierId" in metadata,
+  );
+}
+
 export async function fulfillSuccessfulTransaction(reference: string, gatewayResponse: unknown, paidAt?: string | Date) {
   const issuedTickets: Array<{
     eventTitle: string;
@@ -64,6 +78,8 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     });
   }
 
+  const ticketGroups = new Map<string, TicketGroup>();
+
   for (const item of transaction.order.items) {
     if (!wasAlreadySuccessful && item.itemType === "product" && item.variantId) {
       await prisma.productVariant.update({
@@ -73,11 +89,88 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     }
 
     if (item.itemType === "ticket" && item.ticketTierId) {
-      const metadata = item.metadata as TicketMetadata;
-      const existingTickets = await prisma.ticket.findMany({
-        where: {
+      const metadata = isTicketMetadata(item.metadata) ? item.metadata : undefined;
+      if (!metadata) continue;
+
+      const existingGroup = ticketGroups.get(item.ticketTierId);
+
+      if (existingGroup) {
+        existingGroup.quantity += item.quantity;
+        existingGroup.attendeeNames = [
+          ...(existingGroup.attendeeNames ?? []),
+          ...(metadata.attendeeNames ?? []),
+        ];
+        continue;
+      }
+
+      ticketGroups.set(item.ticketTierId, {
+        eventId: metadata.eventId,
+        ticketTierId: metadata.ticketTierId,
+        quantity: item.quantity,
+        attendeeNames: metadata.attendeeNames ?? [],
+      });
+    }
+  }
+
+  for (const [tierId, group] of ticketGroups.entries()) {
+    const existingTickets = await prisma.ticket.findMany({
+      where: {
+        orderId: transaction.orderId,
+        tierId,
+      },
+      include: {
+        event: {
+          select: {
+            title: true,
+            slug: true,
+            venue: true,
+            startsAt: true,
+          },
+        },
+      },
+    });
+
+    for (const ticket of existingTickets) {
+      issuedTickets.push({
+        eventTitle: ticket.event.title,
+        venue: ticket.event.venue,
+        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
+        attendeeName: ticket.attendeeName,
+        qrCode: ticket.qrCode,
+        qrImageUrl: ticket.qrImageUrl,
+        qrImageHttpUrl: `${getAppBaseUrl()}/api/tickets/${ticket.qrCode}/qr`,
+        ticketUrl: `${getAppBaseUrl()}/tickets/${ticket.qrCode}`,
+      });
+    }
+
+    const ticketsToIssue = group.quantity - existingTickets.length;
+
+    if (ticketsToIssue <= 0) continue;
+
+    await prisma.ticketTier.update({
+      where: { id: tierId },
+      data: { soldCount: { increment: ticketsToIssue } },
+    });
+
+    for (let index = existingTickets.length; index < group.quantity; index += 1) {
+      const qrCode = crypto.randomBytes(24).toString("hex");
+      const ticketUrl = `${getAppBaseUrl()}/tickets/${qrCode}`;
+      const qrImageHttpUrl = `${getAppBaseUrl()}/api/tickets/${qrCode}/qr`;
+      const qrImageUrl = await QRCode.toDataURL(ticketUrl, {
+        errorCorrectionLevel: "M",
+        margin: 1,
+        width: 320,
+      });
+
+      const ticket = await prisma.ticket.create({
+        data: {
           orderId: transaction.orderId,
-          tierId: item.ticketTierId,
+          eventId: group.eventId,
+          tierId: group.ticketTierId,
+          attendeeName: group.attendeeNames?.[index],
+          attendeeEmail: transaction.order.email,
+          qrCode,
+          qrImageUrl,
         },
         include: {
           event: {
@@ -90,73 +183,18 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
           },
         },
       });
+      createdTicketsCount += 1;
 
-      for (const ticket of existingTickets) {
-        issuedTickets.push({
-          eventTitle: ticket.event.title,
-          venue: ticket.event.venue,
-          startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
-          attendeeName: ticket.attendeeName,
-          qrCode: ticket.qrCode,
-          qrImageUrl: ticket.qrImageUrl,
-          qrImageHttpUrl: `${getAppBaseUrl()}/api/tickets/${ticket.qrCode}/qr`,
-          ticketUrl: `${getAppBaseUrl()}/tickets/${ticket.qrCode}`,
-        });
-      }
-
-      const ticketsToIssue = item.quantity - existingTickets.length;
-
-      if (ticketsToIssue <= 0) continue;
-
-      await prisma.ticketTier.update({
-        where: { id: item.ticketTierId },
-        data: { soldCount: { increment: ticketsToIssue } },
+      issuedTickets.push({
+        eventTitle: ticket.event.title,
+        venue: ticket.event.venue,
+        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
+        attendeeName: ticket.attendeeName,
+        qrCode: ticket.qrCode,
+        qrImageUrl: ticket.qrImageUrl,
+        qrImageHttpUrl,
+        ticketUrl,
       });
-
-      for (let index = existingTickets.length; index < item.quantity; index += 1) {
-        const qrCode = crypto.randomBytes(24).toString("hex");
-        const ticketUrl = `${getAppBaseUrl()}/tickets/${qrCode}`;
-        const qrImageHttpUrl = `${getAppBaseUrl()}/api/tickets/${qrCode}/qr`;
-        const qrImageUrl = await QRCode.toDataURL(ticketUrl, {
-          errorCorrectionLevel: "M",
-          margin: 1,
-          width: 320,
-        });
-
-        const ticket = await prisma.ticket.create({
-          data: {
-            orderId: transaction.orderId,
-            eventId: metadata.eventId,
-            tierId: metadata.ticketTierId,
-            attendeeName: metadata.attendeeNames?.[index],
-            attendeeEmail: transaction.order.email,
-            qrCode,
-            qrImageUrl,
-          },
-          include: {
-            event: {
-              select: {
-                title: true,
-                slug: true,
-                venue: true,
-                startsAt: true,
-              },
-            },
-          },
-        });
-        createdTicketsCount += 1;
-
-        issuedTickets.push({
-          eventTitle: ticket.event.title,
-          venue: ticket.event.venue,
-          startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
-          attendeeName: ticket.attendeeName,
-          qrCode: ticket.qrCode,
-          qrImageUrl: ticket.qrImageUrl,
-          qrImageHttpUrl,
-          ticketUrl,
-        });
-      }
     }
   }
 

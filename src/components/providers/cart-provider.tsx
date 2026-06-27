@@ -109,11 +109,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     writeCartSnapshot(
-      currentItems.map((currentItem) =>
-        currentItem.id === item.id
-          ? { ...currentItem, quantity: Math.min(currentItem.quantity + item.quantity, 20) }
-          : currentItem,
-      ),
+      currentItems.map((currentItem) => {
+        if (currentItem.id !== item.id) return currentItem;
+
+        const maxQuantity = item.type === "ticket" && item.metadata?.promo ? 1 : 20;
+
+        return { ...currentItem, quantity: Math.min(currentItem.quantity + item.quantity, maxQuantity) };
+      }),
     );
   }, []);
 

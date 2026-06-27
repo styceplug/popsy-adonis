@@ -1,38 +1,103 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/components/providers/cart-provider";
 import type { Event } from "@/lib/sample-data";
 import { formatNaira } from "@/lib/format-money";
+import {
+  EARLY_BIRD_PROMO_MAX_PER_BUYER,
+  EARLY_BIRD_PROMO_TIER_ID,
+} from "@/lib/ticket-promo-constants";
+
+type EarlyBirdPromoStatus = {
+  active: boolean;
+  label: string;
+  remaining: number;
+  tierId: string;
+  promoPriceKobo: number;
+};
 
 export function TicketTierPicker({ event }: { event: Event }) {
   const { addItem } = useCart();
   const [selectedTier, setSelectedTier] = useState(event.tiers[0]?.id);
   const [quantity, setQuantity] = useState(1);
   const [wasAdded, setWasAdded] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<EarlyBirdPromoStatus | null>(null);
   const tier = useMemo(() => event.tiers.find((item) => item.id === selectedTier), [event.tiers, selectedTier]);
+  const selectedTierPromoActive = Boolean(
+    tier &&
+      promoStatus?.active &&
+      promoStatus.tierId === tier.id &&
+      promoStatus.remaining > 0,
+  );
+  const selectedPromoQuantity = selectedTierPromoActive
+    ? Math.min(quantity, promoStatus?.remaining ?? 0, EARLY_BIRD_PROMO_MAX_PER_BUYER)
+    : 0;
+  const selectedStandardQuantity = tier ? quantity - selectedPromoQuantity : 0;
+  const selectedTotalKobo = tier
+    ? selectedPromoQuantity * (promoStatus?.promoPriceKobo ?? tier.priceKobo) + selectedStandardQuantity * tier.priceKobo
+    : 0;
+
+  useEffect(() => {
+    if (!event.tiers.some((item) => item.id === EARLY_BIRD_PROMO_TIER_ID)) return;
+
+    let isMounted = true;
+
+    fetch("/api/ticket-promos/early-bird", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: EarlyBirdPromoStatus | null) => {
+        if (isMounted && payload) setPromoStatus(payload);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [event.tiers]);
 
   return (
     <div className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
       <p className="text-xs font-black uppercase text-gold">Ticket tiers</p>
       <div className="mt-4 grid gap-3">
-        {event.tiers.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setSelectedTier(item.id)}
-            className={`focus-ring rounded-ui border p-4 text-left transition ${
-              selectedTier === item.id ? "border-gold bg-gold/12" : "border-white/10 hover:border-white/28"
-            }`}
-          >
-            <span className="flex items-center justify-between gap-4">
-              <span className="font-display text-xl font-black text-paper">{item.name}</span>
-              <span className="text-sm font-black text-gold">{formatNaira(item.priceKobo)}</span>
-            </span>
-            <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
-          </button>
-        ))}
+        {event.tiers.map((item) => {
+          const itemPromoActive = Boolean(
+            promoStatus?.active &&
+              promoStatus.tierId === item.id &&
+              promoStatus.remaining > 0,
+          );
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setSelectedTier(item.id)}
+              className={`focus-ring rounded-ui border p-4 text-left transition ${
+                selectedTier === item.id ? "border-gold bg-gold/12" : "border-white/10 hover:border-white/28"
+              }`}
+            >
+              <span className="flex items-center justify-between gap-4">
+                <span className="font-display text-xl font-black text-paper">{item.name}</span>
+                <span className="text-right text-sm font-black text-gold">
+                  {itemPromoActive ? (
+                    <>
+                      <span>{formatNaira(promoStatus?.promoPriceKobo ?? item.priceKobo)}</span>
+                      <span className="ml-2 text-paper/38 line-through">{formatNaira(item.priceKobo)}</span>
+                    </>
+                  ) : (
+                    formatNaira(item.priceKobo)
+                  )}
+                </span>
+              </span>
+              <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
+              {itemPromoActive ? (
+                <span className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
+                  {promoStatus?.label}: {promoStatus?.remaining} left
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
       <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-5">
         <label className="text-sm font-bold text-paper/72" htmlFor="quantity">Qty</label>
@@ -50,27 +115,49 @@ export function TicketTierPicker({ event }: { event: Event }) {
         disabled={!tier}
         onClick={() => {
           if (!tier) return;
-          addItem({
-            id: `${event.id}:${tier.id}`,
-            type: "ticket",
-            title: `${event.title} - ${tier.name}`,
-            eventId: event.id,
-            ticketTierId: tier.id,
-            quantity,
-            unitKobo: tier.priceKobo,
-            image: event.heroImage,
-            metadata: {
-              event: event.title,
-              tier: tier.name,
-            },
-          });
+
+          if (selectedPromoQuantity > 0 && promoStatus) {
+            addItem({
+              id: `${event.id}:${tier.id}:promo`,
+              type: "ticket",
+              title: `${event.title} - ${tier.name} (${promoStatus.label})`,
+              eventId: event.id,
+              ticketTierId: tier.id,
+              quantity: selectedPromoQuantity,
+              unitKobo: promoStatus.promoPriceKobo,
+              image: event.heroImage,
+              metadata: {
+                event: event.title,
+                tier: tier.name,
+                promo: promoStatus.label,
+              },
+            });
+          }
+
+          if (selectedStandardQuantity > 0) {
+            addItem({
+              id: `${event.id}:${tier.id}:standard`,
+              type: "ticket",
+              title: `${event.title} - ${tier.name}`,
+              eventId: event.id,
+              ticketTierId: tier.id,
+              quantity: selectedStandardQuantity,
+              unitKobo: tier.priceKobo,
+              image: event.heroImage,
+              metadata: {
+                event: event.title,
+                tier: tier.name,
+              },
+            });
+          }
+
           setWasAdded(true);
           window.setTimeout(() => setWasAdded(false), 2200);
         }}
         className="focus-ring mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-ui bg-gold px-5 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ShoppingCart size={17} />
-        {wasAdded ? "Added to cart" : `Add ${tier?.name ?? "Ticket"} - ${formatNaira((tier?.priceKobo ?? 0) * quantity)}`}
+        {wasAdded ? "Added to cart" : `Add ${tier?.name ?? "Ticket"} - ${formatNaira(selectedTotalKobo)}`}
       </button>
       <Link
         href="/checkout"

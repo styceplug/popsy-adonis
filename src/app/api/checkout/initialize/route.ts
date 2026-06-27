@@ -7,6 +7,13 @@ import {
 } from "@/lib/paystack";
 import { calculateTicketPaymentBreakdown } from "@/lib/fees";
 import { prisma } from "@/lib/prisma";
+import {
+  EARLY_BIRD_PROMO_CODE,
+  EARLY_BIRD_PROMO_LABEL,
+  EARLY_BIRD_PROMO_PRICE_KOBO,
+  EARLY_BIRD_PROMO_TIER_ID,
+  getEarlyBirdPromoStatus,
+} from "@/lib/ticket-promos";
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -45,7 +52,8 @@ export async function POST(request: Request) {
 
   try {
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const orderItems = [];
+      const orderItems: Prisma.OrderItemUncheckedCreateWithoutOrderInput[] = [];
+      let checkoutPromoQuantity = 0;
 
       for (const item of items) {
         if (item.type === "product") {
@@ -84,17 +92,53 @@ export async function POST(request: Request) {
             throw new Error(`${tier.name} tickets are almost sold out. Only ${remaining} left.`);
           }
 
+          let promoQuantity = 0;
+
+          if (tier.id === EARLY_BIRD_PROMO_TIER_ID) {
+            await tx.ticketTier.update({
+              where: { id: tier.id },
+              data: { updatedAt: new Date() },
+            });
+            const promo = await getEarlyBirdPromoStatus(tx, { email, phone });
+            const buyerRemainingInCheckout = Math.max(promo.buyerRemaining - checkoutPromoQuantity, 0);
+            promoQuantity = promo.active ? Math.min(item.quantity, promo.remaining, buyerRemainingInCheckout) : 0;
+            checkoutPromoQuantity += promoQuantity;
+          }
+
+          if (promoQuantity > 0) {
+            orderItems.push({
+              itemType: "ticket",
+              ticketTierId: tier.id,
+              title: `${tier.event.title} - ${tier.name} (${EARLY_BIRD_PROMO_LABEL})`,
+              quantity: promoQuantity,
+              unitKobo: EARLY_BIRD_PROMO_PRICE_KOBO,
+              totalKobo: EARLY_BIRD_PROMO_PRICE_KOBO * promoQuantity,
+              metadata: {
+                eventId: tier.eventId,
+                ticketTierId: tier.id,
+                attendeeNames: item.attendeeNames?.slice(0, promoQuantity) ?? [],
+                promoCode: EARLY_BIRD_PROMO_CODE,
+                promoLabel: EARLY_BIRD_PROMO_LABEL,
+                standardUnitKobo: tier.priceKobo,
+              },
+            });
+          }
+
+          const standardQuantity = item.quantity - promoQuantity;
+
+          if (standardQuantity <= 0) continue;
+
           orderItems.push({
             itemType: "ticket",
             ticketTierId: tier.id,
             title: `${tier.event.title} - ${tier.name}`,
-            quantity: item.quantity,
+            quantity: standardQuantity,
             unitKobo: tier.priceKobo,
-            totalKobo: tier.priceKobo * item.quantity,
+            totalKobo: tier.priceKobo * standardQuantity,
             metadata: {
               eventId: tier.eventId,
               ticketTierId: tier.id,
-              attendeeNames: item.attendeeNames ?? [],
+              attendeeNames: item.attendeeNames?.slice(promoQuantity) ?? [],
             },
           });
         }

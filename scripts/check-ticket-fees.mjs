@@ -24,6 +24,17 @@ const cases = [
     },
   },
   {
+    name: "8AM Early Bird promo",
+    ticketSubtotalKobo: 150_000,
+    expected: {
+      transactionFeeKobo: 15_000,
+      totalKobo: 165_000,
+      organizerCommissionKobo: 3_750,
+      adonisAmountKobo: 146_250,
+      dreamAmountKobo: 18_750,
+    },
+  },
+  {
     name: "Maximum fee guard",
     ticketSubtotalKobo: 20_000_000,
     expected: {
