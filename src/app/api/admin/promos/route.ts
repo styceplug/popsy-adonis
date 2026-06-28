@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createAdminAuditLog } from "@/lib/admin-audit";
 import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { getPromoFallbackEndAt } from "@/lib/ticket-promos";
 
 const promoSchema = z.object({
   id: z.string().optional(),
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data;
   const startsAt = new Date(data.startsAt);
-  const endsAt = data.endsAt ? new Date(data.endsAt) : null;
+  const endsAt = data.endsAt ? new Date(data.endsAt) : getPromoFallbackEndAt(startsAt);
 
   if (endsAt && endsAt <= startsAt) {
     return NextResponse.json({ message: "Promo end time must be after the start time." }, { status: 400 });
@@ -110,4 +111,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ promo });
 }
-

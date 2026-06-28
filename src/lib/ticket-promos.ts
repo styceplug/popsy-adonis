@@ -29,15 +29,15 @@ type PromoOrderItem = {
 
 type PromoReader = {
   ticketPromo: {
-    findFirst: (args: {
+    findMany: (args: {
       where: {
         ticketTierId: string;
         isActive: boolean;
         startsAt: { lte: Date };
-        OR: Array<{ endsAt: null } | { endsAt: { gt: Date } }>;
       };
       orderBy: Array<{ startsAt: "desc" } | { createdAt: "desc" }>;
-    }) => Promise<ActiveTicketPromo | null>;
+      take: number;
+    }) => Promise<ActiveTicketPromo[]>;
   };
   orderItem: {
     findMany: (args: {
@@ -80,16 +80,36 @@ function normalizePhone(phone?: string | null) {
   return phone?.replace(/\D/g, "") ?? "";
 }
 
+export function getPromoFallbackEndAt(startsAt: Date) {
+  const lagosDateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(startsAt);
+  const year = Number(lagosDateParts.find((part) => part.type === "year")?.value);
+  const month = Number(lagosDateParts.find((part) => part.type === "month")?.value);
+  const day = Number(lagosDateParts.find((part) => part.type === "day")?.value);
+
+  return new Date(Date.UTC(year, month - 1, day, 22, 59, 59, 999));
+}
+
+function getPromoEffectiveEndAt(promo: ActiveTicketPromo) {
+  return promo.endsAt ?? getPromoFallbackEndAt(promo.startsAt);
+}
+
 export async function getActiveTicketPromo(db: PromoReader, ticketTierId: string, now = new Date()) {
-  return db.ticketPromo.findFirst({
+  const promos = await db.ticketPromo.findMany({
     where: {
       ticketTierId,
       isActive: true,
       startsAt: { lte: now },
-      OR: [{ endsAt: null }, { endsAt: { gt: now } }],
     },
     orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+    take: 20,
   });
+
+  return promos.find((promo) => getPromoEffectiveEndAt(promo) > now) ?? null;
 }
 
 export async function getTicketPromoStatus(
@@ -174,4 +194,3 @@ export async function getTicketPromoStatus(
     promoPriceKobo: promo.promoPriceKobo,
   };
 }
-

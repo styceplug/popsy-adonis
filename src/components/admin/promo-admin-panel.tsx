@@ -66,6 +66,7 @@ export function PromoAdminPanel({
   tiers: AdminTicketTier[];
   promos: AdminTicketPromo[];
 }) {
+  const [promoList, setPromoList] = useState(promos);
   const [tierPrices, setTierPrices] = useState(
     Object.fromEntries(tiers.map((tier) => [tier.id, String(tier.priceKobo / 100)])),
   );
@@ -137,6 +138,30 @@ export function PromoAdminPanel({
 
     setStatus("Promo saved. Refresh to see the latest list.");
     if (!promoForm.id) setPromoForm(emptyPromoForm(promoForm.ticketTierId));
+  }
+
+  async function togglePromo(promo: AdminTicketPromo) {
+    const nextIsActive = !promo.isActive;
+    setStatus(nextIsActive ? "Resuming promo..." : "Pausing promo...");
+    const response = await fetch(`/api/admin/promos/${promo.id}/pause`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: nextIsActive }),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setStatus(payload?.message ?? "Unable to update promo status.");
+      return;
+    }
+
+    setPromoList((current) =>
+      current.map((item) => (item.id === promo.id ? { ...item, isActive: nextIsActive } : item)),
+    );
+    setPromoForm((current) =>
+      current.id === promo.id ? { ...current, isActive: nextIsActive } : current,
+    );
+    setStatus(nextIsActive ? "Promo resumed." : "Promo paused.");
   }
 
   return (
@@ -221,7 +246,7 @@ export function PromoAdminPanel({
             />
           </label>
           <label className="grid gap-2 text-sm font-bold text-paper/72">
-            Ends optional
+            Ends optional, defaults same day
             <input
               value={promoForm.endsAt}
               onChange={(event) => setPromoForm((current) => ({ ...current, endsAt: event.target.value }))}
@@ -277,21 +302,21 @@ export function PromoAdminPanel({
       </section>
 
       <section className="overflow-hidden rounded-ui border border-white/10">
-        <div className="grid grid-cols-[1fr_.8fr_.7fr_.6fr_.6fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
+        <div className="grid grid-cols-[1fr_.8fr_.7fr_.6fr_.6fr_auto] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Promo</p>
           <p>Tier</p>
           <p>Price</p>
           <p>Slots</p>
           <p>Status</p>
+          <p>Actions</p>
         </div>
         <div className="divide-y divide-white/10">
-          {promos.map((promo) => {
+          {promoList.map((promo) => {
             const promoTier = tiers.find((tier) => tier.id === promo.ticketTierId);
             return (
-              <button
+              <div
                 key={promo.id}
-                onClick={() => editPromo(promo)}
-                className="grid w-full grid-cols-[1fr_.8fr_.7fr_.6fr_.6fr] gap-4 px-4 py-4 text-left text-sm transition hover:bg-white/[0.035]"
+                className="grid grid-cols-[1fr_.8fr_.7fr_.6fr_.6fr_auto] gap-4 px-4 py-4 text-sm"
               >
                 <span>
                   <span className="block font-black text-paper">{promo.name}</span>
@@ -306,13 +331,30 @@ export function PromoAdminPanel({
                 <span className={promo.isActive ? "font-black text-gold" : "font-black text-paper/45"}>
                   {promo.isActive ? "Active" : "Disabled"}
                 </span>
-              </button>
+                <span className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => editPromo(promo)}
+                    className="focus-ring h-9 rounded-ui border border-white/12 px-3 text-xs font-black text-paper/72 hover:border-paper hover:text-paper"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => togglePromo(promo)}
+                    className={`focus-ring h-9 rounded-ui px-3 text-xs font-black ${
+                      promo.isActive
+                        ? "border border-lava/45 text-lava hover:bg-lava/10"
+                        : "border border-gold/45 text-gold hover:bg-gold/10"
+                    }`}
+                  >
+                    {promo.isActive ? "Pause" : "Resume"}
+                  </button>
+                </span>
+              </div>
             );
           })}
-          {promos.length === 0 ? <p className="px-4 py-6 text-sm text-paper/50">No promos yet.</p> : null}
+          {promoList.length === 0 ? <p className="px-4 py-6 text-sm text-paper/50">No promos yet.</p> : null}
         </div>
       </section>
     </div>
   );
 }
-
