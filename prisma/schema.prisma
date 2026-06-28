@@ -143,10 +143,30 @@ model TicketTier {
   soldCount Int      @default(0)
   perks     String[]
   isActive  Boolean  @default(true)
+  promos    TicketPromo[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([eventId, name])
+}
+
+model TicketPromo {
+  id             String     @id @default(cuid())
+  ticketTierId   String
+  ticketTier     TicketTier @relation(fields: [ticketTierId], references: [id], onDelete: Cascade)
+  name           String
+  code           String     @unique
+  promoPriceKobo Int
+  startsAt       DateTime
+  endsAt         DateTime?
+  quantityLimit  Int
+  maxPerBuyer    Int        @default(1)
+  isActive       Boolean    @default(true)
+  createdBy      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([ticketTierId, startsAt, isActive])
 }
 
 model Ticket {

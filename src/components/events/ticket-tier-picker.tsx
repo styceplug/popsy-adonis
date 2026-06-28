@@ -6,17 +6,14 @@ import Link from "next/link";
 import { useCart } from "@/components/providers/cart-provider";
 import type { Event } from "@/lib/sample-data";
 import { formatNaira } from "@/lib/format-money";
-import {
-  EARLY_BIRD_PROMO_MAX_PER_BUYER,
-  EARLY_BIRD_PROMO_TIER_ID,
-} from "@/lib/ticket-promo-constants";
 
-type EarlyBirdPromoStatus = {
+type TicketPromoStatus = {
   active: boolean;
-  label: string;
+  label: string | null;
   remaining: number;
   tierId: string;
-  promoPriceKobo: number;
+  maxPerBuyer: number;
+  promoPriceKobo: number | null;
 };
 
 export function TicketTierPicker({ event }: { event: Event }) {
@@ -24,16 +21,18 @@ export function TicketTierPicker({ event }: { event: Event }) {
   const [selectedTier, setSelectedTier] = useState(event.tiers[0]?.id);
   const [quantity, setQuantity] = useState(1);
   const [wasAdded, setWasAdded] = useState(false);
-  const [promoStatus, setPromoStatus] = useState<EarlyBirdPromoStatus | null>(null);
+  const [promoStatuses, setPromoStatuses] = useState<Record<string, TicketPromoStatus>>({});
   const tier = useMemo(() => event.tiers.find((item) => item.id === selectedTier), [event.tiers, selectedTier]);
+  const promoStatus = tier ? promoStatuses[tier.id] : undefined;
   const selectedTierPromoActive = Boolean(
     tier &&
       promoStatus?.active &&
       promoStatus.tierId === tier.id &&
-      promoStatus.remaining > 0,
+      promoStatus.remaining > 0 &&
+      promoStatus.promoPriceKobo,
   );
   const selectedPromoQuantity = selectedTierPromoActive
-    ? Math.min(quantity, promoStatus?.remaining ?? 0, EARLY_BIRD_PROMO_MAX_PER_BUYER)
+    ? Math.min(quantity, promoStatus?.remaining ?? 0, promoStatus?.maxPerBuyer ?? 1)
     : 0;
   const selectedStandardQuantity = tier ? quantity - selectedPromoQuantity : 0;
   const selectedTotalKobo = tier
@@ -41,14 +40,19 @@ export function TicketTierPicker({ event }: { event: Event }) {
     : 0;
 
   useEffect(() => {
-    if (!event.tiers.some((item) => item.id === EARLY_BIRD_PROMO_TIER_ID)) return;
+    const ticketTierIds = event.tiers.map((item) => item.id).join(",");
+    if (!ticketTierIds) return;
 
     let isMounted = true;
 
-    fetch("/api/ticket-promos/early-bird", { cache: "no-store" })
+    fetch(`/api/ticket-promos?ticketTierIds=${encodeURIComponent(ticketTierIds)}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: EarlyBirdPromoStatus | null) => {
-        if (isMounted && payload) setPromoStatus(payload);
+      .then((payload: { promos?: TicketPromoStatus[] } | null) => {
+        if (!isMounted || !payload?.promos) return;
+
+        setPromoStatuses(
+          Object.fromEntries(payload.promos.map((promo) => [promo.tierId, promo])),
+        );
       })
       .catch(() => undefined);
 
@@ -62,10 +66,12 @@ export function TicketTierPicker({ event }: { event: Event }) {
       <p className="text-xs font-black uppercase text-gold">Ticket tiers</p>
       <div className="mt-4 grid gap-3">
         {event.tiers.map((item) => {
+          const itemPromo = promoStatuses[item.id];
           const itemPromoActive = Boolean(
-            promoStatus?.active &&
-              promoStatus.tierId === item.id &&
-              promoStatus.remaining > 0,
+            itemPromo?.active &&
+              itemPromo.tierId === item.id &&
+              itemPromo.remaining > 0 &&
+              itemPromo.promoPriceKobo,
           );
 
           return (
@@ -81,7 +87,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
                 <span className="text-right text-sm font-black text-gold">
                   {itemPromoActive ? (
                     <>
-                      <span>{formatNaira(promoStatus?.promoPriceKobo ?? item.priceKobo)}</span>
+                      <span>{formatNaira(itemPromo?.promoPriceKobo ?? item.priceKobo)}</span>
                       <span className="ml-2 text-paper/38 line-through">{formatNaira(item.priceKobo)}</span>
                     </>
                   ) : (
@@ -92,7 +98,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
               {itemPromoActive ? (
                 <span className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
-                  {promoStatus?.label}: {promoStatus?.remaining} left
+                  {itemPromo?.label}: {itemPromo?.remaining} left
                 </span>
               ) : null}
             </button>
@@ -116,7 +122,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
         onClick={() => {
           if (!tier) return;
 
-          if (selectedPromoQuantity > 0 && promoStatus) {
+          if (selectedPromoQuantity > 0 && promoStatus?.label && promoStatus.promoPriceKobo) {
             addItem({
               id: `${event.id}:${tier.id}:promo`,
               type: "ticket",

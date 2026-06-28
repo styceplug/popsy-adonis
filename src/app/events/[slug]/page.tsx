@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TicketTierPicker } from "@/components/events/ticket-tier-picker";
 import { events } from "@/lib/sample-data";
+import { prisma } from "@/lib/prisma";
 
 const SITE_URL = "https://popsyadonis.com";
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return events.map((event) => ({ slug: event.slug }));
@@ -78,6 +80,26 @@ export default async function EventDetailPage({
 
   if (!event) notFound();
 
+  const dbTiers = await prisma.ticketTier.findMany({
+    where: {
+      eventId: event.id,
+      isActive: true,
+    },
+    orderBy: { priceKobo: "asc" },
+  });
+  const ticketEvent = {
+    ...event,
+    tiers:
+      dbTiers.length > 0
+        ? dbTiers.map((tier) => ({
+            id: tier.id,
+            name: tier.name as (typeof event.tiers)[number]["name"],
+            priceKobo: tier.priceKobo,
+            perks: tier.perks,
+          }))
+        : event.tiers,
+  };
+
   const date = new Intl.DateTimeFormat("en-NG", {
     dateStyle: "full",
     timeStyle: "short",
@@ -140,7 +162,7 @@ export default async function EventDetailPage({
             </div>
           ) : null}
         </div>
-        {event.tiers.length > 0 ? <TicketTierPicker event={event} /> : null}
+        {ticketEvent.tiers.length > 0 ? <TicketTierPicker event={ticketEvent} /> : null}
       </section>
     </main>
   );

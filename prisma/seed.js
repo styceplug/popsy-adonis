@@ -180,6 +180,32 @@ async function main() {
     }
   }
 
+  await prisma.ticketPromo.upsert({
+    where: { code: "early_bird_half_price_2026_06_27_1030pm" },
+    update: {
+      ticketTierId: "tier-summer-time-ekiti-early-bird",
+      name: "10:30PM Half Price",
+      promoPriceKobo: 150000,
+      startsAt: new Date("2026-06-27T21:30:00.000Z"),
+      endsAt: null,
+      quantityLimit: 20,
+      maxPerBuyer: 1,
+      isActive: true,
+    },
+    create: {
+      ticketTierId: "tier-summer-time-ekiti-early-bird",
+      name: "10:30PM Half Price",
+      code: "early_bird_half_price_2026_06_27_1030pm",
+      promoPriceKobo: 150000,
+      startsAt: new Date("2026-06-27T21:30:00.000Z"),
+      endsAt: null,
+      quantityLimit: 20,
+      maxPerBuyer: 1,
+      isActive: true,
+      createdBy: "Seed",
+    },
+  });
+
   await prisma.ticketTier.updateMany({
     where: {
       eventId: {

@@ -1,24 +1,19 @@
 import { OrderStatus, type Prisma } from "@prisma/client";
-import {
-  EARLY_BIRD_PROMO_CODE,
-  EARLY_BIRD_PROMO_LABEL,
-  EARLY_BIRD_PROMO_LIMIT,
-  EARLY_BIRD_PROMO_MAX_PER_BUYER,
-  EARLY_BIRD_PROMO_PRICE_KOBO,
-  EARLY_BIRD_PROMO_START_AT,
-  EARLY_BIRD_PROMO_TIER_ID,
-  PROMO_RESERVATION_TTL_MS,
-} from "@/lib/ticket-promo-constants";
+import { PROMO_RESERVATION_TTL_MS } from "@/lib/ticket-promo-constants";
 
-export {
-  EARLY_BIRD_PROMO_CODE,
-  EARLY_BIRD_PROMO_LABEL,
-  EARLY_BIRD_PROMO_LIMIT,
-  EARLY_BIRD_PROMO_MAX_PER_BUYER,
-  EARLY_BIRD_PROMO_PRICE_KOBO,
-  EARLY_BIRD_PROMO_START_AT,
-  EARLY_BIRD_PROMO_TIER_ID,
-  PROMO_RESERVATION_TTL_MS,
+export { PROMO_RESERVATION_TTL_MS };
+
+export type ActiveTicketPromo = {
+  id: string;
+  ticketTierId: string;
+  name: string;
+  code: string;
+  promoPriceKobo: number;
+  startsAt: Date;
+  endsAt: Date | null;
+  quantityLimit: number;
+  maxPerBuyer: number;
+  isActive: boolean;
 };
 
 type PromoOrderItem = {
@@ -33,6 +28,17 @@ type PromoOrderItem = {
 };
 
 type PromoReader = {
+  ticketPromo: {
+    findFirst: (args: {
+      where: {
+        ticketTierId: string;
+        isActive: boolean;
+        startsAt: { lte: Date };
+        OR: Array<{ endsAt: null } | { endsAt: { gt: Date } }>;
+      };
+      orderBy: Array<{ startsAt: "desc" } | { createdAt: "desc" }>;
+    }) => Promise<ActiveTicketPromo | null>;
+  };
   orderItem: {
     findMany: (args: {
       where: {
@@ -58,8 +64,8 @@ function readMetadataValue(metadata: Prisma.JsonValue | null, key: string) {
   return (metadata as Record<string, Prisma.JsonValue>)[key];
 }
 
-function isReservedPromoItem(item: PromoOrderItem, now: Date) {
-  if (readMetadataValue(item.metadata, "promoCode") !== EARLY_BIRD_PROMO_CODE) return false;
+function isReservedPromoItem(item: PromoOrderItem, promoCode: string, now: Date) {
+  if (readMetadataValue(item.metadata, "promoCode") !== promoCode) return false;
   if (item.order.status === OrderStatus.PAID || item.order.status === OrderStatus.FULFILLED) return true;
   if (item.order.status !== OrderStatus.PENDING) return false;
 
@@ -74,19 +80,49 @@ function normalizePhone(phone?: string | null) {
   return phone?.replace(/\D/g, "") ?? "";
 }
 
-export function isEarlyBirdPromoActive(now = new Date()) {
-  return now >= EARLY_BIRD_PROMO_START_AT;
+export async function getActiveTicketPromo(db: PromoReader, ticketTierId: string, now = new Date()) {
+  return db.ticketPromo.findFirst({
+    where: {
+      ticketTierId,
+      isActive: true,
+      startsAt: { lte: now },
+      OR: [{ endsAt: null }, { endsAt: { gt: now } }],
+    },
+    orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+  });
 }
 
-export async function getEarlyBirdPromoStatus(
+export async function getTicketPromoStatus(
   db: PromoReader,
+  ticketTierId: string,
   options: { email?: string; phone?: string; now?: Date } = {},
 ) {
   const now = options.now ?? new Date();
+  const promo = await getActiveTicketPromo(db, ticketTierId, now);
+
+  if (!promo) {
+    return {
+      active: false,
+      promo: null,
+      code: null,
+      label: null,
+      startsAt: null,
+      endsAt: null,
+      limit: 0,
+      maxPerBuyer: 0,
+      used: 0,
+      remaining: 0,
+      buyerUsed: 0,
+      buyerRemaining: 0,
+      tierId: ticketTierId,
+      promoPriceKobo: null,
+    };
+  }
+
   const promoItems = await db.orderItem.findMany({
     where: {
       itemType: "ticket",
-      ticketTierId: EARLY_BIRD_PROMO_TIER_ID,
+      ticketTierId,
     },
     include: {
       order: {
@@ -100,9 +136,8 @@ export async function getEarlyBirdPromoStatus(
     },
   });
 
-  const reservedItems = promoItems.filter((item) => isReservedPromoItem(item, now));
-  const used = reservedItems
-    .reduce((sum, item) => sum + item.quantity, 0);
+  const reservedItems = promoItems.filter((item) => isReservedPromoItem(item, promo.code, now));
+  const used = reservedItems.reduce((sum, item) => sum + item.quantity, 0);
   const buyerEmail = normalizeEmail(options.email);
   const buyerPhone = normalizePhone(options.phone);
   const buyerUsed = buyerEmail || buyerPhone
@@ -118,22 +153,25 @@ export async function getEarlyBirdPromoStatus(
         })
         .reduce((sum, item) => sum + item.quantity, 0)
     : 0;
-  const buyerRemaining = Math.max(EARLY_BIRD_PROMO_MAX_PER_BUYER - buyerUsed, 0);
-  const remaining = Math.max(EARLY_BIRD_PROMO_LIMIT - used, 0);
-  const active = isEarlyBirdPromoActive(now) && remaining > 0 && buyerRemaining > 0;
+  const buyerRemaining = Math.max(promo.maxPerBuyer - buyerUsed, 0);
+  const remaining = Math.max(promo.quantityLimit - used, 0);
+  const active = remaining > 0 && buyerRemaining > 0;
 
   return {
     active,
-    code: EARLY_BIRD_PROMO_CODE,
-    label: EARLY_BIRD_PROMO_LABEL,
-    startsAt: EARLY_BIRD_PROMO_START_AT.toISOString(),
-    limit: EARLY_BIRD_PROMO_LIMIT,
-    maxPerBuyer: EARLY_BIRD_PROMO_MAX_PER_BUYER,
+    promo,
+    code: promo.code,
+    label: promo.name,
+    startsAt: promo.startsAt.toISOString(),
+    endsAt: promo.endsAt?.toISOString() ?? null,
+    limit: promo.quantityLimit,
+    maxPerBuyer: promo.maxPerBuyer,
     used,
     remaining,
     buyerUsed,
     buyerRemaining,
-    tierId: EARLY_BIRD_PROMO_TIER_ID,
-    promoPriceKobo: EARLY_BIRD_PROMO_PRICE_KOBO,
+    tierId: ticketTierId,
+    promoPriceKobo: promo.promoPriceKobo,
   };
 }
+
