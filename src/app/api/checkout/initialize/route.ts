@@ -5,7 +5,7 @@ import {
   initializePaystackTransaction,
   makePaymentReference,
 } from "@/lib/paystack";
-import { calculateTicketPaymentBreakdown } from "@/lib/fees";
+import { calculateCheckoutPaymentBreakdown } from "@/lib/fees";
 import { prisma } from "@/lib/prisma";
 import { getTicketPromoStatus } from "@/lib/ticket-promos";
 
@@ -26,6 +26,12 @@ const checkoutSchema = z.object({
         z.object({
           type: z.literal("product"),
           variantId: z.string(),
+          quantity: z.number().int().positive().max(20),
+        }),
+        z.object({
+          type: z.literal("addon"),
+          eventId: z.string(),
+          eventAddOnId: z.string(),
           quantity: z.number().int().positive().max(20),
         }),
       ]),
@@ -68,6 +74,36 @@ export async function POST(request: Request) {
             unitKobo: variant.priceKobo,
             totalKobo: variant.priceKobo * item.quantity,
             metadata: { sku: variant.sku, size: variant.size, color: variant.color },
+          });
+        }
+
+        if (item.type === "addon") {
+          const addOn = await tx.eventAddOn.findUnique({
+            where: { id: item.eventAddOnId },
+            include: { event: true },
+          });
+
+          if (!addOn || !addOn.isActive || addOn.eventId !== item.eventId || addOn.event.status !== "PUBLISHED") {
+            throw new Error("An add-on in your cart is unavailable.");
+          }
+
+          const remaining = addOn.stock - addOn.soldCount;
+          if (remaining < item.quantity) {
+            throw new Error(`${addOn.name} is almost sold out. Only ${remaining} left.`);
+          }
+
+          orderItems.push({
+            itemType: "addon",
+            eventAddOnId: addOn.id,
+            title: `${addOn.event.title} - ${addOn.name}`,
+            quantity: item.quantity,
+            unitKobo: addOn.priceKobo,
+            totalKobo: addOn.priceKobo * item.quantity,
+            metadata: {
+              eventId: addOn.eventId,
+              eventAddOnId: addOn.id,
+              collectionType: "water-gun",
+            },
           });
         }
 
@@ -144,11 +180,15 @@ export async function POST(request: Request) {
       const ticketSubtotalKobo = orderItems
         .filter((item) => item.itemType === "ticket")
         .reduce((sum, item) => sum + item.totalKobo, 0);
-      const productSubtotalKobo = subtotalKobo - ticketSubtotalKobo;
-      const breakdown = calculateTicketPaymentBreakdown(ticketSubtotalKobo);
+      const eventAddOnSubtotalKobo = orderItems
+        .filter((item) => item.itemType === "addon")
+        .reduce((sum, item) => sum + item.totalKobo, 0);
+      const feeSubtotalKobo = ticketSubtotalKobo + eventAddOnSubtotalKobo;
+      const nonTicketSubtotalKobo = subtotalKobo - ticketSubtotalKobo;
+      const breakdown = calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, feeSubtotalKobo);
       const transactionFeeKobo = breakdown.transactionFeeKobo;
       const developerFeeKobo = breakdown.dreamAmountKobo;
-      const adonisAmountKobo = productSubtotalKobo + breakdown.adonisAmountKobo;
+      const adonisAmountKobo = nonTicketSubtotalKobo + breakdown.adonisAmountKobo;
       const organizerCommissionKobo = breakdown.organizerCommissionKobo;
       const totalKobo = subtotalKobo + transactionFeeKobo;
 
@@ -175,7 +215,9 @@ export async function POST(request: Request) {
           transactionFeeKobo,
           gatewayResponse: {
             ticketSubtotalKobo,
-            productSubtotalKobo,
+            eventAddOnSubtotalKobo,
+            feeSubtotalKobo,
+            nonTicketSubtotalKobo,
             organizerCommissionKobo,
             dreamGrossKobo: developerFeeKobo,
           },

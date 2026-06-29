@@ -24,14 +24,19 @@ export function calculateOrganizerCommission(ticketSubtotalKobo: number) {
 }
 
 export function calculateTicketPaymentBreakdown(ticketSubtotalKobo: number) {
-  const transactionFeeKobo = calculateTransactionFee(ticketSubtotalKobo);
+  return calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, ticketSubtotalKobo);
+}
+
+export function calculateCheckoutPaymentBreakdown(ticketSubtotalKobo: number, feeSubtotalKobo = ticketSubtotalKobo) {
+  const transactionFeeKobo = calculateTransactionFee(feeSubtotalKobo);
   const organizerCommissionKobo = calculateOrganizerCommission(ticketSubtotalKobo);
   const adonisAmountKobo = ticketSubtotalKobo - organizerCommissionKobo;
   const dreamAmountKobo = transactionFeeKobo + organizerCommissionKobo;
-  const totalKobo = ticketSubtotalKobo + transactionFeeKobo;
+  const totalKobo = feeSubtotalKobo + transactionFeeKobo;
 
   return {
     ticketSubtotalKobo,
+    feeSubtotalKobo,
     transactionFeeKobo,
     organizerCommissionKobo,
     adonisAmountKobo,

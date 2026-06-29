@@ -29,6 +29,13 @@ export type Event = {
     priceKobo: number;
     perks: string[];
   }>;
+  addOns?: Array<{
+    id: string;
+    name: string;
+    priceKobo: number;
+    remaining: number;
+    description?: string | null;
+  }>;
 };
 
 export type Artist = {

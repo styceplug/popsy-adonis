@@ -1,4 +1,4 @@
-import { calculateTicketPaymentBreakdown } from "../src/lib/fees.ts";
+import { calculateCheckoutPaymentBreakdown, calculateTicketPaymentBreakdown } from "../src/lib/fees.ts";
 
 const cases = [
   {
@@ -71,3 +71,16 @@ for (const testCase of cases) {
 
   console.log(`${testCase.name} fee check passed`, actual);
 }
+
+const addOnOnly = calculateCheckoutPaymentBreakdown(0, 700_000);
+if (
+  addOnOnly.transactionFeeKobo !== 35_000 ||
+  addOnOnly.organizerCommissionKobo !== 0 ||
+  addOnOnly.adonisAmountKobo !== 0 ||
+  addOnOnly.dreamAmountKobo !== 35_000 ||
+  addOnOnly.totalKobo !== 735_000
+) {
+  throw new Error(`Water gun add-on fee check failed: ${JSON.stringify(addOnOnly)}`);
+}
+
+console.log("Water gun add-on fee check passed", addOnOnly);

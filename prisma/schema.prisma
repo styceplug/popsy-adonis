@@ -116,6 +116,7 @@ model Event {
   gallery       EventMedia[]
   ticketTiers   TicketTier[]
   tickets       Ticket[]
+  addOns        EventAddOn[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -188,6 +189,47 @@ model Ticket {
   @@index([eventId, qrCode])
 }
 
+model EventAddOn {
+  id          String                 @id @default(cuid())
+  eventId     String
+  event       Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  priceKobo   Int
+  stock       Int                    @default(0)
+  soldCount   Int                    @default(0)
+  isActive    Boolean                @default(true)
+  orderItems  OrderItem[]
+  redemptions EventAddOnRedemption[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([eventId, slug])
+  @@index([eventId, isActive])
+}
+
+model EventAddOnRedemption {
+  id                String     @id @default(cuid())
+  eventAddOnId       String
+  eventAddOn         EventAddOn @relation(fields: [eventAddOnId], references: [id])
+  orderId           String
+  order             Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId       String?
+  quantity          Int
+  customerName      String?
+  customerEmail     String
+  customerPhone     String?
+  collectedAt       DateTime?
+  collectedBy       String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([eventAddOnId, collectedAt])
+  @@index([orderId])
+  @@index([customerEmail])
+}
+
 model Product {
   id          String           @id @default(cuid())
   name        String
@@ -228,6 +270,7 @@ model Order {
   currency           String       @default("NGN")
   items              OrderItem[]
   tickets            Ticket[]
+  addOnRedemptions   EventAddOnRedemption[]
   transaction        Transaction?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
@@ -240,6 +283,8 @@ model OrderItem {
   variantId    String?
   variant      ProductVariant? @relation(fields: [variantId], references: [id])
   ticketTierId String?
+  eventAddOnId String?
+  eventAddOn   EventAddOn?     @relation(fields: [eventAddOnId], references: [id])
   itemType     String
   title        String
   quantity     Int

@@ -30,6 +30,17 @@ export type CartItem =
       unitKobo: number;
       image?: string;
       metadata?: Record<string, string>;
+    }
+  | {
+      id: string;
+      type: "addon";
+      title: string;
+      eventId: string;
+      eventAddOnId: string;
+      quantity: number;
+      unitKobo: number;
+      image?: string;
+      metadata?: Record<string, string>;
     };
 
 type CartContextValue = {

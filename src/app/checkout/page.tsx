@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
-import { calculateTicketPaymentBreakdown } from "@/lib/fees";
+import { calculateCheckoutPaymentBreakdown } from "@/lib/fees";
 import { formatNaira } from "@/lib/format-money";
 
 export default function CheckoutPage() {
@@ -18,7 +18,15 @@ export default function CheckoutPage() {
     () => items.filter((item) => item.type === "ticket").reduce((sum, item) => sum + item.unitKobo * item.quantity, 0),
     [items],
   );
-  const feeBreakdown = useMemo(() => calculateTicketPaymentBreakdown(ticketSubtotalKobo), [ticketSubtotalKobo]);
+  const eventAddOnSubtotalKobo = useMemo(
+    () => items.filter((item) => item.type === "addon").reduce((sum, item) => sum + item.unitKobo * item.quantity, 0),
+    [items],
+  );
+  const feeSubtotalKobo = ticketSubtotalKobo + eventAddOnSubtotalKobo;
+  const feeBreakdown = useMemo(
+    () => calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, feeSubtotalKobo),
+    [feeSubtotalKobo, ticketSubtotalKobo],
+  );
   const transactionFeeKobo = feeBreakdown.transactionFeeKobo;
   const totalKobo = subtotalKobo + transactionFeeKobo;
 
@@ -39,6 +47,15 @@ export default function CheckoutPage() {
               return {
                 type: "product",
                 variantId: item.variantId,
+                quantity: item.quantity,
+              };
+            }
+
+            if (item.type === "addon") {
+              return {
+                type: "addon",
+                eventId: item.eventId,
+                eventAddOnId: item.eventAddOnId,
                 quantity: item.quantity,
               };
             }
@@ -164,8 +181,8 @@ export default function CheckoutPage() {
 
           <div className="mt-6 grid gap-3 border-t border-white/10 pt-5 text-sm">
             <div className="flex justify-between text-paper/62">
-              <span>Ticket price</span>
-              <span>{formatNaira(ticketSubtotalKobo)}</span>
+              <span>Ticket/Add-on price</span>
+              <span>{formatNaira(feeSubtotalKobo)}</span>
             </div>
             <div className="flex justify-between text-paper/62">
               <span>Subtotal</span>

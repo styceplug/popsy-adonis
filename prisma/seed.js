@@ -206,6 +206,49 @@ async function main() {
     },
   });
 
+  const eventAddOns = [
+    {
+      id: "addon-summer-time-water-gun-medium",
+      eventId: "event-summer-time-ekiti",
+      name: "Water Gun - Medium",
+      slug: "water-gun-medium",
+      description: "Medium water gun add-on for Summer Time in Ekiti.",
+      priceKobo: 700000,
+      stock: 250,
+    },
+    {
+      id: "addon-summer-time-water-gun-big",
+      eventId: "event-summer-time-ekiti",
+      name: "Water Gun - Big",
+      slug: "water-gun-big",
+      description: "Big water gun add-on for Summer Time in Ekiti.",
+      priceKobo: 1300000,
+      stock: 150,
+    },
+  ];
+
+  for (const addOn of eventAddOns) {
+    await prisma.eventAddOn.upsert({
+      where: {
+        eventId_slug: {
+          eventId: addOn.eventId,
+          slug: addOn.slug,
+        },
+      },
+      update: {
+        name: addOn.name,
+        description: addOn.description,
+        priceKobo: addOn.priceKobo,
+        stock: addOn.stock,
+        isActive: true,
+      },
+      create: {
+        ...addOn,
+        isActive: true,
+      },
+    });
+  }
+
   await prisma.ticketTier.updateMany({
     where: {
       eventId: {

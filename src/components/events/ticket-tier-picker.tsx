@@ -21,6 +21,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
   const [selectedTier, setSelectedTier] = useState(event.tiers[0]?.id);
   const [quantity, setQuantity] = useState(1);
   const [wasAdded, setWasAdded] = useState(false);
+  const [addedAddOnId, setAddedAddOnId] = useState("");
   const [promoStatuses, setPromoStatuses] = useState<Record<string, TicketPromoStatus>>({});
   const tier = useMemo(() => event.tiers.find((item) => item.id === selectedTier), [event.tiers, selectedTier]);
   const promoStatus = tier ? promoStatuses[tier.id] : undefined;
@@ -62,7 +63,8 @@ export function TicketTierPicker({ event }: { event: Event }) {
   }, [event.tiers]);
 
   return (
-    <div className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
+    <div className="grid gap-5 rounded-ui border border-white/10 bg-white/[0.035] p-5">
+      <div>
       <p className="text-xs font-black uppercase text-gold">Ticket tiers</p>
       <div className="mt-4 grid gap-3">
         {event.tiers.map((item) => {
@@ -171,6 +173,55 @@ export function TicketTierPicker({ event }: { event: Event }) {
       >
         Go to checkout
       </Link>
+      </div>
+
+      {event.addOns && event.addOns.length > 0 ? (
+        <div className="border-t border-white/10 pt-5">
+          <p className="text-xs font-black uppercase text-gold">Water gun add-ons</p>
+          <div className="mt-4 grid gap-3">
+            {event.addOns.map((addOn) => (
+              <div key={addOn.id} className="rounded-ui border border-white/10 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-display text-xl font-black text-paper">{addOn.name}</p>
+                    {addOn.description ? (
+                      <p className="mt-1 text-xs leading-5 text-paper/52">{addOn.description}</p>
+                    ) : null}
+                    <p className="mt-2 text-xs font-bold text-paper/45">{addOn.remaining} left</p>
+                  </div>
+                  <p className="whitespace-nowrap text-sm font-black text-gold">{formatNaira(addOn.priceKobo)}</p>
+                </div>
+                <button
+                  disabled={addOn.remaining <= 0}
+                  onClick={() => {
+                    addItem({
+                      id: `${event.id}:${addOn.id}:addon`,
+                      type: "addon",
+                      title: `${event.title} - ${addOn.name}`,
+                      eventId: event.id,
+                      eventAddOnId: addOn.id,
+                      quantity: 1,
+                      unitKobo: addOn.priceKobo,
+                      image: event.heroImage,
+                      metadata: {
+                        event: event.title,
+                        addOn: addOn.name,
+                        collection: "Mark as collected at event",
+                      },
+                    });
+                    setAddedAddOnId(addOn.id);
+                    window.setTimeout(() => setAddedAddOnId(""), 2200);
+                  }}
+                  className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-ui border border-white/12 text-sm font-black text-paper/72 transition hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <ShoppingCart size={15} />
+                  {addedAddOnId === addOn.id ? "Added to cart" : "Add water gun"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

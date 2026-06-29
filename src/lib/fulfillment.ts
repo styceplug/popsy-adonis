@@ -14,6 +14,12 @@ type TicketGroup = TicketMetadata & {
   quantity: number;
 };
 
+type AddOnMetadata = {
+  eventId: string;
+  eventAddOnId: string;
+  collectionType?: string;
+};
+
 function isTicketMetadata(metadata: unknown): metadata is TicketMetadata {
   return Boolean(
     metadata &&
@@ -21,6 +27,16 @@ function isTicketMetadata(metadata: unknown): metadata is TicketMetadata {
       !Array.isArray(metadata) &&
       "eventId" in metadata &&
       "ticketTierId" in metadata,
+  );
+}
+
+function isAddOnMetadata(metadata: unknown): metadata is AddOnMetadata {
+  return Boolean(
+    metadata &&
+      typeof metadata === "object" &&
+      !Array.isArray(metadata) &&
+      "eventId" in metadata &&
+      "eventAddOnId" in metadata,
   );
 }
 
@@ -85,6 +101,28 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
       await prisma.productVariant.update({
         where: { id: item.variantId },
         data: { stock: { decrement: item.quantity } },
+      });
+    }
+
+    if (!wasAlreadySuccessful && item.itemType === "addon" && item.eventAddOnId) {
+      const metadata = isAddOnMetadata(item.metadata) ? item.metadata : undefined;
+
+      if (!metadata) continue;
+
+      await prisma.eventAddOn.update({
+        where: { id: item.eventAddOnId },
+        data: { soldCount: { increment: item.quantity } },
+      });
+
+      await prisma.eventAddOnRedemption.create({
+        data: {
+          eventAddOnId: metadata.eventAddOnId,
+          orderId: transaction.orderId,
+          orderItemId: item.id,
+          quantity: item.quantity,
+          customerEmail: transaction.order.email,
+          customerPhone: transaction.order.phone,
+        },
       });
     }
 

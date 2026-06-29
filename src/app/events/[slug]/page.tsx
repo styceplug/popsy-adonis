@@ -80,13 +80,22 @@ export default async function EventDetailPage({
 
   if (!event) notFound();
 
-  const dbTiers = await prisma.ticketTier.findMany({
-    where: {
-      eventId: event.id,
-      isActive: true,
-    },
-    orderBy: { priceKobo: "asc" },
-  });
+  const [dbTiers, dbAddOns] = await Promise.all([
+    prisma.ticketTier.findMany({
+      where: {
+        eventId: event.id,
+        isActive: true,
+      },
+      orderBy: { priceKobo: "asc" },
+    }),
+    prisma.eventAddOn.findMany({
+      where: {
+        eventId: event.id,
+        isActive: true,
+      },
+      orderBy: { priceKobo: "asc" },
+    }),
+  ]);
   const ticketEvent = {
     ...event,
     tiers:
@@ -98,6 +107,13 @@ export default async function EventDetailPage({
             perks: tier.perks,
           }))
         : event.tiers,
+    addOns: dbAddOns.map((addOn) => ({
+      id: addOn.id,
+      name: addOn.name,
+      priceKobo: addOn.priceKobo,
+      remaining: Math.max(addOn.stock - addOn.soldCount, 0),
+      description: addOn.description,
+    })),
   };
 
   const date = new Intl.DateTimeFormat("en-NG", {
