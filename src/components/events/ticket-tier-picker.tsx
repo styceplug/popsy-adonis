@@ -100,7 +100,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
               {itemPromoActive ? (
                 <span className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
-                  {itemPromo?.label}: {itemPromo?.remaining} left
+                  {itemPromo?.label}
                 </span>
               ) : null}
             </button>
@@ -187,7 +187,6 @@ export function TicketTierPicker({ event }: { event: Event }) {
                     {addOn.description ? (
                       <p className="mt-1 text-xs leading-5 text-paper/52">{addOn.description}</p>
                     ) : null}
-                    <p className="mt-2 text-xs font-bold text-paper/45">{addOn.remaining} left</p>
                   </div>
                   <p className="whitespace-nowrap text-sm font-black text-gold">{formatNaira(addOn.priceKobo)}</p>
                 </div>

@@ -89,9 +89,10 @@ export default async function AdminWaterGunsPage({
       </form>
 
       <div className="mt-6 overflow-hidden rounded-ui border border-white/10">
-        <div className="grid grid-cols-[1fr_.8fr_.7fr_.7fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
+        <div className="grid grid-cols-[1fr_.8fr_.45fr_.7fr_.7fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Buyer</p>
           <p>Add-on</p>
+          <p>Qty purchased</p>
           <p>Payment</p>
           <p>Status</p>
         </div>
@@ -100,7 +101,7 @@ export default async function AdminWaterGunsPage({
             const isPaid = redemption.order.status === "PAID" || redemption.order.transaction?.status === "SUCCESS";
 
             return (
-              <div key={redemption.id} className="grid grid-cols-[1fr_.8fr_.7fr_.7fr] gap-4 px-4 py-4 text-sm">
+              <div key={redemption.id} className="grid grid-cols-[1fr_.8fr_.45fr_.7fr_.7fr] gap-4 px-4 py-4 text-sm">
                 <div>
                   <p className="font-black text-paper">{redemption.customerName ?? "Guest"}</p>
                   <p className="mt-1 text-xs text-paper/45">{redemption.customerEmail}</p>
@@ -110,8 +111,12 @@ export default async function AdminWaterGunsPage({
                   <p className="font-black text-paper">{redemption.eventAddOn.name}</p>
                   <p className="mt-1 text-xs text-paper/45">{redemption.eventAddOn.event.title}</p>
                   <p className="mt-1 text-xs text-paper/45">
-                    Qty {redemption.quantity} · {formatNaira(redemption.eventAddOn.priceKobo * redemption.quantity)}
+                    {formatNaira(redemption.eventAddOn.priceKobo * redemption.quantity)}
                   </p>
+                </div>
+                <div>
+                  <p className="font-display text-3xl font-black text-paper">{redemption.quantity}</p>
+                  <p className="mt-1 text-xs text-paper/45">unit{redemption.quantity === 1 ? "" : "s"}</p>
                 </div>
                 <div>
                   <p className={isPaid ? "font-black text-gold" : "font-black text-paper/50"}>{isPaid ? "Paid" : "Pending"}</p>
@@ -140,4 +145,3 @@ export default async function AdminWaterGunsPage({
     </div>
   );
 }
-
