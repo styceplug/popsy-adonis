@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgePercent, ClipboardCheck, LayoutDashboard, ListChecks, Mail, PackageCheck, ScrollText, Ticket } from "lucide-react";
+import { BadgePercent, ClipboardCheck, LayoutDashboard, ListChecks, Mail, Package, PackageCheck, ScrollText, Ticket } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { requireAdminSession } from "@/lib/admin-auth";
 
@@ -8,6 +8,7 @@ const adminNav = [
   { label: "Check in", href: "/admin/checkin", icon: ClipboardCheck },
   { label: "Tickets", href: "/admin/tickets", icon: Ticket },
   { label: "Water Guns", href: "/admin/water-guns", icon: PackageCheck },
+  { label: "PA FLUX", href: "/admin/merch", icon: Package },
   { label: "Promo", href: "/admin/promos", icon: BadgePercent },
   { label: "Subscribers", href: "/admin/subscribers", icon: Mail },
   { label: "Logs", href: "/admin/logs", icon: ScrollText },

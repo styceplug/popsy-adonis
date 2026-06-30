@@ -66,6 +66,13 @@ export type Product = {
   images: string[];
   colors: string[];
   sizes: string[];
+  variants: Array<{
+    id: string;
+    size: string;
+    color: string;
+    priceKobo: number;
+    stock: number;
+  }>;
   tag: string;
 };
 
@@ -475,48 +482,45 @@ export const artists: Artist[] = [
 
 export const products: Product[] = [
   {
-    id: "product-pa-flux-signature-tee",
-    defaultVariantId: "variant-pa-flux-signature-tee-ink-m",
-    name: "PA FLUX Signature Tee",
-    slug: "pa-flux-signature-tee",
-    description: "Heavyweight cotton tee with a clean front mark and oversized back print.",
+    id: "product-pa-flux-white-tee-becoming",
+    defaultVariantId: "variant-pa-flux-white-tee-m",
+    name: "White FLUX Tee - The Becoming",
+    slug: "white-flux-tee-the-becoming",
+    description:
+      "After surviving the darkness, you don't return the same. You return renewed. The White Tee represents clarity, confidence, and new beginnings. It reminds you that growth isn't about being perfect; it's about becoming better every day. Stay in Flux. Evolve without limits.",
     priceKobo: 3500000,
     images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=1200&q=80",
+      "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/front.jpeg",
+      "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/back.jpeg",
     ],
-    colors: ["Ink", "Bone", "Lava"],
-    sizes: ["S", "M", "L", "XL"],
-    tag: "Core Drop",
-  },
-  {
-    id: "product-night-circuit-hoodie",
-    defaultVariantId: "variant-night-circuit-hoodie-coal-m",
-    name: "Night Circuit Hoodie",
-    slug: "night-circuit-hoodie",
-    description: "Structured hoodie for late arrivals, clean exits, and every camera flash between.",
-    priceKobo: 6200000,
-    images: [
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=1200&q=80",
-    ],
-    colors: ["Coal", "Gold"],
+    colors: ["White"],
     sizes: ["M", "L", "XL"],
-    tag: "Limited",
+    variants: [
+      { id: "variant-pa-flux-white-tee-m", size: "M", color: "White", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-white-tee-l", size: "L", color: "White", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-white-tee-xl", size: "XL", color: "White", priceKobo: 3500000, stock: 100 },
+    ],
+    tag: "Launch Drop",
   },
   {
-    id: "product-access-cap",
-    defaultVariantId: "variant-access-cap-ink-one-size",
-    name: "Access Cap",
-    slug: "access-cap",
-    description: "Low-profile embroidered cap for the people who know where the real party is.",
-    priceKobo: 1800000,
+    id: "product-pa-flux-black-tee-beginning",
+    defaultVariantId: "variant-pa-flux-black-tee-m",
+    name: "Black FLUX Tee - The Beginning",
+    slug: "black-flux-tee-the-beginning",
+    description:
+      "Before every breakthrough, there's a season nobody applauds. The Black Tee represents the nights of doubt, discipline, and silent growth. Every setback leaves a mark, but every mark becomes part of the story. You don't wait for the light, you become it. Stay in Flux. Keep moving.",
+    priceKobo: 3500000,
     images: [
-      "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80",
+      "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/front.jpeg",
+      "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/back.jpeg",
     ],
-    colors: ["Ink", "Bone"],
-    sizes: ["One size"],
-    tag: "Accessory",
+    colors: ["Black"],
+    sizes: ["M", "L", "XL"],
+    variants: [
+      { id: "variant-pa-flux-black-tee-m", size: "M", color: "Black", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-black-tee-l", size: "L", color: "Black", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-black-tee-xl", size: "XL", color: "Black", priceKobo: 3500000, stock: 100 },
+    ],
+    tag: "Launch Drop",
   },
 ];

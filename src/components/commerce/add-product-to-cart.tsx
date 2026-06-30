@@ -10,15 +10,20 @@ export function AddProductToCart({ product }: { product: Product }) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [wasAdded, setWasAdded] = useState(false);
+  const selectedVariant =
+    product.variants.find((variant) => variant.color === selectedColor && variant.size === selectedSize) ??
+    product.variants[0];
 
   function handleAddToCart() {
+    if (!selectedVariant) return;
+
     addItem({
-      id: `${product.defaultVariantId}:${selectedColor}:${selectedSize}`,
+      id: selectedVariant.id,
       type: "product",
       title: product.name,
-      variantId: product.defaultVariantId,
+      variantId: selectedVariant.id,
       quantity: 1,
-      unitKobo: product.priceKobo,
+      unitKobo: selectedVariant.priceKobo,
       image: product.images[0],
       metadata: { color: selectedColor, size: selectedSize },
     });
@@ -61,11 +66,12 @@ export function AddProductToCart({ product }: { product: Product }) {
         </div>
       </div>
       <button
+        disabled={!selectedVariant || selectedVariant.stock <= 0}
         onClick={handleAddToCart}
-        className="focus-ring mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-ui bg-ink px-5 text-sm font-black text-paper transition hover:bg-lava"
+        className="focus-ring mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-ui bg-ink px-5 text-sm font-black text-paper transition hover:bg-lava disabled:cursor-not-allowed disabled:opacity-45"
       >
         <ShoppingBag size={17} />
-        {wasAdded ? "Added to cart" : "Add to cart"}
+        {selectedVariant?.stock === 0 ? "Sold out" : wasAdded ? "Added to cart" : "Add to cart"}
       </button>
       {wasAdded ? (
         <p className="mt-3 rounded-ui border border-ink/15 bg-ink/5 p-3 text-sm font-bold text-ink/70">

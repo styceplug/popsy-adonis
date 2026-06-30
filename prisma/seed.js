@@ -6,62 +6,76 @@ const prisma = new PrismaClient();
 async function main() {
   const products = [
     {
-      id: "product-pa-flux-signature-tee",
-      name: "PA FLUX Signature Tee",
-      slug: "pa-flux-signature-tee",
-      description: "Heavyweight cotton tee with a clean front mark and oversized back print.",
+      id: "product-pa-flux-white-tee-becoming",
+      name: "White FLUX Tee - The Becoming",
+      slug: "white-flux-tee-the-becoming",
+      description:
+        "After surviving the darkness, you don't return the same. You return renewed. The White Tee represents clarity, confidence, and new beginnings. It reminds you that growth isn't about being perfect; it's about becoming better every day. Stay in Flux. Evolve without limits.",
       images: [
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=1200&q=80",
+        "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/front.jpeg",
+        "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/back.jpeg",
       ],
       variants: [
         {
-          id: "variant-pa-flux-signature-tee-ink-m",
-          sku: "PA-FLUX-TEE-INK-M",
+          id: "variant-pa-flux-white-tee-m",
+          sku: "PA-FLUX-WHITE-TEE-M",
           size: "M",
-          color: "Ink",
+          color: "White",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-white-tee-l",
+          sku: "PA-FLUX-WHITE-TEE-L",
+          size: "L",
+          color: "White",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-white-tee-xl",
+          sku: "PA-FLUX-WHITE-TEE-XL",
+          size: "XL",
+          color: "White",
           priceKobo: 3500000,
           stock: 100,
         },
       ],
     },
     {
-      id: "product-night-circuit-hoodie",
-      name: "Night Circuit Hoodie",
-      slug: "night-circuit-hoodie",
-      description: "Structured hoodie for late arrivals, clean exits, and every camera flash between.",
+      id: "product-pa-flux-black-tee-beginning",
+      name: "Black FLUX Tee - The Beginning",
+      slug: "black-flux-tee-the-beginning",
+      description:
+        "Before every breakthrough, there's a season nobody applauds. The Black Tee represents the nights of doubt, discipline, and silent growth. Every setback leaves a mark, but every mark becomes part of the story. You don't wait for the light, you become it. Stay in Flux. Keep moving.",
       images: [
-        "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=crop&w=1200&q=80",
+        "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/front.jpeg",
+        "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/back.jpeg",
       ],
       variants: [
         {
-          id: "variant-night-circuit-hoodie-coal-m",
-          sku: "PA-FLUX-HOODIE-COAL-M",
+          id: "variant-pa-flux-black-tee-m",
+          sku: "PA-FLUX-BLACK-TEE-M",
           size: "M",
-          color: "Coal",
-          priceKobo: 6200000,
-          stock: 80,
+          color: "Black",
+          priceKobo: 3500000,
+          stock: 100,
         },
-      ],
-    },
-    {
-      id: "product-access-cap",
-      name: "Access Cap",
-      slug: "access-cap",
-      description: "Low-profile embroidered cap for the people who know where the real party is.",
-      images: [
-        "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80",
-      ],
-      variants: [
         {
-          id: "variant-access-cap-ink-one-size",
-          sku: "PA-FLUX-CAP-INK-OS",
-          size: "One size",
-          color: "Ink",
-          priceKobo: 1800000,
-          stock: 150,
+          id: "variant-pa-flux-black-tee-l",
+          sku: "PA-FLUX-BLACK-TEE-L",
+          size: "L",
+          color: "Black",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-black-tee-xl",
+          sku: "PA-FLUX-BLACK-TEE-XL",
+          size: "XL",
+          color: "Black",
+          priceKobo: 3500000,
+          stock: 100,
         },
       ],
     },
@@ -104,6 +118,17 @@ async function main() {
       });
     }
   }
+
+  await prisma.product.updateMany({
+    where: {
+      id: {
+        notIn: products.map((product) => product.id),
+      },
+    },
+    data: {
+      status: "ARCHIVED",
+    },
+  });
 
   const events = [
     {
