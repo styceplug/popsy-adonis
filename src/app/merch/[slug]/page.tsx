@@ -58,13 +58,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="bg-bone pt-24 text-ink">
       <section className="section-shell pt-8">
-        <div className="mx-auto max-w-3xl overflow-hidden rounded-ui border border-ink/10">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-ui border border-ink/10">
           <Image
-            src="/PA%20FLUX/header.jpeg"
+            src="/PA%20FLUX/header.png"
             alt="PA FLUX collection header"
-            width={1280}
-            height={1280}
-            sizes="(min-width: 1024px) 768px, calc(100vw - 32px)"
+            width={2173}
+            height={724}
+            sizes="(min-width: 1280px) 1152px, (min-width: 1024px) 90vw, calc(100vw - 32px)"
             className="h-auto w-full"
             priority
           />
