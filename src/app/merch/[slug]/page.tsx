@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AddProductToCart } from "@/components/commerce/add-product-to-cart";
 import { ProductImageGallery } from "@/components/commerce/product-image-gallery";
@@ -57,12 +58,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="bg-bone pt-24 text-ink">
       <section className="section-shell pt-8">
-        <div
-          className="min-h-[170px] rounded-ui border border-ink/10 bg-cover bg-center bg-no-repeat sm:min-h-[240px] lg:min-h-[320px]"
-          style={{ backgroundImage: "url(/PA%20FLUX/header.jpeg)" }}
-          role="img"
-          aria-label="PA FLUX collection header"
-        />
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-ui border border-ink/10">
+          <Image
+            src="/PA%20FLUX/header.jpeg"
+            alt="PA FLUX collection header"
+            width={1280}
+            height={1280}
+            sizes="(min-width: 1024px) 768px, calc(100vw - 32px)"
+            className="h-auto w-full"
+            priority
+          />
+        </div>
       </section>
 
       <section className="section-shell grid gap-10 py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)] lg:py-14">
