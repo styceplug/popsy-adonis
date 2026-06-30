@@ -51,23 +51,31 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   if (!product) notFound();
 
+  const descriptionParagraphs = product.description.split(/(?<=\.)\s+/).filter(Boolean);
+
   return (
     <main className="bg-bone pt-24 text-ink">
-      <section className="section-shell grid gap-8 py-16 md:grid-cols-[1.05fr_.95fr]">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <section className="section-shell grid gap-10 py-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
+        <div className="overflow-x-auto pb-3">
+          <div className="flex min-w-max gap-4">
           {product.images.map((image) => (
             <div
               key={image}
-              className="min-h-[520px] rounded-ui bg-cover bg-center"
+                className="h-[560px] w-[min(78vw,440px)] shrink-0 rounded-ui border border-ink/10 bg-contain bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${image})` }}
             />
           ))}
+          </div>
         </div>
         <div className="md:sticky md:top-24 md:self-start">
           <p className="text-xs font-black uppercase text-lava">{product.tag}</p>
           <h1 className="mt-3 font-display text-5xl font-black md:text-7xl">{product.name}</h1>
           <p className="mt-5 text-2xl font-black">{formatNaira(product.priceKobo)}</p>
-          <p className="mt-5 max-w-md text-lg leading-8 text-ink/66">{product.description}</p>
+          <div className="mt-6 grid max-w-md gap-4 text-base leading-7 text-ink/66">
+            {descriptionParagraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
           <AddProductToCart product={product} />
         </div>
       </section>
