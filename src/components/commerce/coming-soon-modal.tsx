@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Sparkles, Clock, Mail, Check } from "lucide-react";
+import { X, Sparkles, Mail, Check } from "lucide-react";
 import { brand } from "@/lib/sample-data";
 
 interface ComingSoonModalProps {
@@ -165,19 +165,14 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
             </div>
 
             <h2 className="font-display text-3xl font-black text-ink md:text-4xl">
-              Coming Soon
+              Join the {brand.merchName} list
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-ink/60">
-              The <span className="font-bold text-lava">{brand.merchName}</span>{" "}
-              clothing line is currently in production. Sign up to be the first
-              to know when we drop.
+              The collection is live. Get restock alerts, new colorway notes,
+              and subscriber-first updates from{" "}
+              <span className="font-bold text-lava">{brand.merchName}</span>.
             </p>
-
-            <div className="mt-4 flex items-center gap-2 text-xs font-medium text-ink/60">
-              <Clock size={14} className="text-gold" />
-              <span>Launching Q2 2026</span>
-            </div>
 
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="mt-6">
@@ -201,12 +196,12 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
                     {isLoading ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-paper/30 border-t-paper" />
                     ) : (
-                      "Notify Me"
+                      "Join list"
                     )}
                   </button>
                 </div>
                 <p className="mt-3 text-xs text-ink/40">
-                  No spam, just the drop date and early access.
+                  Store updates only: restocks, future drops, and PA FLUX notes.
                 </p>
                 {error ? <p className="mt-3 rounded-ui bg-lava/10 p-3 text-xs font-bold text-lava">{error}</p> : null}
               </form>
@@ -214,7 +209,7 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
               <div className="mt-6 flex items-center gap-3 rounded-ui bg-emerald-50 p-3 text-emerald-700">
                 <Check size={18} className="shrink-0" />
                 <span className="text-sm font-medium">
-                  You&apos;re on the list! 🎉
+                  You&apos;re on the PA FLUX list.
                 </span>
               </div>
             )}
@@ -222,11 +217,11 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
             <div className="mt-6 grid grid-cols-2 gap-2 border-t border-ink/5 pt-6">
               <div className="flex items-center gap-2 text-xs font-medium text-ink/50">
                 <Sparkles size={12} className="animate-pulse text-gold" />
-                <span>Premium quality</span>
+                <span>Restock alerts</span>
               </div>
               <div className="flex items-center gap-2 text-xs font-medium text-ink/50">
                 <Sparkles size={12} className="animate-pulse text-gold" />
-                <span>Limited drops</span>
+                <span>Drop notes</span>
               </div>
             </div>
           </div>

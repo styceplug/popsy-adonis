@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AddProductToCart } from "@/components/commerce/add-product-to-cart";
+import { ProductImageGallery } from "@/components/commerce/product-image-gallery";
 import { formatNaira } from "@/lib/format-money";
 import { products } from "@/lib/sample-data";
 
@@ -56,17 +57,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return (
     <main className="bg-bone pt-24 text-ink">
       <section className="section-shell grid gap-10 py-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
-        <div className="overflow-x-auto pb-3">
-          <div className="flex min-w-max gap-4">
-          {product.images.map((image) => (
-            <div
-              key={image}
-                className="h-[560px] w-[min(78vw,440px)] shrink-0 rounded-ui border border-ink/10 bg-contain bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${image})` }}
-            />
-          ))}
-          </div>
-        </div>
+        <ProductImageGallery images={product.images} name={product.name} />
         <div className="md:sticky md:top-24 md:self-start">
           <p className="text-xs font-black uppercase text-lava">{product.tag}</p>
           <h1 className="mt-3 font-display text-5xl font-black md:text-7xl">{product.name}</h1>
