@@ -79,6 +79,42 @@ async function main() {
         },
       ],
     },
+    {
+      id: "product-pa-flux-joggers-crisp-white",
+      name: "FLUX Joggers - Crisp White",
+      slug: "flux-joggers-crisp-white",
+      description:
+        "Untouched, Yet Unstoppable. Crisp White isn't weakness, it's possibility. The FLUX joggers represent the beginning of every journey: clean ambition, bold vision, and the courage to step into the unknown. The ghost graphics symbolize the fearless side of you that refuses to disappear, while the Flux identity reminds you that growth comes through constant movement. Every stain tells a story. Every step adds character. Stay in Flux. Stay Becoming.",
+      images: [
+        "/PA%20FLUX/FLUX%20JOGGERS%20Crisp%20white%20Edition%3A%20%E2%80%9CUntouched%2C%20Yet%20Unstoppable.%E2%80%9D/front-side.jpg",
+      ],
+      variants: [
+        {
+          id: "variant-pa-flux-joggers-white-m",
+          sku: "PA-FLUX-JOGGERS-WHITE-M",
+          size: "M",
+          color: "Crisp White",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-joggers-white-l",
+          sku: "PA-FLUX-JOGGERS-WHITE-L",
+          size: "L",
+          color: "Crisp White",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-joggers-white-xl",
+          sku: "PA-FLUX-JOGGERS-WHITE-XL",
+          size: "XL",
+          color: "Crisp White",
+          priceKobo: 3500000,
+          stock: 100,
+        },
+      ],
+    },
   ];
 
   for (const product of products) {
@@ -154,7 +190,7 @@ async function main() {
           name: "VIP",
           priceKobo: 2_000_000,
           capacity: 100,
-          perks: ["VIP access", "Priority entry", "Free swimming", "Free piercing", "Free tattoo sessions"],
+          perks: ["VIP access", "Priority entry", "Free Water Gun", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },
       ],
     },

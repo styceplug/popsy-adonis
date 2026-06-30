@@ -10,6 +10,7 @@ import { formatNaira } from "@/lib/format-money";
 type TicketPromoStatus = {
   active: boolean;
   label: string | null;
+  limit: number;
   remaining: number;
   tierId: string;
   maxPerBuyer: number;
@@ -98,9 +99,22 @@ export function TicketTierPicker({ event }: { event: Event }) {
                 </span>
               </span>
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
-              {itemPromoActive ? (
-                <span className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
-                  {itemPromo?.label}
+              {itemPromo?.label ? (
+                <span className="mt-3 flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
+                    {itemPromo.label}
+                  </span>
+                  <span
+                    className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase ${
+                      itemPromo.remaining > 0
+                        ? "border-white/14 bg-white/[0.04] text-paper/72"
+                        : "border-lava/35 bg-lava/10 text-lava"
+                    }`}
+                  >
+                    {itemPromo.remaining > 0
+                      ? `${itemPromo.remaining} promo ticket${itemPromo.remaining === 1 ? "" : "s"} left`
+                      : "Promo sold out"}
+                  </span>
                 </span>
               ) : null}
             </button>
@@ -119,6 +133,12 @@ export function TicketTierPicker({ event }: { event: Event }) {
           className="h-10 w-20 rounded-ui border border-white/12 bg-ink px-3 text-paper"
         />
       </div>
+      {selectedTierPromoActive && promoStatus ? (
+        <p className="mt-3 rounded-ui border border-gold/25 bg-gold/10 p-3 text-xs font-bold leading-5 text-gold">
+          {promoStatus.remaining} promo ticket{promoStatus.remaining === 1 ? "" : "s"} left for{" "}
+          {promoStatus.label}. Max {promoStatus.maxPerBuyer} per buyer.
+        </p>
+      ) : null}
       <button
         disabled={!tier}
         onClick={() => {

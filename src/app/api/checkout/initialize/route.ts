@@ -183,7 +183,10 @@ export async function POST(request: Request) {
       const eventAddOnSubtotalKobo = orderItems
         .filter((item) => item.itemType === "addon")
         .reduce((sum, item) => sum + item.totalKobo, 0);
-      const feeSubtotalKobo = ticketSubtotalKobo + eventAddOnSubtotalKobo;
+      const productSubtotalKobo = orderItems
+        .filter((item) => item.itemType === "product")
+        .reduce((sum, item) => sum + item.totalKobo, 0);
+      const feeSubtotalKobo = subtotalKobo;
       const nonTicketSubtotalKobo = subtotalKobo - ticketSubtotalKobo;
       const breakdown = calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, feeSubtotalKobo);
       const transactionFeeKobo = breakdown.transactionFeeKobo;
@@ -216,6 +219,7 @@ export async function POST(request: Request) {
           gatewayResponse: {
             ticketSubtotalKobo,
             eventAddOnSubtotalKobo,
+            productSubtotalKobo,
             feeSubtotalKobo,
             nonTicketSubtotalKobo,
             organizerCommissionKobo,

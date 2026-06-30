@@ -22,7 +22,7 @@ export default function CheckoutPage() {
     () => items.filter((item) => item.type === "addon").reduce((sum, item) => sum + item.unitKobo * item.quantity, 0),
     [items],
   );
-  const feeSubtotalKobo = ticketSubtotalKobo + eventAddOnSubtotalKobo;
+  const feeSubtotalKobo = subtotalKobo;
   const feeBreakdown = useMemo(
     () => calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, feeSubtotalKobo),
     [feeSubtotalKobo, ticketSubtotalKobo],
@@ -180,10 +180,12 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-6 grid gap-3 border-t border-white/10 pt-5 text-sm">
-            <div className="flex justify-between text-paper/62">
-              <span>Ticket/Add-on price</span>
-              <span>{formatNaira(feeSubtotalKobo)}</span>
-            </div>
+            {ticketSubtotalKobo + eventAddOnSubtotalKobo > 0 ? (
+              <div className="flex justify-between text-paper/62">
+                <span>Event items</span>
+                <span>{formatNaira(ticketSubtotalKobo + eventAddOnSubtotalKobo)}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between text-paper/62">
               <span>Subtotal</span>
               <span>{formatNaira(subtotalKobo)}</span>

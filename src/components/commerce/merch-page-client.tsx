@@ -21,11 +21,11 @@ export function MerchPageClient() {
             {brand.merchName}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink/62">
-            The first PA FLUX drop is live. Two tees, two chapters, one reminder:
+            The first PA FLUX drop is live: tees, joggers, and one reminder to
             stay in flux and keep evolving.
           </p>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

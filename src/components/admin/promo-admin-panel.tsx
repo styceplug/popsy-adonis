@@ -164,6 +164,29 @@ export function PromoAdminPanel({
     setStatus(nextIsActive ? "Promo resumed." : "Promo paused.");
   }
 
+  async function deletePromo(promo: AdminTicketPromo) {
+    const confirmed = window.confirm(`Delete "${promo.name}"? This removes it from the active promo list.`);
+
+    if (!confirmed) return;
+
+    setStatus("Deleting promo...");
+    const response = await fetch(`/api/admin/promos/${promo.id}`, {
+      method: "DELETE",
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setStatus(payload?.message ?? "Unable to delete promo.");
+      return;
+    }
+
+    setPromoList((current) => current.filter((item) => item.id !== promo.id));
+    setPromoForm((current) =>
+      current.id === promo.id ? emptyPromoForm(selectedTier?.id ?? tiers[0]?.id) : current,
+    );
+    setStatus("Promo deleted.");
+  }
+
   return (
     <div className="grid gap-6">
       <section className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
@@ -347,6 +370,12 @@ export function PromoAdminPanel({
                     }`}
                   >
                     {promo.isActive ? "Pause" : "Resume"}
+                  </button>
+                  <button
+                    onClick={() => deletePromo(promo)}
+                    className="focus-ring h-9 rounded-ui border border-lava/45 px-3 text-xs font-black text-lava hover:bg-lava/10"
+                  >
+                    Delete
                   </button>
                 </span>
               </div>

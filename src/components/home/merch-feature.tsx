@@ -16,7 +16,7 @@ export function MerchFeature() {
               Stay in Flux.
             </h2>
             <p className="mt-5 max-w-md text-sm leading-7 text-ink/58">
-              The first PA FLUX tees are available now: The Becoming in white and The Beginning in black. Pick your chapter, choose your size, and move.
+              The first PA FLUX pieces are available now: tees, joggers, and a reminder to keep becoming. Pick your chapter, choose your size, and move.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -29,7 +29,7 @@ export function MerchFeature() {
             </div>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

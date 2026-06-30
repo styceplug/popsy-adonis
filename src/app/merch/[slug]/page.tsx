@@ -56,7 +56,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="bg-bone pt-24 text-ink">
-      <section className="section-shell grid gap-10 py-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
+      <section className="section-shell pt-8">
+        <div
+          className="min-h-[170px] rounded-ui border border-ink/10 bg-cover bg-center bg-no-repeat sm:min-h-[240px] lg:min-h-[320px]"
+          style={{ backgroundImage: "url(/PA%20FLUX/header.jpeg)" }}
+          role="img"
+          aria-label="PA FLUX collection header"
+        />
+      </section>
+
+      <section className="section-shell grid gap-10 py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)] lg:py-14">
         <ProductImageGallery images={product.images} name={product.name} />
         <div className="md:sticky md:top-24 md:self-start">
           <p className="text-xs font-black uppercase text-lava">{product.tag}</p>
