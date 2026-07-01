@@ -490,6 +490,7 @@ export const products: Product[] = [
       "After surviving the darkness, you don't return the same. You return renewed. The White Tee represents clarity, confidence, and new beginnings. It reminds you that growth isn't about being perfect; it's about becoming better every day. Stay in Flux. Evolve without limits.",
     priceKobo: 3500000,
     images: [
+      "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/main.jpeg",
       "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/front.jpeg",
       "/PA%20FLUX/White%20FLUX%20Tee%20%E2%80%94%20The%20Becoming/back.jpeg",
     ],
@@ -511,6 +512,7 @@ export const products: Product[] = [
       "Before every breakthrough, there's a season nobody applauds. The Black Tee represents the nights of doubt, discipline, and silent growth. Every setback leaves a mark, but every mark becomes part of the story. You don't wait for the light, you become it. Stay in Flux. Keep moving.",
     priceKobo: 3500000,
     images: [
+      "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/main.jpeg",
       "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/front.jpeg",
       "/PA%20FLUX/Black%20Flux%20Tee%20%E2%80%94%20The%20Beginning/back.jpeg",
     ],
