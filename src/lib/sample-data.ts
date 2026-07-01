@@ -543,4 +543,64 @@ export const products: Product[] = [
     ],
     tag: "Launch Drop",
   },
+  {
+    id: "product-pa-flux-noir-quarter-zip",
+    defaultVariantId: "variant-pa-flux-noir-quarter-zip-m",
+    name: "Noir Flux Quarter-Zip Polo",
+    slug: "noir-flux-quarter-zip-polo",
+    description:
+      "The evolution of elegance through darkness. Noir Flux is a premium cropped quarter-zip polo that embodies confidence through simplicity. Crafted in an all-black silhouette, it features the signature PA Flux logo on the chest, the brand mantra Stay In Flux, and the number 18 on the sleeve, symbolizing growth, ambition, and the journey ahead. Every detail is intentional, creating a timeless piece that speaks without saying too much.",
+    priceKobo: 3500000,
+    images: [
+      "/PA%20FLUX/Black%20Edition%20%E2%80%93%20Noir%20Flux/front-side.jpeg",
+    ],
+    colors: ["Noir Black"],
+    sizes: ["M", "L", "XL"],
+    variants: [
+      { id: "variant-pa-flux-noir-quarter-zip-m", size: "M", color: "Noir Black", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-noir-quarter-zip-l", size: "L", color: "Noir Black", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-noir-quarter-zip-xl", size: "XL", color: "Noir Black", priceKobo: 3500000, stock: 100 },
+    ],
+    tag: "Quarter-Zip Drop",
+  },
+  {
+    id: "product-pa-flux-terra-quarter-zip",
+    defaultVariantId: "variant-pa-flux-terra-quarter-zip-m",
+    name: "Terra Flux Quarter-Zip Polo",
+    slug: "terra-flux-quarter-zip-polo",
+    description:
+      "Terra means earth, symbolizing strong foundations and growth. Terra Flux is where movement meets foundation. Designed in a rich earth-brown tone, this premium cropped quarter-zip polo blends refined minimalism with everyday confidence. It features the signature PA Flux logo, the Stay In Flux mantra, and the number 10 on the sleeve, symbolizing the pursuit of progress through discipline and purpose. Inspired by the strength of the earth, Terra Flux is made for those who remain grounded while constantly evolving. Every stitch reflects resilience, every detail represents intention, and every wear is a reminder that true growth begins with a solid foundation. Rooted in purpose. Driven by evolution. Stay In Flux.",
+    priceKobo: 3500000,
+    images: [
+      "/PA%20FLUX/Brown%20Edition%20%E2%80%93%20Terra%20Flux/front-side.jpeg",
+    ],
+    colors: ["Terra Brown"],
+    sizes: ["M", "L", "XL"],
+    variants: [
+      { id: "variant-pa-flux-terra-quarter-zip-m", size: "M", color: "Terra Brown", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-terra-quarter-zip-l", size: "L", color: "Terra Brown", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-terra-quarter-zip-xl", size: "XL", color: "Terra Brown", priceKobo: 3500000, stock: 100 },
+    ],
+    tag: "Quarter-Zip Drop",
+  },
+  {
+    id: "product-pa-flux-pure-quarter-zip",
+    defaultVariantId: "variant-pa-flux-pure-quarter-zip-m",
+    name: "Pure Flux Quarter-Zip Polo",
+    slug: "pure-flux-quarter-zip-polo",
+    description:
+      "White Edition, Pure Flux. Designed with confidence and simplicity in mind. Finished in crisp white, the piece features the signature PA logo on the left chest, the Stay In Flux mantra embroidered on the right, and the number 13 on the sleeve, a reminder that identity is built by those who keep moving, even when the odds aren't in their favor. Minimal in design but bold in presence, it's made for people who don't chase trends. They create momentum.",
+    priceKobo: 3500000,
+    images: [
+      "/PA%20FLUX/White%20Edition%20%E2%80%93%20Pure%20Flux/front-side.jpeg",
+    ],
+    colors: ["Pure White"],
+    sizes: ["M", "L", "XL"],
+    variants: [
+      { id: "variant-pa-flux-pure-quarter-zip-m", size: "M", color: "Pure White", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-pure-quarter-zip-l", size: "L", color: "Pure White", priceKobo: 3500000, stock: 100 },
+      { id: "variant-pa-flux-pure-quarter-zip-xl", size: "XL", color: "Pure White", priceKobo: 3500000, stock: 100 },
+    ],
+    tag: "Quarter-Zip Drop",
+  },
 ];
