@@ -5,6 +5,13 @@ import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;
 
+export const runtime = "nodejs";
+
+function readEnv(name: string) {
+  const value = process.env[name]?.trim();
+  return value || undefined;
+}
+
 function signCloudinaryParams(params: Record<string, string>, apiSecret: string) {
   const payload = Object.entries(params)
     .sort(([left], [right]) => left.localeCompare(right))
@@ -21,17 +28,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Admin session required." }, { status: 401 });
   }
 
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudName = readEnv("CLOUDINARY_CLOUD_NAME") ?? readEnv("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+  const apiKey = readEnv("CLOUDINARY_API_KEY");
+  const apiSecret = readEnv("CLOUDINARY_API_SECRET");
+  const uploadPreset = readEnv("CLOUDINARY_UPLOAD_PRESET");
 
-  if (!cloudName || !apiKey || !apiSecret) {
+  if (!cloudName || (!uploadPreset && (!apiKey || !apiSecret))) {
     return NextResponse.json({ message: "Cloudinary is not configured." }, { status: 500 });
   }
 
   const formData = await request.formData();
   const file = formData.get("file");
-  const folder = String(formData.get("folder") || "popsy-adonis/events");
+  const folder = String(formData.get("folder") || "popsy-adonis/events")
+    .trim()
+    .replace(/^\/+|\/+$/g, "");
 
   if (!(file instanceof File)) {
     return NextResponse.json({ message: "Select an image to upload." }, { status: 400 });
@@ -45,15 +55,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Image must be 8MB or smaller." }, { status: 400 });
   }
 
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const paramsToSign = { folder, timestamp };
   const uploadBody = new FormData();
 
   uploadBody.set("file", file);
-  uploadBody.set("api_key", apiKey);
-  uploadBody.set("timestamp", timestamp);
   uploadBody.set("folder", folder);
-  uploadBody.set("signature", signCloudinaryParams(paramsToSign, apiSecret));
+
+  if (uploadPreset) {
+    uploadBody.set("upload_preset", uploadPreset);
+  } else {
+    if (!apiKey || !apiSecret) {
+      return NextResponse.json({ message: "Cloudinary signed uploads are not configured." }, { status: 500 });
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const paramsToSign = { folder, timestamp };
+
+    uploadBody.set("api_key", apiKey);
+    uploadBody.set("timestamp", timestamp);
+    uploadBody.set("signature", signCloudinaryParams(paramsToSign, apiSecret));
+  }
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: "POST",
@@ -62,8 +82,13 @@ export async function POST(request: NextRequest) {
   const payload = await response.json();
 
   if (!response.ok) {
+    const cloudinaryMessage = payload.error?.message ?? "Unable to upload image.";
+    const message = cloudinaryMessage.toLowerCase().includes("invalid signature")
+      ? "Cloudinary rejected the upload signature. Confirm the cloud name, API key, and API secret are from the same Cloudinary account, then restart the server."
+      : cloudinaryMessage;
+
     return NextResponse.json(
-      { message: payload.error?.message ?? "Unable to upload image." },
+      { message },
       { status: 502 },
     );
   }
