@@ -25,7 +25,7 @@ export type Event = {
   recapVideoUrl?: string;
   tiers: Array<{
     id: string;
-    name: "Early Bird" | "Regular" | "VIP" | "VVIP";
+    name: string;
     priceKobo: number;
     perks: string[];
   }>;
@@ -117,7 +117,7 @@ export const posts: Post[] = [
     body: [
       "After the success of EKSU Fest 2.0, Popsy Adonis is setting up a new kind of campus lifestyle experience: Summer Time in Ekiti.",
       "The party is built around daytime fun, nightlife energy, and youth-culture extras that feel fresh for Ekiti: free swimming, free piercing, free tattoo sessions, music, performances, and a crowd ready to make memories.",
-      "Early bird tickets are ₦3,000 and VIP tickets are ₦20,000. Date and venue details will be announced officially by Popsy Adonis.",
+      "Tickets are now available at Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000. Date and venue details will be announced officially by Popsy Adonis.",
     ],
     coverImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
     mediaType: "video",
@@ -206,15 +206,21 @@ export const events: Event[] = [
     tiers: [
       {
         id: "tier-summer-time-ekiti-early-bird",
-        name: "Early Bird",
-        priceKobo: 300000,
-        perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
+        name: "Regular",
+        priceKobo: 500000,
+        perks: ["Regular access", "Free swimming", "Free piercing", "Free tattoo sessions"],
       },
       {
         id: "tier-summer-time-ekiti-vip",
         name: "VIP",
         priceKobo: 2_000_000,
         perks: ["VIP access", "Priority entry", "Free Water Gun", "Free swimming", "Free piercing", "Free tattoo sessions"],
+      },
+      {
+        id: "tier-summer-time-ekiti-table-4",
+        name: "Table for 4",
+        priceKobo: 10_000_000,
+        perks: ["Table reservation for 4", "Priority entry", "Group seating", "Free swimming", "Free piercing", "Free tattoo sessions"],
       },
     ],
   },

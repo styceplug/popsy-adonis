@@ -10,6 +10,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
     where: { qrCode },
     include: {
       event: true,
+      
       order: {
         include: {
           transaction: true,

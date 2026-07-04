@@ -4,9 +4,12 @@ import { notFound } from "next/navigation";
 import { AddProductToCart } from "@/components/commerce/add-product-to-cart";
 import { ProductImageGallery } from "@/components/commerce/product-image-gallery";
 import { formatNaira } from "@/lib/format-money";
+import type { Product } from "@/lib/sample-data";
 import { products } from "@/lib/sample-data";
+import { prisma } from "@/lib/prisma";
 
 const SITE_URL = "https://popsyadonis.com";
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
@@ -14,7 +17,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug);
+  const dbProduct = await getDbProduct(slug);
+  const product = dbProduct ?? products.find((item) => item.slug === slug);
 
   if (!product) {
     return {
@@ -49,11 +53,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug);
+  const product = (await getDbProduct(slug)) ?? products.find((item) => item.slug === slug);
 
   if (!product) notFound();
 
   const descriptionParagraphs = product.description.split(/(?<=\.)\s+/).filter(Boolean);
+
+
 
   return (
     <main className="bg-bone pt-24 text-ink">
@@ -66,6 +72,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             height={724}
             sizes="(min-width: 1280px) 1152px, (min-width: 1024px) 90vw, calc(100vw - 32px)"
             className="h-auto w-full"
+            
             priority
           />
         </div>
@@ -87,4 +94,35 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </section>
     </main>
   );
+}
+
+async function getDbProduct(slug: string): Promise<Product | null> {
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    include: { variants: { orderBy: [{ color: "asc" }, { size: "asc" }] } },
+  });
+
+  if (!product || product.status !== "ACTIVE" || product.variants.length === 0) return null;
+
+  const firstVariant = product.variants[0];
+
+  return {
+    id: product.id,
+    defaultVariantId: firstVariant.id,
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    priceKobo: firstVariant.priceKobo,
+    images: product.images,
+    colors: [...new Set(product.variants.map((variant) => variant.color).filter(Boolean))] as string[],
+    sizes: [...new Set(product.variants.map((variant) => variant.size).filter(Boolean))] as string[],
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      size: variant.size ?? "",
+      color: variant.color ?? "",
+      priceKobo: variant.priceKobo,
+      stock: variant.stock,
+    })),
+    tag: "PA FLUX",
+  };
 }

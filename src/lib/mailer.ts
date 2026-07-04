@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
 type ContactMessage = {
   name: string;
@@ -41,37 +42,95 @@ type SubscriberBroadcastMessage = {
   message: string;
 };
 
-async function sendEmail(payload: {
+const RESEND_PROVIDER = "resend";
+const RESEND_DAILY_LIMIT = Number(process.env.RESEND_DAILY_LIMIT ?? 80);
+
+function getMailDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+async function getResendSentCount() {
+  const usage = await prisma.emailProviderUsage.findUnique({
+    where: {
+      provider_dateKey: {
+        provider: RESEND_PROVIDER,
+        dateKey: getMailDateKey(),
+      },
+    },
+    select: { sentCount: true },
+  });
+
+  return usage?.sentCount ?? 0;
+}
+
+async function recordResendSent() {
+  await prisma.emailProviderUsage.upsert({
+    where: {
+      provider_dateKey: {
+        provider: RESEND_PROVIDER,
+        dateKey: getMailDateKey(),
+      },
+    },
+    update: {
+      sentCount: { increment: 1 },
+    },
+    create: {
+      provider: RESEND_PROVIDER,
+      dateKey: getMailDateKey(),
+      sentCount: 1,
+    },
+  });
+}
+
+async function sendWithSmtp(payload: {
   to: string;
   subject: string;
   text: string;
   html?: string;
 }) {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT ?? 587),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    return transporter.sendMail({
-      from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
-      to: payload.to,
-      subject: payload.subject,
-      text: payload.text,
-      html: payload.html,
-    });
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return null;
   }
 
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  return transporter.sendMail({
+    from: process.env.MAIL_FROM ?? process.env.SMTP_USER,
+    to: payload.to,
+    subject: payload.subject,
+    text: payload.text,
+    html: payload.html,
+  });
+}
+
+async function sendWithResend(payload: {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+}) {
   if (!process.env.RESEND_API_KEY) {
-    return {
-      skipped: true,
-      reason: "No mail provider is configured. Add SMTP credentials or RESEND_API_KEY.",
-    };
+    return null;
+  }
+
+  if (RESEND_DAILY_LIMIT > 0 && (await getResendSentCount()) >= RESEND_DAILY_LIMIT) {
+    return null;
   }
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -81,7 +140,7 @@ async function sendEmail(payload: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.MAIL_FROM,
+      from: process.env.RESEND_FROM ?? process.env.MAIL_FROM,
       to: payload.to,
       subject: payload.subject,
       text: payload.text,
@@ -92,10 +151,38 @@ async function sendEmail(payload: {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message ?? "Unable to send email.");
+    throw new Error(data.message ?? "Unable to send email with Resend.");
   }
 
+  await recordResendSent();
+
   return data;
+}
+
+async function sendEmail(payload: {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+}) {
+  try {
+    const resendResult = await sendWithResend(payload);
+    if (resendResult) return resendResult;
+  } catch (resendError) {
+    console.error("Resend email failed, trying SMTP fallback", resendError);
+  }
+
+  const smtpResult = await sendWithSmtp(payload);
+  if (smtpResult) return smtpResult;
+
+  if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+    return {
+      skipped: true,
+      reason: "No mail provider is configured. Add RESEND_API_KEY or SMTP credentials.",
+    };
+  }
+
+  throw new Error("Unable to send email. Resend cap may be reached and SMTP fallback is not configured.");
 }
 
 function escapeHtml(value: string) {

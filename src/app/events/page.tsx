@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
 import { EventCard } from "@/components/events/event-card";
-import { events } from "@/lib/sample-data";
+import type { Event } from "@/lib/sample-data";
+import { events as sampleEvents } from "@/lib/sample-data";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
   description:
-    "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets are ₦3,000 and VIP tickets are ₦20,000. Campus parties, festivals, and live experiences.",
+    "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
   alternates: {
     canonical: "/events",
   },
   openGraph: {
     type: "website",
     url: "https://popsyadonis.com/events",
+    
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets are ₦3,000 and VIP tickets are ₦20,000. Campus parties, festivals, and live experiences.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
     images: [
       {
         // Use the upcoming event hero as the share image
@@ -30,12 +33,51 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Summer Time in Ekiti early bird tickets are ₦3,000 and VIP tickets are ₦20,000.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
     images: ["/POPSY%20ADONIS%20FLUX%20PARTY.png"],
   },
 };
 
-export default function EventsPage() {
+function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]): Event {
+  const isPast = event.status === "COMPLETED" || event.startsAt < new Date();
+
+  return {
+    id: event.id,
+    title: event.title,
+    slug: event.slug,
+    venue: event.venue,
+    city: event.city,
+    startsAt: event.startsAt.toISOString(),
+    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+    summary: event.description,
+    status: isPast ? "past" : "upcoming",
+    tiers: event.ticketTiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceKobo: tier.priceKobo,
+      perks: tier.perks,
+    })),
+  };
+}
+
+async function getDbEvents() {
+  return prisma.event.findMany({
+    where: {
+      status: { in: ["PUBLISHED", "SOLD_OUT", "COMPLETED"] },
+    },
+    include: {
+      ticketTiers: {
+        where: { isActive: true },
+        orderBy: { priceKobo: "asc" },
+      },
+    },
+    orderBy: { startsAt: "asc" },
+  });
+}
+
+export default async function EventsPage() {
+  const dbEvents = await getDbEvents();
+  const events = dbEvents.length > 0 ? dbEvents.map(mapDbEventToCard) : sampleEvents;
   const upcomingEvents = events.filter((event) => event.status === "upcoming");
   const pastEvents = events.filter((event) => event.status === "past");
 
@@ -49,7 +91,7 @@ export default function EventsPage() {
           Upcoming Events
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-paper/64">
-          Tickets currently on sale: Early Bird ₦3,000 and VIP ₦20,000.
+          Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.
         </p>
         <div className="mt-12 grid gap-5">
           {upcomingEvents.map((event) => (

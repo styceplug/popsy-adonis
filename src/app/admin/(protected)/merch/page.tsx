@@ -1,4 +1,5 @@
 import { Package } from "lucide-react";
+import { ProductAdminPanel } from "@/components/admin/product-admin-panel";
 import { formatNaira } from "@/lib/format-money";
 import { prisma } from "@/lib/prisma";
 
@@ -13,7 +14,6 @@ export const metadata = {
 export default async function AdminMerchPage() {
   const [products, orderItems] = await Promise.all([
     prisma.product.findMany({
-      where: { status: "ACTIVE" },
       include: { variants: { orderBy: [{ color: "asc" }, { size: "asc" }] } },
       orderBy: { createdAt: "desc" },
     }),
@@ -46,6 +46,27 @@ export default async function AdminMerchPage() {
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
         Track live product variants, stock, and recent clothing purchases.
       </p>
+
+      <div className="mt-8">
+        <ProductAdminPanel
+          products={products.map((product) => ({
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            description: product.description,
+            status: product.status,
+            images: product.images,
+            variants: product.variants.map((variant) => ({
+              id: variant.id,
+              sku: variant.sku,
+              size: variant.size,
+              color: variant.color,
+              priceKobo: variant.priceKobo,
+              stock: variant.stock,
+            })),
+          }))}
+        />
+      </div>
 
       <section className="mt-8 rounded-ui border border-white/10 bg-white/[0.035] p-5">
         <p className="text-xs font-black uppercase text-gold">Live products</p>
@@ -125,4 +146,3 @@ export default async function AdminMerchPage() {
     </div>
   );
 }
-

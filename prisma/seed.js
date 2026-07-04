@@ -290,10 +290,10 @@ async function main() {
       ticketTiers: [
         {
           id: "tier-summer-time-ekiti-early-bird",
-          name: "Early Bird",
-          priceKobo: 300000,
+          name: "Regular",
+          priceKobo: 500000,
           capacity: 500,
-          perks: ["Early bird access", "Free swimming", "Free piercing", "Free tattoo sessions"],
+          perks: ["Regular access", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },
         {
           id: "tier-summer-time-ekiti-vip",
@@ -301,6 +301,13 @@ async function main() {
           priceKobo: 2_000_000,
           capacity: 100,
           perks: ["VIP access", "Priority entry", "Free Water Gun", "Free swimming", "Free piercing", "Free tattoo sessions"],
+        },
+        {
+          id: "tier-summer-time-ekiti-table-4",
+          name: "Table for 4",
+          priceKobo: 10_000_000,
+          capacity: 20,
+          perks: ["Table reservation for 4", "Priority entry", "Group seating", "Free swimming", "Free piercing", "Free tattoo sessions"],
         },
       ],
     },
@@ -374,6 +381,17 @@ async function main() {
       maxPerBuyer: 1,
       isActive: false,
       createdBy: "Seed",
+    },
+  });
+
+  await prisma.ticketPromo.updateMany({
+    where: {
+      ticketTier: {
+        eventId: "event-summer-time-ekiti",
+      },
+    },
+    data: {
+      isActive: false,
     },
   });
 

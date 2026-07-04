@@ -16,6 +16,8 @@ A full-stack starter for Popsy Adonis, a Nigerian entertainment and lifestyle ag
 
 ## Run Locally
 
+
+
 ```bash
 npm install
 cp .env.example .env
@@ -24,6 +26,7 @@ npm run dev
 ```
 
 Open `http://localhost:3000`.
+
 
 ## Environment
 

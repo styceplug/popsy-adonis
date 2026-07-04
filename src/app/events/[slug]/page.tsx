@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TicketTierPicker } from "@/components/events/ticket-tier-picker";
+import type { Event } from "@/lib/sample-data";
 import { events } from "@/lib/sample-data";
 import { prisma } from "@/lib/prisma";
 
@@ -11,13 +12,55 @@ export function generateStaticParams() {
   return events.map((event) => ({ slug: event.slug }));
 }
 
+function mapDbEventToPublicEvent(event: {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  venue: string;
+  city: string;
+  startsAt: Date;
+  status: string;
+  heroImage: string | null;
+  ticketTiers: Array<{
+    id: string;
+    name: string;
+    priceKobo: number;
+    perks: string[];
+  }>;
+}): Event {
+  const isPast = event.status === "COMPLETED" || event.startsAt < new Date();
+
+  return {
+    id: event.id,
+    title: event.title,
+    slug: event.slug,
+    venue: event.venue,
+    city: event.city,
+    startsAt: event.startsAt.toISOString(),
+    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+    summary: event.description,
+    status: isPast ? "past" : "upcoming",
+    tiers: event.ticketTiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceKobo: tier.priceKobo,
+      perks: tier.perks,
+    })),
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = events.find((item) => item.slug === slug);
+  const dbEvent = await prisma.event.findUnique({
+    where: { slug },
+    include: { ticketTiers: { where: { isActive: true }, orderBy: { priceKobo: "asc" } } },
+  });
+  const event = dbEvent ? mapDbEventToPublicEvent(dbEvent) : events.find((item) => item.slug === slug);
 
   if (!event) {
     return {
@@ -76,33 +119,44 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = events.find((item) => item.slug === slug);
+  const dbEvent = await prisma.event.findUnique({
+    where: { slug },
+    include: {
+      ticketTiers: {
+        where: { isActive: true },
+        orderBy: { priceKobo: "asc" },
+      },
+      addOns: {
+        where: { isActive: true },
+        orderBy: { priceKobo: "asc" },
+      },
+    },
+  });
+  const event = dbEvent ? mapDbEventToPublicEvent(dbEvent) : events.find((item) => item.slug === slug);
 
   if (!event) notFound();
 
-  const [dbTiers, dbAddOns] = await Promise.all([
-    prisma.ticketTier.findMany({
-      where: {
-        eventId: event.id,
-        isActive: true,
-      },
-      orderBy: { priceKobo: "asc" },
-    }),
-    prisma.eventAddOn.findMany({
-      where: {
-        eventId: event.id,
-        isActive: true,
-      },
-      orderBy: { priceKobo: "asc" },
-    }),
-  ]);
+  const dbTiers = dbEvent?.ticketTiers ?? await prisma.ticketTier.findMany({
+    where: {
+      eventId: event.id,
+      isActive: true,
+    },
+    orderBy: { priceKobo: "asc" },
+  });
+  const dbAddOns = dbEvent?.addOns ?? await prisma.eventAddOn.findMany({
+    where: {
+      eventId: event.id,
+      isActive: true,
+    },
+    orderBy: { priceKobo: "asc" },
+  });
   const ticketEvent = {
     ...event,
     tiers:
       dbTiers.length > 0
         ? dbTiers.map((tier) => ({
             id: tier.id,
-            name: tier.name as (typeof event.tiers)[number]["name"],
+            name: tier.name,
             priceKobo: tier.priceKobo,
             perks: tier.perks,
           }))

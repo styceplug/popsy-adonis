@@ -4,10 +4,9 @@ import { useState } from "react";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { ComingSoonModal } from "@/components/commerce/coming-soon-modal";
 import { ProductCard } from "@/components/commerce/product-card";
-import { brand } from "@/lib/sample-data";
-import { products } from "@/lib/sample-data";
+import { brand, type Product } from "@/lib/sample-data";
 
-export function MerchPageClient() {
+export function MerchPageClient({ products }: { products: Product[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
