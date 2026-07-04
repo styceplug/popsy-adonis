@@ -204,11 +204,15 @@ function formatNairaForEmail(kobo: number) {
 
 function formatDateForEmail(date?: Date | string) {
   if (!date) return "";
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return String(date);
+  }
 
   return new Intl.DateTimeFormat("en-NG", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(date));
+    dateStyle: "full",
+  }).format(parsedDate);
 }
 
 function emailShell(content: string) {

@@ -22,7 +22,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
   if (!ticket) notFound();
 
   const date = ticket.event.slug === "summer-time-in-ekiti"
-    ? "Date to be announced soon"
+    ? "Fri, 7th August, 2026"
     : new Intl.DateTimeFormat("en-NG", {
         dateStyle: "full",
         timeStyle: "short",

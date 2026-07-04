@@ -172,7 +172,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
       issuedTickets.push({
         eventTitle: ticket.event.title,
         venue: ticket.event.venue,
-        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
+        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : ticket.event.startsAt,
         attendeeName: ticket.attendeeName,
         qrCode: ticket.qrCode,
         qrImageUrl: ticket.qrImageUrl,
@@ -226,7 +226,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
       issuedTickets.push({
         eventTitle: ticket.event.title,
         venue: ticket.event.venue,
-        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? undefined : ticket.event.startsAt,
+        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : ticket.event.startsAt,
         attendeeName: ticket.attendeeName,
         qrCode: ticket.qrCode,
         qrImageUrl: ticket.qrImageUrl,

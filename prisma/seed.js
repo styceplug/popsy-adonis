@@ -283,9 +283,9 @@ async function main() {
       slug: "summer-time-in-ekiti",
       description:
         "A first-of-its-kind summer party in Ekiti with free swimming, piercing, tattoo sessions, music, entertainment, and unforgettable campus memories.",
-      venue: "Location to be announced soon",
+      venue: "D Cube's Place, Opposite RCF Church",
       city: "Ekiti",
-      startsAt: new Date("2026-08-16T17:00:00.000Z"),
+      startsAt: new Date("2026-08-07T17:00:00.000Z"),
       heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
       ticketTiers: [
         {

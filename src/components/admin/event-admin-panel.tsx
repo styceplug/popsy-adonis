@@ -95,6 +95,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
   const [eventList, setEventList] = useState(events);
   const [form, setForm] = useState<EventFormState>(() => (events[0] ? eventToForm(events[0]) : emptyEvent()));
   const [status, setStatus] = useState("");
+  const [isUploadingHero, setIsUploadingHero] = useState(false);
 
   function updateTier(index: number, patch: Partial<TierFormState>) {
     setForm((current) => ({
@@ -143,6 +144,34 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
         ? current.map((event) => (event.id === payload.event.id ? { ...event, ...payload.event } : event))
         : [payload.event, ...current],
     );
+  }
+
+  async function uploadHeroImage(file: File) {
+    setIsUploadingHero(true);
+    setStatus("Uploading event image...");
+
+    try {
+      const uploadBody = new FormData();
+      uploadBody.set("file", file);
+      uploadBody.set("folder", "popsy-adonis/events");
+
+      const response = await fetch("/api/admin/uploads", {
+        method: "POST",
+        body: uploadBody,
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(payload?.message ?? "Unable to upload image.");
+      }
+
+      setForm((current) => ({ ...current, heroImage: payload.secureUrl }));
+      setStatus("Image uploaded. Save event to publish the new image.");
+    } catch (uploadError) {
+      setStatus(uploadError instanceof Error ? uploadError.message : "Unable to upload image.");
+    } finally {
+      setIsUploadingHero(false);
+    }
   }
 
   return (
@@ -200,8 +229,25 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
             </select>
           </label>
           <label className="grid gap-2 text-sm font-bold text-paper/72 md:col-span-2">
-            Hero image path
+            Hero image
             <input value={form.heroImage ?? ""} onChange={(event) => setForm((current) => ({ ...current, heroImage: event.target.value }))} className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-sm text-paper" placeholder="/POPSY%20ADONIS%20FLUX%20PARTY.png" />
+            <input
+              type="file"
+              accept="image/*"
+              disabled={isUploadingHero}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void uploadHeroImage(file);
+                event.target.value = "";
+              }}
+              className="block w-full rounded-ui border border-white/10 bg-ink p-3 text-sm text-paper file:mr-4 file:rounded-ui file:border-0 file:bg-gold file:px-4 file:py-2 file:text-sm file:font-black file:text-ink disabled:opacity-50"
+            />
+            {form.heroImage ? (
+              <span
+                className="block min-h-48 rounded-ui border border-white/10 bg-cover bg-center"
+                style={{ backgroundImage: `url(${form.heroImage})` }}
+              />
+            ) : null}
           </label>
         </div>
 

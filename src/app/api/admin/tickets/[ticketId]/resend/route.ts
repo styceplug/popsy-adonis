@@ -68,7 +68,7 @@ export async function POST(
     tickets: ticket.order.tickets.map((orderTicket) => ({
       eventTitle: orderTicket.event.title,
       venue: orderTicket.event.venue,
-      startsAt: orderTicket.event.slug === "summer-time-in-ekiti" ? undefined : orderTicket.event.startsAt,
+      startsAt: orderTicket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : orderTicket.event.startsAt,
       attendeeName: orderTicket.attendeeName,
       qrCode: orderTicket.qrCode,
       qrImageUrl: orderTicket.qrImageUrl,

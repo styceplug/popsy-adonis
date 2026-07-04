@@ -38,6 +38,7 @@ function mapDbEventToPublicEvent(event: {
     venue: event.venue,
     city: event.city,
     startsAt: event.startsAt.toISOString(),
+    displayDate: event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : undefined,
     heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.png",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
