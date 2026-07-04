@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     images: [
       {
         // Use the upcoming event hero as the share image
-        url: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+        url: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
         width: 1200,
         height: 630,
         alt: "Summer Time in Ekiti — Popsy Adonis",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     title: "Events & Ticketing | Popsy Adonis",
     description:
       "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
-    images: ["/POPSY%20ADONIS%20FLUX%20PARTY.png"],
+    images: ["/POPSY%20ADONIS%20FLUX%20PARTY.jpeg"],
   },
 };
 
@@ -49,7 +49,7 @@ function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]
     city: event.city,
     startsAt: event.startsAt.toISOString(),
     displayDate: event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : undefined,
-    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
     tiers: event.ticketTiers.map((tier) => ({

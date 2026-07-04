@@ -119,7 +119,7 @@ export const posts: Post[] = [
       "The party is built around daytime fun, nightlife energy, and youth-culture extras that feel fresh for Ekiti: free swimming, free piercing, free tattoo sessions, music, performances, and a crowd ready to make memories.",
       "Tickets are now available at Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000. Summer Time in Ekiti holds on Fri, 7th August, 2026 at D Cube's Place, Opposite RCF Church.",
     ],
-    coverImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+    coverImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
     mediaType: "video",
     publishedAt: "June 2026",
     category: "Events",
@@ -199,7 +199,7 @@ export const events: Event[] = [
     city: "Ekiti",
     startsAt: "2026-08-07T17:00:00.000Z",
     displayDate: "Fri, 7th August, 2026",
-    heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+    heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
     summary:
       "After the success of EKSU Fest 2.0, Popsy Adonis returns with a first-of-its-kind summer party in Ekiti. Expect free swimming, free piercing, free tattoo sessions, music, entertainment, and a crowd built for unforgettable campus memories.",
     status: "upcoming",

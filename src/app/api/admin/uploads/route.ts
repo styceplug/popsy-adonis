@@ -12,13 +12,63 @@ function readEnv(name: string) {
   return value || undefined;
 }
 
-function signCloudinaryParams(params: Record<string, string>, apiSecret: string) {
+type CloudinarySignatureAlgorithm = "sha1" | "sha256";
+
+function signCloudinaryParams(
+  params: Record<string, string>,
+  apiSecret: string,
+  algorithm: CloudinarySignatureAlgorithm,
+) {
   const payload = Object.entries(params)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, value]) => `${key}=${value}`)
     .join("&");
 
-  return crypto.createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
+  return crypto.createHash(algorithm).update(`${payload}${apiSecret}`).digest("hex");
+}
+
+async function uploadToCloudinary(input: {
+  cloudName: string;
+  file: File;
+  folder: string;
+  uploadPreset?: string;
+  apiKey?: string;
+  apiSecret?: string;
+  algorithm?: CloudinarySignatureAlgorithm;
+}) {
+  const uploadBody = new FormData();
+
+  uploadBody.set("file", input.file);
+  uploadBody.set("folder", input.folder);
+
+  if (input.uploadPreset) {
+    uploadBody.set("upload_preset", input.uploadPreset);
+  } else {
+    if (!input.apiKey || !input.apiSecret || !input.algorithm) {
+      throw new Error("Cloudinary signed uploads are not configured.");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const paramsToSign = { folder: input.folder, timestamp };
+
+    uploadBody.set("api_key", input.apiKey);
+    uploadBody.set("timestamp", timestamp);
+    uploadBody.set("signature", signCloudinaryParams(paramsToSign, input.apiSecret, input.algorithm));
+  }
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${input.cloudName}/image/upload`, {
+    method: "POST",
+    body: uploadBody,
+  });
+
+  return {
+    response,
+    payload: await response.json(),
+  };
+}
+
+function isInvalidSignature(message: string) {
+  return message.toLowerCase().includes("invalid signature");
 }
 
 export async function POST(request: NextRequest) {
@@ -55,35 +105,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Image must be 8MB or smaller." }, { status: 400 });
   }
 
-  const uploadBody = new FormData();
+  let upload = await uploadToCloudinary({
+    cloudName,
+    file,
+    folder,
+    uploadPreset,
+    apiKey,
+    apiSecret,
+    algorithm: "sha1",
+  });
 
-  uploadBody.set("file", file);
-  uploadBody.set("folder", folder);
-
-  if (uploadPreset) {
-    uploadBody.set("upload_preset", uploadPreset);
-  } else {
-    if (!apiKey || !apiSecret) {
-      return NextResponse.json({ message: "Cloudinary signed uploads are not configured." }, { status: 500 });
-    }
-
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const paramsToSign = { folder, timestamp };
-
-    uploadBody.set("api_key", apiKey);
-    uploadBody.set("timestamp", timestamp);
-    uploadBody.set("signature", signCloudinaryParams(paramsToSign, apiSecret));
+  if (!upload.response.ok && !uploadPreset && isInvalidSignature(upload.payload.error?.message ?? "")) {
+    upload = await uploadToCloudinary({
+      cloudName,
+      file,
+      folder,
+      apiKey,
+      apiSecret,
+      algorithm: "sha256",
+    });
   }
 
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: "POST",
-    body: uploadBody,
-  });
-  const payload = await response.json();
-
-  if (!response.ok) {
-    const cloudinaryMessage = payload.error?.message ?? "Unable to upload image.";
-    const message = cloudinaryMessage.toLowerCase().includes("invalid signature")
+  if (!upload.response.ok) {
+    const cloudinaryMessage = upload.payload.error?.message ?? "Unable to upload image.";
+    const message = isInvalidSignature(cloudinaryMessage)
       ? "Cloudinary rejected the upload signature. Confirm the cloud name, API key, and API secret are from the same Cloudinary account, then restart the server."
       : cloudinaryMessage;
 
@@ -97,10 +142,10 @@ export async function POST(request: NextRequest) {
     actorName: session.name,
     action: "image.uploaded",
     entityType: "CloudinaryAsset",
-    entityId: payload.public_id,
+    entityId: upload.payload.public_id,
     metadata: {
       folder,
-      secureUrl: payload.secure_url,
+      secureUrl: upload.payload.secure_url,
       originalFilename: file.name,
       bytes: file.size,
     },
@@ -108,9 +153,9 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({
-    publicId: payload.public_id,
-    secureUrl: payload.secure_url,
-    width: payload.width,
-    height: payload.height,
+    publicId: upload.payload.public_id,
+    secureUrl: upload.payload.secure_url,
+    width: upload.payload.width,
+    height: upload.payload.height,
   });
 }

@@ -286,7 +286,7 @@ async function main() {
       venue: "D Cube's Place, Opposite RCF Church",
       city: "Ekiti",
       startsAt: new Date("2026-08-07T17:00:00.000Z"),
-      heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.png",
+      heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
       ticketTiers: [
         {
           id: "tier-summer-time-ekiti-early-bird",
