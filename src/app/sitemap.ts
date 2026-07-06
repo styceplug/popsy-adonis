@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absoluteUrl("/events"), lastModified: LAST_MODIFIED, changeFrequency: "daily", priority: 0.95 },
     { url: absoluteUrl("/events/archive"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/trends"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.85 },
-    { url: absoluteUrl("/merch"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.75 },
+    { url: absoluteUrl("/paflux"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.75 },
     { url: absoluteUrl("/contact"), lastModified: LAST_MODIFIED, changeFrequency: "monthly", priority: 0.7 },
   ];
 
@@ -45,7 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
-    url: absoluteUrl(`/merch/${product.slug}`),
+    url: absoluteUrl(`/paflux/${product.slug}`),
     lastModified: LAST_MODIFIED,
     changeFrequency: "weekly",
     priority: 0.65,

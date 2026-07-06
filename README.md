@@ -66,7 +66,7 @@ Ticket checkout uses shared helpers in `src/lib/fees.ts`: customer Transaction F
 - `/artists` - artist portfolio/catalog
 - `/events` - upcoming event listings
 - `/events/archive` - past event proof gallery
-- `/merch` - PA FLUX storefront
+- `/paflux` - PA FLUX storefront
 - `/checkout` - cart review and Paystack checkout
 - `/checkout/success?reference=...` - post-payment status page
 - `/api/checkout/initialize` - Paystack checkout initialization with dynamic flat split between Adonis and Dream

@@ -4,7 +4,7 @@ import { formatNaira } from "@/lib/format-money";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <Link href={`/merch/${product.slug}`} className="group block overflow-hidden rounded-ui border border-ink/10 bg-ink text-paper">
+    <Link href={`/paflux/${product.slug}`} className="group block overflow-hidden rounded-ui border border-ink/10 bg-ink text-paper">
       <div
         className="min-h-[340px] bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
         style={{ backgroundImage: `url(${product.images[0]})` }}

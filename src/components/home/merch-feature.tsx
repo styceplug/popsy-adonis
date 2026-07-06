@@ -28,7 +28,7 @@ export async function MerchFeature() {
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
-                href="/merch"
+                href="/paflux"
                 className="focus-ring inline-flex h-12 items-center gap-2 rounded-ui bg-ink px-6 text-sm font-black text-paper transition hover:bg-lava"
               >
                 Shop collection

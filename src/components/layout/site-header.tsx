@@ -32,7 +32,7 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/merch"
+          href="/paflux"
           className="focus-ring hidden h-10 items-center gap-2 rounded-ui bg-paper px-4 text-sm font-black text-ink transition hover:bg-gold md:inline-flex"
           onClick={() => setIsOpen(false)}
         >
@@ -65,7 +65,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              href="/merch"
+              href="/paflux"
               onClick={() => setIsOpen(false)}
               className="focus-ring mt-3 inline-flex h-12 items-center justify-center gap-2 rounded-ui bg-paper px-5 text-sm font-black text-ink transition hover:bg-gold"
             >
