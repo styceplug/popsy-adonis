@@ -118,6 +118,44 @@ async function main() {
       ],
     },
     {
+      id: "product-pa-flux-noir-jort",
+      name: "Noir Flux Jort",
+      slug: "noir-flux-jort",
+      description:
+        "The Noir Flux Jort represents constant evolution. The distressed denim reflects the marks left by every experience, while the crystal details symbolize moments of pressure transformed into brilliance. Every stitch, every wash, and every detail exists for a reason. It's a reminder that growth is never linear, that identity is built through movement, and that the people who leave a mark on the world are the ones who refuse to stay still. Created for the outsiders, the creators, the risk-takers, and the visionaries, the Noir Flux Jort is about creating your own frequency. Because fashion fades. Frequency remains. Stay in Flux.",
+      images: [
+        "/PA%20FLUX/NOIR%20FLUX%20JORT/cover.jpg",
+        "/PA%20FLUX/NOIR%20FLUX%20JORT/front.jpeg",
+        "/PA%20FLUX/NOIR%20FLUX%20JORT/back.jpeg",
+      ],
+      variants: [
+        {
+          id: "variant-pa-flux-noir-jort-m",
+          sku: "PA-FLUX-NOIR-JORT-M",
+          size: "M",
+          color: "Noir Denim",
+          priceKobo: 5000000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-noir-jort-l",
+          sku: "PA-FLUX-NOIR-JORT-L",
+          size: "L",
+          color: "Noir Denim",
+          priceKobo: 5000000,
+          stock: 100,
+        },
+        {
+          id: "variant-pa-flux-noir-jort-xl",
+          sku: "PA-FLUX-NOIR-JORT-XL",
+          size: "XL",
+          color: "Noir Denim",
+          priceKobo: 5000000,
+          stock: 100,
+        },
+      ],
+    },
+    {
       id: "product-pa-flux-noir-quarter-zip",
       name: "Noir Flux Quarter-Zip Polo",
       slug: "noir-flux-quarter-zip-polo",
