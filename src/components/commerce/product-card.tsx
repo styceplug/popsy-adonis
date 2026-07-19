@@ -3,10 +3,12 @@ import type { Product } from "@/lib/sample-data";
 import { formatNaira } from "@/lib/format-money";
 
 export function ProductCard({ product }: { product: Product }) {
+  const shouldContainImage = product.images[0]?.toLowerCase().includes("cover");
+
   return (
     <Link href={`/paflux/${product.slug}`} className="group block overflow-hidden rounded-ui border border-ink/10 bg-ink text-paper">
       <div
-        className="min-h-[340px] bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
+        className={`min-h-[340px] bg-center transition duration-500 group-hover:scale-[1.03] ${shouldContainImage ? "bg-contain bg-no-repeat" : "bg-cover"}`}
         style={{ backgroundImage: `url(${product.images[0]})` }}
       />
       <div className="p-5">
