@@ -2,14 +2,15 @@ import { calculateCheckoutPaymentBreakdown, calculateTicketPaymentBreakdown } fr
 
 const cases = [
   {
-    name: "Early Bird",
-    ticketSubtotalKobo: 300_000,
+    name: "Regular",
+    ticketSubtotalKobo: 500_000,
     expected: {
-      transactionFeeKobo: 15_000,
-      totalKobo: 315_000,
-      organizerCommissionKobo: 7_500,
-      adonisAmountKobo: 292_500,
-      dreamAmountKobo: 22_500,
+      transactionFeeKobo: 17_800,
+      totalKobo: 517_800,
+      estimatedGatewayFeeKobo: 17_767,
+      organizerCommissionKobo: 12_500,
+      adonisAmountKobo: 487_500,
+      dreamAmountKobo: 30_300,
     },
   },
   {
@@ -18,6 +19,7 @@ const cases = [
     expected: {
       transactionFeeKobo: 15_000,
       totalKobo: 115_000,
+      estimatedGatewayFeeKobo: 1_725,
       organizerCommissionKobo: 2_500,
       adonisAmountKobo: 97_500,
       dreamAmountKobo: 17_500,
@@ -29,6 +31,7 @@ const cases = [
     expected: {
       transactionFeeKobo: 15_000,
       totalKobo: 165_000,
+      estimatedGatewayFeeKobo: 2_475,
       organizerCommissionKobo: 3_750,
       adonisAmountKobo: 146_250,
       dreamAmountKobo: 18_750,
@@ -38,22 +41,24 @@ const cases = [
     name: "Maximum fee guard",
     ticketSubtotalKobo: 20_000_000,
     expected: {
-      transactionFeeKobo: 500_000,
-      totalKobo: 20_500_000,
+      transactionFeeKobo: 200_000,
+      totalKobo: 20_200_000,
+      estimatedGatewayFeeKobo: 200_000,
       organizerCommissionKobo: 500_000,
       adonisAmountKobo: 19_500_000,
-      dreamAmountKobo: 1_000_000,
+      dreamAmountKobo: 700_000,
     },
   },
   {
     name: "VIP",
     ticketSubtotalKobo: 2_000_000,
     expected: {
-      transactionFeeKobo: 100_000,
-      totalKobo: 2_100_000,
+      transactionFeeKobo: 40_700,
+      totalKobo: 2_040_700,
+      estimatedGatewayFeeKobo: 40_611,
       organizerCommissionKobo: 50_000,
       adonisAmountKobo: 1_950_000,
-      dreamAmountKobo: 150_000,
+      dreamAmountKobo: 90_700,
     },
   },
 ];
@@ -74,11 +79,12 @@ for (const testCase of cases) {
 
 const addOnOnly = calculateCheckoutPaymentBreakdown(0, 700_000);
 if (
-  addOnOnly.transactionFeeKobo !== 35_000 ||
+  addOnOnly.transactionFeeKobo !== 20_900 ||
+  addOnOnly.estimatedGatewayFeeKobo !== 20_814 ||
   addOnOnly.organizerCommissionKobo !== 0 ||
   addOnOnly.adonisAmountKobo !== 0 ||
-  addOnOnly.dreamAmountKobo !== 35_000 ||
-  addOnOnly.totalKobo !== 735_000
+  addOnOnly.dreamAmountKobo !== 20_900 ||
+  addOnOnly.totalKobo !== 720_900
 ) {
   throw new Error(`Water gun add-on fee check failed: ${JSON.stringify(addOnOnly)}`);
 }

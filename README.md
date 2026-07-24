@@ -9,7 +9,7 @@ A full-stack starter for Popsy Adonis, a Nigerian entertainment and lifestyle ag
 - Tailwind CSS v4
 - Prisma + PostgreSQL
 - Paystack subaccount checkout architecture
-- Ticket fee model with 5% customer Transaction Fee, 2.5% organizer commission, and Paystack fees borne by Dream
+- Ticket fee model with a flat ₦150 customer Transaction Fee that increases only when estimated gateway charges exceed ₦150, plus 2.5% organizer commission from Adonis' ticket cut
 - QR ticket generation and validation endpoints
 - Artist portfolio/catalog pages
 - Contact and social media surfaces
@@ -57,7 +57,7 @@ CLOUDINARY_API_SECRET="xxx"
 CLOUDINARY_UPLOAD_PRESET=""
 ```
 
-Ticket checkout uses shared helpers in `src/lib/fees.ts`: customer Transaction Fee is 5% of ticket price with ₦150 minimum and ₦5,000 maximum, organizer commission is 2.5% of ticket price, Paystack fees are borne by Dream, and Paystack receives all amounts in kobo.
+Ticket checkout uses shared helpers in `src/lib/fees.ts`: customer Transaction Fee starts at ₦150 per transaction and increases only when the estimated gateway fee for the final charge is higher. Organizer commission remains 2.5% of ticket value and is deducted from Adonis' ticket cut. Paystack receives all amounts in kobo.
 
 ## Key Routes
 
@@ -85,7 +85,7 @@ The current public pages use sample data in `src/lib/sample-data.ts`. Checkout u
 
 ## Third-Party Setup Roadmap
 
-1. **Payments:** create a Paystack business account, add Adonis and Dream as subaccounts, then configure `PAYSTACK_ADONIS_SUBACCOUNT_CODE` and `PAYSTACK_DREAM_SUBACCOUNT_CODE`. Checkout sends a dynamic flat split so Adonis receives ticket price minus 2.5% organizer commission, while Dream receives the customer Transaction Fee plus the 2.5% organizer commission. Paystack processing fees are deducted from Dream via `bearer_subaccount`.
+1. **Payments:** create a Paystack business account, add Adonis and Dream as subaccounts, then configure `PAYSTACK_ADONIS_SUBACCOUNT_CODE` and `PAYSTACK_DREAM_SUBACCOUNT_CODE`. Checkout sends a dynamic flat split so Adonis receives ticket price minus 2.5% organizer commission, while Dream receives the customer Transaction Fee plus the 2.5% organizer commission. The customer Transaction Fee is ₦150 unless estimated gateway charges exceed ₦150. Paystack processing fees are deducted from Dream via `bearer_subaccount`.
 2. **Mail:** configure SMTP credentials for Nodemailer using `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS`. Resend remains supported as a fallback through `RESEND_API_KEY`. Ticket orders send one QR email to reduce quota usage.
 3. **Media:** create a Cloudinary account for artist photos, event galleries, recap thumbnails, product images, and CMS media. Use matching `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` values from the same Cloudinary account, or configure `CLOUDINARY_UPLOAD_PRESET` for unsigned uploads.
 4. **Database:** provision PostgreSQL, set `DATABASE_URL`, run Prisma migrations, and seed posts/events/products/artists.

@@ -13,6 +13,7 @@ export async function initializePaystackTransaction(payload: {
   developerFeeKobo: number;
   adonisAmountKobo: number;
   transactionFeeKobo?: number;
+  estimatedGatewayFeeKobo?: number;
   organizerCommissionKobo?: number;
 }) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
@@ -68,6 +69,7 @@ export async function initializePaystackTransaction(payload: {
         developerFeeKobo: payload.developerFeeKobo,
         adonisAmountKobo: payload.adonisAmountKobo,
         organizerCommissionKobo: payload.organizerCommissionKobo,
+        estimatedGatewayFeeKobo: payload.estimatedGatewayFeeKobo,
         transactionFeeKobo: payload.transactionFeeKobo ?? payload.developerFeeKobo,
         adonisSubaccount,
         dreamSubaccount,

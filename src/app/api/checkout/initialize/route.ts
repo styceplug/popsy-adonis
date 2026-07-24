@@ -190,6 +190,7 @@ export async function POST(request: Request) {
       const nonTicketSubtotalKobo = subtotalKobo - ticketSubtotalKobo;
       const breakdown = calculateCheckoutPaymentBreakdown(ticketSubtotalKobo, feeSubtotalKobo);
       const transactionFeeKobo = breakdown.transactionFeeKobo;
+      const estimatedGatewayFeeKobo = breakdown.estimatedGatewayFeeKobo;
       const developerFeeKobo = breakdown.dreamAmountKobo;
       const adonisAmountKobo = nonTicketSubtotalKobo + breakdown.adonisAmountKobo;
       const organizerCommissionKobo = breakdown.organizerCommissionKobo;
@@ -222,6 +223,7 @@ export async function POST(request: Request) {
             productSubtotalKobo,
             feeSubtotalKobo,
             nonTicketSubtotalKobo,
+            estimatedGatewayFeeKobo,
             organizerCommissionKobo,
             dreamGrossKobo: developerFeeKobo,
           },
@@ -243,6 +245,12 @@ export async function POST(request: Request) {
       developerFeeKobo: result.transaction.developerFeeKobo,
       adonisAmountKobo: result.transaction.adonisAmountKobo,
       transactionFeeKobo: result.transaction.transactionFeeKobo,
+      estimatedGatewayFeeKobo:
+        typeof result.transaction.gatewayResponse === "object" &&
+        result.transaction.gatewayResponse &&
+        "estimatedGatewayFeeKobo" in result.transaction.gatewayResponse
+          ? Number(result.transaction.gatewayResponse.estimatedGatewayFeeKobo)
+          : undefined,
       organizerCommissionKobo:
         typeof result.transaction.gatewayResponse === "object" &&
         result.transaction.gatewayResponse &&
