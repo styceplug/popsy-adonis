@@ -165,24 +165,54 @@ async function sendEmail(payload: {
   text: string;
   html?: string;
 }) {
+  // try {
+  //   const resendResult = await sendWithResend(payload);
+  //   if (resendResult) return resendResult;
+  // } catch (resendError) {
+  //   console.error("Resend email failed, trying SMTP fallback", resendError);
+  // }
+
+  // const smtpResult = await sendWithSmtp(payload);
+  // if (smtpResult) return smtpResult;
+
+  // if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+  //   return {
+  //     skipped: true,
+  //     reason: "No mail provider is configured. Add RESEND_API_KEY or SMTP credentials.",
+  //   };
+  // }
+
+  // throw new Error("Unable to send email. Resend cap may be reached and SMTP fallback is not configured.");
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
   try {
-    const resendResult = await sendWithResend(payload);
-    if (resendResult) return resendResult;
-  } catch (resendError) {
-    console.error("Resend email failed, trying SMTP fallback", resendError);
-  }
+    const info = await transporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to: payload.to,
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
 
-  const smtpResult = await sendWithSmtp(payload);
-  if (smtpResult) return smtpResult;
-
-  if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
     return {
-      skipped: true,
-      reason: "No mail provider is configured. Add RESEND_API_KEY or SMTP credentials.",
+      skipped: false,
+      success: true,
+      messageId: info.messageId,
+      response: info.response,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    throw new Error(error.message || "Unable to send email.");
   }
-
-  throw new Error("Unable to send email. Resend cap may be reached and SMTP fallback is not configured.");
 }
 
 function escapeHtml(value: string) {
@@ -353,11 +383,10 @@ export async function sendTicketReceipt(message: TicketMessage) {
               <div style="font-family:Consolas,monospace;font-size:11px;color:rgba(255,253,248,.42);margin-top:14px;word-break:break-all;">${escapeHtml(ticket.qrCode)}</div>
             </td>
             <td width="170" align="center" style="padding:18px;vertical-align:middle;">
-              ${
-                ticket.qrImageUrl
-                  ? `<img src="${escapeHtml(ticket.qrImageHttpUrl ?? ticket.qrImageUrl)}" alt="Ticket QR code" width="132" height="132" style="display:block;border-radius:8px;background:#fff;padding:8px;" />`
-                  : ""
-              }
+              ${ticket.qrImageUrl
+          ? `<img src="${escapeHtml(ticket.qrImageHttpUrl ?? ticket.qrImageUrl)}" alt="Ticket QR code" width="132" height="132" style="display:block;border-radius:8px;background:#fff;padding:8px;" />`
+          : ""
+        }
             </td>
           </tr>
         </table>`,
