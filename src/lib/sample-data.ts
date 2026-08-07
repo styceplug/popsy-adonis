@@ -540,7 +540,7 @@ export const products: Product[] = [
       "Untouched, Yet Unstoppable. Crisp White isn't weakness, it's possibility. The FLUX joggers represent the beginning of every journey: clean ambition, bold vision, and the courage to step into the unknown. The ghost graphics symbolize the fearless side of you that refuses to disappear, while the Flux identity reminds you that growth comes through constant movement. Every stain tells a story. Every step adds character. Stay in Flux. Stay Becoming.",
     priceKobo: 3500000,
     images: [
-      "/PA%20FLUX/FLUX%20JOGGERS%20Crisp%20white%20Edition%3A%20%E2%80%9CUntouched%2C%20Yet%20Unstoppable.%E2%80%9D/front-side.jpg",
+      "/PA%20FLUX/FLUX%20JOGGERS%20Crisp%20white%20Edition%20%E2%80%9CUntouched%2C%20Yet%20Unstoppable.%E2%80%9D/front-side.jpg",
     ],
     colors: ["Crisp White"],
     sizes: ["M", "L", "XL"],
