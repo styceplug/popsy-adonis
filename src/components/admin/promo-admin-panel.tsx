@@ -66,15 +66,19 @@ export function PromoAdminPanel({
   tiers: AdminTicketTier[];
   promos: AdminTicketPromo[];
 }) {
+  const [tierList, setTierList] = useState(tiers);
   const [promoList, setPromoList] = useState(promos);
   const [tierPrices, setTierPrices] = useState(
     Object.fromEntries(tiers.map((tier) => [tier.id, String(tier.priceKobo / 100)])),
   );
+  const [tierCapacities, setTierCapacities] = useState(
+    Object.fromEntries(tiers.map((tier) => [tier.id, String(tier.capacity)])),
+  );
   const [promoForm, setPromoForm] = useState<PromoFormState>(() => emptyPromoForm(tiers[0]?.id));
   const [status, setStatus] = useState("");
   const selectedTier = useMemo(
-    () => tiers.find((tier) => tier.id === promoForm.ticketTierId),
-    [promoForm.ticketTierId, tiers],
+    () => tierList.find((tier) => tier.id === promoForm.ticketTierId),
+    [promoForm.ticketTierId, tierList],
   );
 
   async function updateTierPrice(tierId: string) {
@@ -95,6 +99,29 @@ export function PromoAdminPanel({
     }
 
     setStatus("Ticket price updated. Refresh to see the new base price everywhere.");
+  }
+
+  async function updateTierCapacity(tierId: string) {
+    setStatus("Saving ticket capacity...");
+    const response = await fetch("/api/admin/ticket-tiers/capacity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ticketTierId: tierId,
+        capacity: Number(tierCapacities[tierId]),
+      }),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setStatus(payload?.message ?? "Unable to update ticket capacity.");
+      return;
+    }
+
+    setTierList((current) =>
+      current.map((tier) => (tier.id === tierId ? { ...tier, capacity: payload.tier.capacity } : tier)),
+    );
+    setStatus("Ticket capacity updated. Refresh to see the new availability everywhere.");
   }
 
   function editPromo(promo: AdminTicketPromo) {
@@ -190,30 +217,48 @@ export function PromoAdminPanel({
   return (
     <div className="grid gap-6">
       <section className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
-        <p className="text-xs font-black uppercase text-gold">Ticket prices</p>
+        <p className="text-xs font-black uppercase text-gold">Ticket prices &amp; availability</p>
         <div className="mt-4 grid gap-3">
-          {tiers.map((tier) => (
-            <div key={tier.id} className="grid gap-3 rounded-ui border border-white/10 p-4 md:grid-cols-[1fr_160px_auto] md:items-center">
+          {tierList.map((tier) => (
+            <div key={tier.id} className="grid gap-3 rounded-ui border border-white/10 p-4">
               <div>
                 <p className="font-display text-xl font-black">{tier.event.title} - {tier.name}</p>
                 <p className="mt-1 text-xs text-paper/48">
                   Current {formatNaira(tier.priceKobo)} / Sold {tier.soldCount} of {tier.capacity}
                 </p>
               </div>
-              <input
-                value={tierPrices[tier.id] ?? ""}
-                onChange={(event) => setTierPrices((current) => ({ ...current, [tier.id]: event.target.value }))}
-                className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-sm text-paper"
-                type="number"
-                min={0}
-                step={100}
-              />
-              <button
-                onClick={() => updateTierPrice(tier.id)}
-                className="focus-ring h-11 rounded-ui bg-gold px-4 text-sm font-black text-ink hover:bg-paper"
-              >
-                Save price
-              </button>
+              <div className="grid gap-3 md:grid-cols-[1fr_160px_auto_160px_auto] md:items-center">
+                <span className="text-xs font-black uppercase text-paper/45">Price</span>
+                <input
+                  value={tierPrices[tier.id] ?? ""}
+                  onChange={(event) => setTierPrices((current) => ({ ...current, [tier.id]: event.target.value }))}
+                  className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-sm text-paper"
+                  type="number"
+                  min={0}
+                  step={100}
+                />
+                <button
+                  onClick={() => updateTierPrice(tier.id)}
+                  className="focus-ring h-11 rounded-ui bg-gold px-4 text-sm font-black text-ink hover:bg-paper"
+                >
+                  Save price
+                </button>
+                <input
+                  value={tierCapacities[tier.id] ?? ""}
+                  onChange={(event) => setTierCapacities((current) => ({ ...current, [tier.id]: event.target.value }))}
+                  className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-sm text-paper"
+                  type="number"
+                  min={tier.soldCount}
+                  step={1}
+                  aria-label="Ticket capacity"
+                />
+                <button
+                  onClick={() => updateTierCapacity(tier.id)}
+                  className="focus-ring h-11 rounded-ui border border-gold/45 px-4 text-sm font-black text-gold hover:bg-gold/10"
+                >
+                  Save capacity
+                </button>
+              </div>
             </div>
           ))}
         </div>
