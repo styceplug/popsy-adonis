@@ -48,7 +48,7 @@ const shortcutGroups = [
 ];
 
 export default async function AdminDashboardPage() {
-  const [liveEvents, ticketCount, checkedInCount, subscriberCount, revenue] = await Promise.all([
+  const [liveEvents, ticketCount, checkedInCount, subscriberCount] = await Promise.all([
     prisma.event.findMany({
       where: { status: "PUBLISHED" },
       include: {
@@ -62,16 +62,11 @@ export default async function AdminDashboardPage() {
     prisma.ticket.count(),
     prisma.ticket.count({ where: { checkedInAt: { not: null } } }),
     prisma.waitlistSubscriber.count({ where: { isActive: true } }),
-    prisma.transaction.aggregate({
-      _sum: { amountKobo: true },
-      where: { status: "SUCCESS" },
-    }),
   ]);
 
   const stats = [
     { label: "Tickets issued", value: String(ticketCount) },
     { label: "Checked in", value: String(checkedInCount) },
-    { label: "Paid revenue", value: formatNaira(revenue._sum.amountKobo ?? 0) },
     { label: "Subscribers", value: String(subscriberCount) },
   ];
 
@@ -80,7 +75,7 @@ export default async function AdminDashboardPage() {
       <p className="text-xs font-black uppercase text-gold">Overview</p>
       <h2 className="mt-2 font-display text-5xl font-black">Dashboard</h2>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
             <p className="font-display text-3xl font-black md:text-4xl">{stat.value}</p>

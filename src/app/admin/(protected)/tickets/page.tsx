@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Search, Ticket } from "lucide-react";
 import { ResendTicketButton } from "@/components/admin/resend-ticket-button";
 import { prisma } from "@/lib/prisma";
 
@@ -14,14 +14,92 @@ export const metadata = {
 export default async function AdminTicketsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; event?: string }>;
 }) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
   const status = params.status ?? "all";
+  const eventParam = params.event ?? "";
+
+  const events = await prisma.event.findMany({
+    include: {
+      _count: { select: { tickets: true } },
+    },
+    orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+  });
+  const selectedEvent = eventParam === "all" ? null : events.find((event) => event.id === eventParam);
+
+  if (!eventParam || (eventParam !== "all" && !selectedEvent)) {
+    const checkedInByEvent = await prisma.ticket.groupBy({
+      by: ["eventId"],
+      where: { checkedInAt: { not: null } },
+      _count: { _all: true },
+    });
+    const checkedInCounts = new Map(checkedInByEvent.map((row) => [row.eventId, row._count._all]));
+    const totalTickets = events.reduce((sum, event) => sum + event._count.tickets, 0);
+    const eventsWithTickets = events.filter((event) => event._count.tickets > 0);
+
+    return (
+      <div>
+        <p className="text-xs font-black uppercase text-gold">At the gate</p>
+        <h2 className="mt-2 font-display text-5xl font-black">Tickets</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
+          Which event&apos;s tickets do you want to see?
+        </p>
+
+        <div className="mt-6 grid gap-3">
+          {eventsWithTickets.map((event) => {
+            const checkedIn = checkedInCounts.get(event.id) ?? 0;
+            return (
+              <Link
+                key={event.id}
+                href={`/admin/tickets?event=${event.id}`}
+                className="focus-ring group rounded-ui border border-white/10 bg-white/[0.035] p-4 transition hover:border-gold/50"
+              >
+                <span className="flex flex-wrap items-start justify-between gap-3">
+                  <span>
+                    <span className="block font-display text-2xl font-black text-paper group-hover:text-gold">
+                      {event.title}
+                    </span>
+                    <span className="mt-1 inline-flex items-center gap-2 text-xs text-paper/45">
+                      <CalendarDays size={13} />
+                      {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(event.startsAt)} · {event.venue}, {event.city}
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-black uppercase text-paper/62">
+                      {event._count.tickets} ticket{event._count.tickets === 1 ? "" : "s"}
+                    </span>
+                    <span className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-black uppercase text-gold">
+                      {checkedIn} checked in
+                    </span>
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+          {eventsWithTickets.length === 0 ? (
+            <p className="rounded-ui border border-white/10 p-5 text-sm text-paper/50">
+              No tickets have been sold yet.
+            </p>
+          ) : null}
+          {totalTickets > 0 ? (
+            <Link
+              href="/admin/tickets?event=all"
+              className="focus-ring inline-flex items-center gap-2 rounded-ui border border-white/10 p-4 text-sm font-bold text-paper/62 transition hover:border-paper hover:text-paper"
+            >
+              <Ticket size={16} />
+              See all {totalTickets} tickets across every event
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   const tickets = await prisma.ticket.findMany({
     where: {
+      ...(selectedEvent ? { eventId: selectedEvent.id } : {}),
       ...(status === "checked-in" ? { checkedInAt: { not: null } } : {}),
       ...(status === "not-checked-in" ? { checkedInAt: null } : {}),
       ...(query
@@ -49,24 +127,34 @@ export default async function AdminTicketsPage({
     orderBy: { createdAt: "desc" },
     take: 150,
   });
-
   const checkedInShown = tickets.filter((ticket) => ticket.checkedInAt).length;
 
   return (
     <div>
       <p className="text-xs font-black uppercase text-gold">At the gate</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Tickets</h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Look up any ticket by name, email, phone, QR code, or payment reference. Open it or resend it to the buyer.
-      </p>
+      <h2 className="mt-2 font-display text-5xl font-black">{selectedEvent ? selectedEvent.title : "All events"}</h2>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <p className="max-w-2xl text-sm leading-6 text-paper/58">
+          Look up any ticket by name, email, phone, QR code, or payment reference.
+        </p>
+        <Link
+          href="/admin/tickets"
+          className="focus-ring inline-flex h-9 items-center gap-2 rounded-ui border border-white/12 px-3 text-xs font-black text-paper/72 transition hover:border-paper hover:text-paper"
+        >
+          <ArrowLeftRight size={13} />
+          Change event
+        </Link>
+      </div>
+
       <form className="mt-6 grid gap-3 rounded-ui border border-white/10 bg-white/[0.035] p-4 md:grid-cols-[1fr_180px_auto]">
+        <input type="hidden" name="event" value={eventParam} />
         <label className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/35" size={17} />
           <input
             name="q"
             defaultValue={query}
             className="h-11 w-full rounded-ui border border-white/10 bg-ink pl-10 pr-3 text-sm text-paper"
-            placeholder="Search name, email, phone, QR, reference, event"
+            placeholder="Search name, email, phone, QR, reference"
           />
         </label>
         <select
@@ -93,7 +181,7 @@ export default async function AdminTicketsPage({
       </div>
 
       <div className="mt-4 overflow-hidden rounded-ui border border-white/10">
-        <div className="grid grid-cols-[1.1fr_.9fr_.8fr_.8fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
+        <div className="grid grid-cols-[1.1fr_.9fr_.8fr_.8fr] gap-4 border-b border-white/10 bg-white/5 px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Attendee</p>
           <p>Event</p>
           <p>Status</p>
