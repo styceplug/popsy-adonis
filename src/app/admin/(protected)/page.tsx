@@ -59,15 +59,15 @@ export default async function AdminDashboardPage() {
       },
       orderBy: { startsAt: "asc" },
     }),
-    prisma.ticket.count(),
-    prisma.ticket.count({ where: { checkedInAt: { not: null } } }),
+    prisma.ticket.count({ where: { event: { status: "PUBLISHED" } } }),
+    prisma.ticket.count({ where: { event: { status: "PUBLISHED" }, checkedInAt: { not: null } } }),
     prisma.waitlistSubscriber.count({ where: { isActive: true } }),
   ]);
 
   const stats = [
-    { label: "Tickets issued", value: String(ticketCount) },
-    { label: "Checked in", value: String(checkedInCount) },
-    { label: "Subscribers", value: String(subscriberCount) },
+    { label: "Tickets issued", value: String(ticketCount), hint: "Current events" },
+    { label: "Checked in", value: String(checkedInCount), hint: "Current events" },
+    { label: "Subscribers", value: String(subscriberCount), hint: "PA FLUX waitlist" },
   ];
 
   return (
@@ -80,6 +80,7 @@ export default async function AdminDashboardPage() {
           <div key={stat.label} className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
             <p className="font-display text-3xl font-black md:text-4xl">{stat.value}</p>
             <p className="mt-2 text-xs font-black uppercase text-paper/45">{stat.label}</p>
+            <p className="mt-1 text-[11px] text-paper/35">{stat.hint}</p>
           </div>
         ))}
       </div>
