@@ -58,10 +58,10 @@ export default async function AdminWaterGunsPage({
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Add-on collection</p>
+      <p className="text-xs font-black uppercase text-gold">At the gate</p>
       <h2 className="mt-2 font-display text-5xl font-black">Water guns</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Paid water gun add-ons appear here after Paystack confirmation. Mark them collected when the buyer receives them.
+        Paid water gun add-ons appear here after payment is confirmed. Press &quot;Mark collected&quot; when you hand one over.
       </p>
 
       <form className="mt-6 grid gap-3 rounded-ui border border-white/10 bg-white/[0.035] p-4 md:grid-cols-[1fr_190px_auto]">
@@ -88,7 +88,16 @@ export default async function AdminWaterGunsPage({
         </button>
       </form>
 
-      <div className="mt-6 overflow-hidden rounded-ui border border-white/10">
+      <div className="mt-5 flex flex-wrap gap-2">
+        <p className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-black uppercase text-paper/62">
+          {redemptions.length} purchase{redemptions.length === 1 ? "" : "s"} shown
+        </p>
+        <p className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-black uppercase text-gold">
+          {redemptions.filter((redemption) => redemption.collectedAt).length} collected
+        </p>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-ui border border-white/10">
         <div className="grid grid-cols-[1fr_.8fr_.45fr_.7fr_.7fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Buyer</p>
           <p>Add-on</p>

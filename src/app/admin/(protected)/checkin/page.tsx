@@ -11,8 +11,8 @@ export const metadata = {
 export default function AdminCheckInPage() {
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Gate check-in</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Scan tickets</h2>
+      <p className="text-xs font-black uppercase text-gold">At the gate</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Check in</h2>
       <p className="mt-4 max-w-2xl text-sm leading-6 text-paper/58">
         Scan a ticket QR code or paste the ticket URL/code manually. Successful scans immediately mark the ticket as checked in.
       </p>

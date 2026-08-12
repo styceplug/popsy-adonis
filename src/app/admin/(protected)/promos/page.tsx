@@ -33,10 +33,10 @@ export default async function AdminPromosPage() {
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Promos & pricing</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Promo control</h2>
+      <p className="text-xs font-black uppercase text-gold">Selling</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Promos</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Set base ticket prices, schedule limited promo prices, and control how many discounted tickets each buyer can claim.
+        Run limited-time ticket deals and make quick price changes to tickets that are already on sale.
       </p>
       <div className="mt-6">
         <PromoAdminPanel

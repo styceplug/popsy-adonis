@@ -50,10 +50,15 @@ export default async function AdminTicketsPage({
     take: 150,
   });
 
+  const checkedInShown = tickets.filter((ticket) => ticket.checkedInAt).length;
+
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Ticket records</p>
-      <h2 className="mt-2 font-display text-5xl font-black">All tickets</h2>
+      <p className="text-xs font-black uppercase text-gold">At the gate</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Tickets</h2>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
+        Look up any ticket by name, email, phone, QR code, or payment reference. Open it or resend it to the buyer.
+      </p>
       <form className="mt-6 grid gap-3 rounded-ui border border-white/10 bg-white/[0.035] p-4 md:grid-cols-[1fr_180px_auto]">
         <label className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/35" size={17} />
@@ -78,7 +83,16 @@ export default async function AdminTicketsPage({
         </button>
       </form>
 
-      <div className="mt-6 overflow-hidden rounded-ui border border-white/10">
+      <div className="mt-5 flex flex-wrap gap-2">
+        <p className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-black uppercase text-paper/62">
+          {tickets.length === 150 ? "Latest 150 tickets" : `${tickets.length} ticket${tickets.length === 1 ? "" : "s"}`} shown
+        </p>
+        <p className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-black uppercase text-gold">
+          {checkedInShown} checked in
+        </p>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-ui border border-white/10">
         <div className="grid grid-cols-[1.1fr_.9fr_.8fr_.8fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Attendee</p>
           <p>Event</p>

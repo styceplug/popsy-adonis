@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock3, MapPin, ShieldCheck } from "lucide-react";
+import { getEventDisplayDate } from "@/lib/event-display";
 import { prisma } from "@/lib/prisma";
 
 export default async function TicketPage({ params }: { params: Promise<{ qrCode: string }> }) {
@@ -21,12 +22,13 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
 
   if (!ticket) notFound();
 
-  const date = ticket.event.slug === "summer-time-in-ekiti"
-    ? "Fri, 7th August, 2026"
+  const displayDate = getEventDisplayDate(ticket.event);
+  const date = typeof displayDate === "string"
+    ? displayDate
     : new Intl.DateTimeFormat("en-NG", {
         dateStyle: "full",
         timeStyle: "short",
-      }).format(ticket.event.startsAt);
+      }).format(displayDate);
   const isPaid = ticket.order.status === "PAID" || ticket.order.transaction?.status === "SUCCESS";
   const hasCheckedIn = Boolean(ticket.checkedInAt);
 

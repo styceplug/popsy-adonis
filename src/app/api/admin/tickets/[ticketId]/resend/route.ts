@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminAuditLog } from "@/lib/admin-audit";
 import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { getAppBaseUrl } from "@/lib/app-url";
+import { getEventDisplayDate } from "@/lib/event-display";
 import { sendTicketReceipt } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
 
@@ -68,7 +69,7 @@ export async function POST(
     tickets: ticket.order.tickets.map((orderTicket) => ({
       eventTitle: orderTicket.event.title,
       venue: orderTicket.event.venue,
-      startsAt: orderTicket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : orderTicket.event.startsAt,
+      startsAt: getEventDisplayDate(orderTicket.event),
       attendeeName: orderTicket.attendeeName,
       qrCode: orderTicket.qrCode,
       qrImageUrl: orderTicket.qrImageUrl,

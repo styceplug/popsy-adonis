@@ -114,13 +114,16 @@ export default async function AdminLogsPage({
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Audit trail</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Admin logs</h2>
+      <p className="text-xs font-black uppercase text-gold">People</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Activity log</h2>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
+        Every admin action is recorded here with the staff name and time.
+      </p>
 
       <section className="mt-6 rounded-ui border border-gold/25 bg-gold/10 p-5">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
-            <p className="text-xs font-black uppercase text-gold">AI-style summary</p>
+            <p className="text-xs font-black uppercase text-gold">Summary</p>
             <h3 className="mt-2 font-display text-3xl font-black text-paper">{summary.headline}</h3>
           </div>
           <div className="grid min-w-72 grid-cols-3 gap-2">

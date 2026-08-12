@@ -24,8 +24,8 @@ export default async function AdminSubscribersPage() {
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">PA FLUX waitlist</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Mail subscribers</h2>
+      <p className="text-xs font-black uppercase text-gold">People</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Subscribers</h2>
       <p className="mt-4 max-w-2xl text-sm leading-6 text-paper/58">
         Everyone who joins the PA FLUX early-access list appears here. Broadcasts are logged with the staff name.
       </p>

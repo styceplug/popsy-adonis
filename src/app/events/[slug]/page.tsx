@@ -12,6 +12,20 @@ export function generateStaticParams() {
   return events.map((event) => ({ slug: event.slug }));
 }
 
+function getEventDisplayDate(event: { slug: string }) {
+  if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
+  if (event.slug === "summer-finale-after-exam-party") return "Date to be announced";
+  return undefined;
+}
+
+function getEventExpectations(event: Event) {
+  if (event.slug === "summer-finale-after-exam-party") {
+    return ["Free barbing", "Free tattoo sessions", "Free piercing", "Music, vibes, and after-exam party energy"];
+  }
+
+  return ["Free swimming access", "Free piercing sessions", "Free tattoo sessions", "Music, entertainment, and summer-party energy"];
+}
+
 function mapDbEventToPublicEvent(event: {
   id: string;
   title: string;
@@ -38,8 +52,8 @@ function mapDbEventToPublicEvent(event: {
     venue: event.venue,
     city: event.city,
     startsAt: event.startsAt.toISOString(),
-    displayDate: event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : undefined,
-    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
+    displayDate: getEventDisplayDate(event),
+    heroImage: event.heroImage ?? "/EVENTS/SUMMER%20FINALE.jpeg",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
     tiers: event.ticketTiers.map((tier) => ({
@@ -176,6 +190,7 @@ export default async function EventDetailPage({
     timeStyle: "short",
   }).format(new Date(event.startsAt));
   const displayDate = event.displayDate ?? date;
+  const expectations = getEventExpectations(event);
 
   return (
     <main className="bg-ink pt-24 text-paper">
@@ -211,10 +226,9 @@ export default async function EventDetailPage({
                 What to expect
               </p>
               <ul className="mt-4 grid gap-2 text-base leading-7 text-paper/72">
-                <li>Free swimming access</li>
-                <li>Free piercing sessions</li>
-                <li>Free tattoo sessions</li>
-                <li>Music, entertainment, and summer-party energy</li>
+                {expectations.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </div>
           ) : null}

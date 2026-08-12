@@ -109,19 +109,19 @@ export const songs: Song[] = [
 
 export const posts: Post[] = [
   {
-    title: "Summer Time in Ekiti is the next chapter after EKSU Fest 2.0",
-    slug: "summer-time-in-ekiti-next-chapter",
+    title: "Summer Finale - After Exam Party is the next Popsy Adonis wave",
+    slug: "summer-finale-after-exam-party",
     type: "Trend Update",
     excerpt:
-      "Free swimming, piercing, tattoo sessions, music, and a new summer-party experience built for Ekiti's youth culture.",
+      "After FLUX Summer Experience, Popsy Adonis returns with music, vibes, free barbing, tattoo sessions, piercing, and a bigger after-exam party.",
     body: [
-      "After the success of EKSU Fest 2.0, Popsy Adonis is setting up a new kind of campus lifestyle experience: Summer Time in Ekiti.",
-      "The party is built around daytime fun, nightlife energy, and youth-culture extras that feel fresh for Ekiti: free swimming, free piercing, free tattoo sessions, music, performances, and a crowd ready to make memories.",
-      "Tickets are now available at Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000. Summer Time in Ekiti holds on Fri, 7th August, 2026 at D Cube's Place, Opposite RCF Church.",
+      "After the massive success of FLUX Summer Experience, the demand for another Popsy Adonis event has been loud.",
+      "Summer Finale - After Exam Party is built for music, vibes, free barbing, free tattoo sessions, free piercing, and the kind of campus energy that closes exam season properly.",
+      "Early bird tickets are available now. Date and venue details will be announced soon.",
     ],
-    coverImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
+    coverImage: "/EVENTS/SUMMER%20FINALE.jpeg",
     mediaType: "video",
-    publishedAt: "June 2026",
+    publishedAt: "August 2026",
     category: "Events",
   },
   {
@@ -192,6 +192,45 @@ export const posts: Post[] = [
 
 export const events: Event[] = [
   {
+    id: "event-summer-finale-after-exam-party",
+    title: "Summer Finale - After Exam Party",
+    slug: "summer-finale-after-exam-party",
+    venue: "To be announced",
+    city: "Ekiti",
+    startsAt: "2026-08-31T17:00:00.000Z",
+    displayDate: "Date to be announced",
+    heroImage: "/EVENTS/SUMMER%20FINALE.jpeg",
+    summary:
+      "After the massive success of FLUX Summer Experience, Popsy Adonis returns with Summer Finale - After Exam Party. Expect music, vibes, fun, free barbing, free tattoo sessions, free piercing, and a bigger, louder, crazier close to the summer run. Early bird tickets are available now.",
+    status: "upcoming",
+    tiers: [
+      {
+        id: "tier-summer-finale-early-bird",
+        name: "Early Bird",
+        priceKobo: 350000,
+        perks: ["Early access", "Free barbing", "Free tattoo sessions", "Free piercing", "Music and party vibes"],
+      },
+      {
+        id: "tier-summer-finale-vip",
+        name: "VIP",
+        priceKobo: 2_000_000,
+        perks: ["VIP access", "Priority entry", "Free barbing", "Free tattoo sessions", "Free piercing"],
+      },
+      {
+        id: "tier-summer-finale-table-front",
+        name: "Table - Front",
+        priceKobo: 10_000_000,
+        perks: ["Table reservation at the front", "Closest to the stage", "Priority entry", "Group seating", "Free barbing", "Free tattoo sessions", "Free piercing"],
+      },
+      {
+        id: "tier-summer-finale-table-back",
+        name: "Table - Back",
+        priceKobo: 10_000_000,
+        perks: ["Table reservation at the back", "Relaxed placement", "Priority entry", "Group seating", "Free barbing", "Free tattoo sessions", "Free piercing"],
+      },
+    ],
+  },
+  {
     id: "event-summer-time-ekiti",
     title: "Summer Time in Ekiti",
     slug: "summer-time-in-ekiti",
@@ -202,7 +241,7 @@ export const events: Event[] = [
     heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
     summary:
       "After the success of EKSU Fest 2.0, Popsy Adonis returns with a first-of-its-kind summer party in Ekiti. Expect free swimming, free piercing, free tattoo sessions, music, entertainment, and a crowd built for unforgettable campus memories.",
-    status: "upcoming",
+    status: "past",
     tiers: [
       {
         id: "tier-summer-time-ekiti-early-bird",

@@ -41,10 +41,10 @@ export default async function AdminMerchPage() {
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">PA FLUX merchandise</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Store admin</h2>
+      <p className="text-xs font-black uppercase text-gold">Selling</p>
+      <h2 className="mt-2 font-display text-5xl font-black">PA FLUX store</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Track live product variants, stock, and recent clothing purchases.
+        Manage merch products, prices, and stock, and see recent orders.
       </p>
 
       <div className="mt-8">
@@ -68,36 +68,9 @@ export default async function AdminMerchPage() {
         />
       </div>
 
-      <section className="mt-8 rounded-ui border border-white/10 bg-white/[0.035] p-5">
-        <p className="text-xs font-black uppercase text-gold">Live products</p>
-        <div className="mt-4 grid gap-4">
-          {products.map((product) => (
-            <div key={product.id} className="rounded-ui border border-white/10 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="font-display text-2xl font-black">{product.name}</p>
-                  <p className="mt-1 text-xs text-paper/45">{product.slug}</p>
-                </div>
-                <p className="text-sm font-black text-gold">{formatNaira(product.variants[0]?.priceKobo ?? 0)}</p>
-              </div>
-              <div className="mt-4 grid gap-2 md:grid-cols-3">
-                {product.variants.map((variant) => (
-                  <div key={variant.id} className="rounded-ui bg-ink p-3">
-                    <p className="text-sm font-black text-paper">
-                      {variant.color} / {variant.size}
-                    </p>
-                    <p className="mt-1 text-xs text-paper/45">SKU {variant.sku}</p>
-                    <p className="mt-2 text-sm font-black text-gold">{variant.stock} left</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          {products.length === 0 ? <p className="text-sm text-paper/50">No active products.</p> : null}
-        </div>
-      </section>
-
-      <section className="mt-8 overflow-hidden rounded-ui border border-white/10">
+      <section className="mt-10">
+        <p className="text-xs font-black uppercase text-gold">Recent orders</p>
+        <div className="mt-4 overflow-hidden rounded-ui border border-white/10">
         <div className="grid grid-cols-[1fr_.8fr_.55fr_.7fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
           <p>Buyer</p>
           <p>Item</p>
@@ -141,6 +114,7 @@ export default async function AdminMerchPage() {
               No PA FLUX orders yet.
             </div>
           ) : null}
+          </div>
         </div>
       </section>
     </div>

@@ -324,6 +324,7 @@ async function main() {
       venue: "D Cube's Place, Opposite RCF Church",
       city: "Ekiti",
       startsAt: new Date("2026-08-07T17:00:00.000Z"),
+      status: "COMPLETED",
       heroImage: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
       ticketTiers: [
         {
@@ -349,6 +350,48 @@ async function main() {
         },
       ],
     },
+    {
+      id: "event-summer-finale-after-exam-party",
+      title: "Summer Finale - After Exam Party",
+      slug: "summer-finale-after-exam-party",
+      description:
+        "We heard you. After the massive success of FLUX Summer Experience, the demand has been loud. Popsy Adonis is bringing the Summer Finale - After Exam Party: another unforgettable experience filled with music, vibes, fun, free barbing, free tattoo sessions, free piercing, and more. This one is going to be bigger, louder, and crazier.",
+      venue: "To be announced",
+      city: "Ekiti",
+      startsAt: new Date("2026-08-31T17:00:00.000Z"),
+      status: "PUBLISHED",
+      heroImage: "/EVENTS/SUMMER%20FINALE.jpeg",
+      ticketTiers: [
+        {
+          id: "tier-summer-finale-early-bird",
+          name: "Early Bird",
+          priceKobo: 350000,
+          capacity: 500,
+          perks: ["Early access", "Free barbing", "Free tattoo sessions", "Free piercing", "Music and party vibes"],
+        },
+        {
+          id: "tier-summer-finale-vip",
+          name: "VIP",
+          priceKobo: 2_000_000,
+          capacity: 100,
+          perks: ["VIP access", "Priority entry", "Free barbing", "Free tattoo sessions", "Free piercing"],
+        },
+        {
+          id: "tier-summer-finale-table-front",
+          name: "Table - Front",
+          priceKobo: 10_000_000,
+          capacity: 10,
+          perks: ["Table reservation at the front", "Closest to the stage", "Priority entry", "Group seating", "Free barbing", "Free tattoo sessions", "Free piercing"],
+        },
+        {
+          id: "tier-summer-finale-table-back",
+          name: "Table - Back",
+          priceKobo: 10_000_000,
+          capacity: 10,
+          perks: ["Table reservation at the back", "Relaxed placement", "Priority entry", "Group seating", "Free barbing", "Free tattoo sessions", "Free piercing"],
+        },
+      ],
+    },
   ];
 
   for (const event of events) {
@@ -361,7 +404,7 @@ async function main() {
         venue: event.venue,
         city: event.city,
         startsAt: event.startsAt,
-        status: "PUBLISHED",
+        status: event.status,
         heroImage: event.heroImage,
       },
       create: {
@@ -372,7 +415,7 @@ async function main() {
         venue: event.venue,
         city: event.city,
         startsAt: event.startsAt,
-        status: "PUBLISHED",
+        status: event.status,
         heroImage: event.heroImage,
       },
     });
@@ -479,7 +522,7 @@ async function main() {
   await prisma.ticketTier.updateMany({
     where: {
       eventId: {
-        not: "event-summer-time-ekiti",
+        not: "event-summer-finale-after-exam-party",
       },
     },
     data: {
@@ -490,7 +533,7 @@ async function main() {
   await prisma.event.updateMany({
     where: {
       id: {
-        not: "event-summer-time-ekiti",
+        notIn: ["event-summer-finale-after-exam-party", "event-summer-time-ekiti"],
       },
       status: "PUBLISHED",
     },

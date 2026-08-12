@@ -8,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
   description:
-    "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
+    "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
   alternates: {
     canonical: "/events",
   },
@@ -18,14 +18,14 @@ export const metadata: Metadata = {
     
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
     images: [
       {
         // Use the upcoming event hero as the share image
-        url: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
+        url: "/EVENTS/SUMMER%20FINALE.jpeg",
         width: 1200,
         height: 630,
-        alt: "Summer Time in Ekiti — Popsy Adonis",
+        alt: "Summer Finale - After Exam Party — Popsy Adonis",
       },
     ],
   },
@@ -33,10 +33,16 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.",
-    images: ["/POPSY%20ADONIS%20FLUX%20PARTY.jpeg"],
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
+    images: ["/EVENTS/SUMMER%20FINALE.jpeg"],
   },
 };
+
+function getEventDisplayDate(event: { slug: string }) {
+  if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
+  if (event.slug === "summer-finale-after-exam-party") return "Date to be announced";
+  return undefined;
+}
 
 function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]): Event {
   const isPast = event.status === "COMPLETED" || event.startsAt < new Date();
@@ -48,8 +54,8 @@ function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]
     venue: event.venue,
     city: event.city,
     startsAt: event.startsAt.toISOString(),
-    displayDate: event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : undefined,
-    heroImage: event.heroImage ?? "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
+    displayDate: getEventDisplayDate(event),
+    heroImage: event.heroImage ?? "/EVENTS/SUMMER%20FINALE.jpeg",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
     tiers: event.ticketTiers.map((tier) => ({
@@ -92,7 +98,7 @@ export default async function EventsPage() {
           Upcoming Events
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-paper/64">
-          Tickets currently on sale: Regular ₦5,000, VIP ₦20,000, and Table for 4 ₦100,000.
+          Early bird tickets are now available for Summer Finale - After Exam Party.
         </p>
         <div className="mt-12 grid gap-5">
           {upcomingEvents.map((event) => (

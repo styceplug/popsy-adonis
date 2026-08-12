@@ -21,10 +21,10 @@ export default async function AdminEventsPage() {
 
   return (
     <div>
-      <p className="text-xs font-black uppercase text-gold">Events & tickets</p>
-      <h2 className="mt-2 font-display text-5xl font-black">Event control</h2>
+      <p className="text-xs font-black uppercase text-gold">Selling</p>
+      <h2 className="mt-2 font-display text-5xl font-black">Events</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Create events, publish ticket tiers, update prices, and control ticket availability from one place.
+        Everything about an event lives here: details, ticket tiers, prices, and how many tickets are on sale.
       </p>
       <div className="mt-8">
         <EventAdminPanel

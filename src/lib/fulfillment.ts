@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import QRCode from "qrcode";
 import { getAppBaseUrl } from "@/lib/app-url";
+import { getEventDisplayDate } from "@/lib/event-display";
 import { sendPurchaseReceipt, sendTicketReceipt } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
 
@@ -172,7 +173,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
       issuedTickets.push({
         eventTitle: ticket.event.title,
         venue: ticket.event.venue,
-        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : ticket.event.startsAt,
+        startsAt: getEventDisplayDate(ticket.event),
         attendeeName: ticket.attendeeName,
         qrCode: ticket.qrCode,
         qrImageUrl: ticket.qrImageUrl,
@@ -226,7 +227,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
       issuedTickets.push({
         eventTitle: ticket.event.title,
         venue: ticket.event.venue,
-        startsAt: ticket.event.slug === "summer-time-in-ekiti" ? "Fri, 7th August, 2026" : ticket.event.startsAt,
+        startsAt: getEventDisplayDate(ticket.event),
         attendeeName: ticket.attendeeName,
         qrCode: ticket.qrCode,
         qrImageUrl: ticket.qrImageUrl,
