@@ -7,6 +7,7 @@ import {
   Mail,
   Package,
   PackageCheck,
+  PenLine,
   ScrollText,
   Ticket,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const shortcutGroups = [
     items: [
       { label: "Scan tickets", description: "Check people in at the gate", href: "/admin/checkin", icon: ClipboardCheck },
       { label: "Find a ticket", description: "Search by name, email, or reference", href: "/admin/tickets", icon: Ticket },
+      { label: "Issue a ticket", description: "For cash or transfer payments", href: "/admin/tickets/issue", icon: PenLine },
       { label: "Water guns", description: "Hand over paid add-ons", href: "/admin/water-guns", icon: PackageCheck },
     ],
   },

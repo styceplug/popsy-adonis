@@ -13,6 +13,7 @@ const checkoutSchema = z.object({
   email: z.string().email(),
   phone: z.string().optional(),
   customerName: z.string().optional(),
+  joinMailingList: z.boolean().optional(),
   items: z
     .array(
       z.discriminatedUnion("type", [
@@ -47,8 +48,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid checkout payload.", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { email, phone, customerName, items } = parsed.data;
+  const { email, phone, customerName, joinMailingList, items } = parsed.data;
   const reference = makePaymentReference();
+
+  if (joinMailingList) {
+    const normalizedEmail = email.trim().toLowerCase();
+    await prisma.waitlistSubscriber
+      .upsert({
+        where: { email: normalizedEmail },
+        update: { isActive: true },
+        create: { email: normalizedEmail, source: "TICKET_CHECKOUT" },
+      })
+      .catch(() => undefined);
+  }
 
   try {
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {

@@ -11,6 +11,7 @@ import {
   Mail,
   Package,
   PackageCheck,
+  PenLine,
   ScrollText,
   Ticket,
 } from "lucide-react";
@@ -34,6 +35,7 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: "Check in", href: "/admin/checkin", icon: ClipboardCheck, hint: "Scan tickets at the door" },
       { label: "Tickets", href: "/admin/tickets", icon: Ticket, hint: "Find or resend a ticket" },
+      { label: "Issue a ticket", href: "/admin/tickets/issue", icon: PenLine, hint: "For cash or transfer payments" },
       { label: "Water guns", href: "/admin/water-guns", icon: PackageCheck, hint: "Hand over paid add-ons" },
     ],
   },
@@ -57,9 +59,15 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
 export function AdminNav() {
   const pathname = usePathname();
 
+  // When two entries both match (/admin/tickets and /admin/tickets/issue), only the
+  // most specific one should light up.
+  const activeHref = navGroups
+    .flatMap((group) => group.items)
+    .filter((item) => (item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(`${item.href}/`)))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin";
-    return pathname === href || pathname.startsWith(`${href}/`);
+    return href === activeHref;
   }
 
   return (

@@ -11,6 +11,7 @@ export default function CheckoutPage() {
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [joinMailingList, setJoinMailingList] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,6 +43,7 @@ export default function CheckoutPage() {
           customerName,
           email,
           phone,
+          joinMailingList,
           items: items.map((item) => {
             if (item.type === "product") {
               return {
@@ -176,6 +178,15 @@ export default function CheckoutPage() {
                 className="h-12 rounded-ui border border-white/10 bg-ink px-4 text-paper"
                 placeholder="+234..."
               />
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-paper/62">
+              <input
+                type="checkbox"
+                checked={joinMailingList}
+                onChange={(event) => setJoinMailingList(event.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-gold"
+              />
+              Email me about upcoming events and PA FLUX drops (optional)
             </label>
           </div>
 

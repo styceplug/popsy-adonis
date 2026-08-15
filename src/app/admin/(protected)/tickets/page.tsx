@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeftRight, CalendarDays, Search, Ticket } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, PenLine, Search, Ticket } from "lucide-react";
 import { ResendTicketButton } from "@/components/admin/resend-ticket-button";
 import { prisma } from "@/lib/prisma";
 
@@ -43,9 +43,18 @@ export default async function AdminTicketsPage({
       <div>
         <p className="text-xs font-black uppercase text-gold">At the gate</p>
         <h2 className="mt-2 font-display text-5xl font-black">Tickets</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-          Which event&apos;s tickets do you want to see?
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="max-w-2xl text-sm leading-6 text-paper/58">
+            Which event&apos;s tickets do you want to see?
+          </p>
+          <Link
+            href="/admin/tickets/issue"
+            className="focus-ring inline-flex h-9 items-center gap-2 rounded-ui border border-gold/45 px-3 text-xs font-black text-gold transition hover:bg-gold/10"
+          >
+            <PenLine size={13} />
+            Issue a ticket
+          </Link>
+        </div>
 
         <div className="mt-6 grid gap-3">
           {eventsWithTickets.map((event) => {

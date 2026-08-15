@@ -4,10 +4,12 @@ import { createAdminAuditLog } from "@/lib/admin-audit";
 import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { sendSubscriberBroadcast } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
+import { getTicketBuyerEmails } from "@/lib/ticket-buyers";
 
 const broadcastSchema = z.object({
   subject: z.string().trim().min(4).max(120),
   message: z.string().trim().min(10).max(5000),
+  audience: z.enum(["subscribers", "buyers", "both"]).default("subscribers"),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,14 +29,27 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const subscribers = await prisma.waitlistSubscriber.findMany({
-    where: { isActive: true },
-    select: { id: true, email: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const { audience } = parsed.data;
+  const subscribers =
+    audience === "buyers"
+      ? []
+      : await prisma.waitlistSubscriber.findMany({
+          where: { isActive: true },
+          select: { id: true, email: true },
+          orderBy: { createdAt: "asc" },
+        });
+  const buyerEmails = audience === "subscribers" ? [] : await getTicketBuyerEmails();
 
-  if (subscribers.length === 0) {
-    return NextResponse.json({ message: "No active subscribers to email." }, { status: 400 });
+  const recipients = new Map<string, { email: string; subscriberId?: string }>();
+  for (const subscriber of subscribers) {
+    recipients.set(subscriber.email.trim().toLowerCase(), { email: subscriber.email, subscriberId: subscriber.id });
+  }
+  for (const email of buyerEmails) {
+    if (!recipients.has(email)) recipients.set(email, { email });
+  }
+
+  if (recipients.size === 0) {
+    return NextResponse.json({ message: "No one to email for this audience yet." }, { status: 400 });
   }
 
   const broadcast = await prisma.emailBroadcast.create({
@@ -42,7 +57,7 @@ export async function POST(request: NextRequest) {
       actorName: session.name,
       subject: parsed.data.subject,
       message: parsed.data.message,
-      recipientCount: subscribers.length,
+      recipientCount: recipients.size,
     },
   });
 
@@ -50,18 +65,18 @@ export async function POST(request: NextRequest) {
   let failedCount = 0;
   const sentSubscriberIds: string[] = [];
 
-  for (const subscriber of subscribers) {
+  for (const recipient of recipients.values()) {
     try {
       await sendSubscriberBroadcast({
-        to: subscriber.email,
+        to: recipient.email,
         subject: parsed.data.subject,
         message: parsed.data.message,
       });
       sentCount += 1;
-      sentSubscriberIds.push(subscriber.id);
+      if (recipient.subscriberId) sentSubscriberIds.push(recipient.subscriberId);
     } catch (error) {
       failedCount += 1;
-      console.error(`Unable to send subscriber broadcast to ${subscriber.email}`, error);
+      console.error(`Unable to send subscriber broadcast to ${recipient.email}`, error);
     }
   }
 
@@ -83,7 +98,8 @@ export async function POST(request: NextRequest) {
     entityId: broadcast.id,
     metadata: {
       subject: parsed.data.subject,
-      recipientCount: subscribers.length,
+      audience,
+      recipientCount: recipients.size,
       sentCount,
       failedCount,
     },
@@ -92,7 +108,8 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     broadcastId: broadcast.id,
-    recipientCount: subscribers.length,
+    audience,
+    recipientCount: recipients.size,
     sentCount,
     failedCount,
   });

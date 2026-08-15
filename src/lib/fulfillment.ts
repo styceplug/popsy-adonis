@@ -237,14 +237,24 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     }
   }
 
+  // null means no email was due on this run, so callers can tell "not sent" from "not attempted".
+  let emailSent: boolean | null = null;
+  let emailError: string | null = null;
+
   if (!wasAlreadySuccessful && issuedTickets.length === 0) {
+    emailSent = true;
     await sendPurchaseReceipt(receipt).catch((mailError) => {
+      emailSent = false;
+      emailError = mailError instanceof Error ? mailError.message : "Unable to send purchase receipt.";
       console.error("Unable to send purchase receipt", mailError);
     });
   }
 
   if (issuedTickets.length > 0 && (!wasAlreadySuccessful || createdTicketsCount > 0)) {
+    emailSent = true;
     await sendTicketReceipt({ ...receipt, tickets: issuedTickets }).catch((mailError) => {
+      emailSent = false;
+      emailError = mailError instanceof Error ? mailError.message : "Unable to send ticket receipt.";
       console.error("Unable to send ticket receipt", mailError);
     });
   }
@@ -253,5 +263,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     fulfilled: true,
     alreadySuccessful: wasAlreadySuccessful,
     ticketsIssued: createdTicketsCount || issuedTickets.length,
+    emailSent,
+    emailError,
   };
 }
