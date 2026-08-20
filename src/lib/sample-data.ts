@@ -109,17 +109,17 @@ export const songs: Song[] = [
 
 export const posts: Post[] = [
   {
-    title: "Summer Finale - After Exam Party is the next Popsy Adonis wave",
+    title: "FLUX Summer Experience — Summer Finale is back bigger, wetter and crazier",
     slug: "summer-finale-after-exam-party",
     type: "Trend Update",
     excerpt:
-      "After FLUX Summer Experience, Popsy Adonis returns with music, vibes, free barbing, tattoo sessions, piercing, and a bigger after-exam party.",
+      "After the success of the first edition, FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September. 7PM till dawn.",
     body: [
-      "After the massive success of FLUX Summer Experience, the demand for another Popsy Adonis event has been loud.",
-      "Summer Finale - After Exam Party is built for music, vibes, free barbing, free tattoo sessions, free piercing, and the kind of campus energy that closes exam season properly.",
-      "Early bird tickets are available now. Date and venue details will be announced soon.",
+      "After the success of the first edition, we're back for the Summer Finale. The first edition was a movie, and because the love was massive, this one is bigger, wetter, and crazier.",
+      "FLUX SUMMER EXPERIENCE — SUMMER FINALE is happening 5th September at D Cube Place, Satellite, EKSU. For everyone who just finished exams, this is the chance to wash the stress away. For final-year brothers and sisters, it's one last crazy party as a student.",
+      "Come with your friends. Come with your squad. Come ready to get wet. Foam machines, swimming pool, water guns, free barbing, free piercing, free henna, and free tattoo sessions. 7PM till dawn. Everyone is invited.",
     ],
-    coverImage: "/EVENTS/SUMMER%20FINALE.jpeg",
+    coverImage: "/EVENTS/SummerFinale-main.JPG",
     mediaType: "video",
     publishedAt: "August 2026",
     category: "Events",
@@ -195,13 +195,35 @@ export const events: Event[] = [
     id: "event-summer-finale-after-exam-party",
     title: "Summer Finale - After Exam Party",
     slug: "summer-finale-after-exam-party",
-    venue: "To be announced",
+    venue: "D Cube's Place, Satellite, EKSU",
     city: "Ekiti",
-    startsAt: "2026-08-31T17:00:00.000Z",
-    displayDate: "Date to be announced",
-    heroImage: "/EVENTS/SUMMER%20FINALE.jpeg",
-    summary:
-      "After the massive success of FLUX Summer Experience, Popsy Adonis returns with Summer Finale - After Exam Party. Expect music, vibes, fun, free barbing, free tattoo sessions, free piercing, and a bigger, louder, crazier close to the summer run. Early bird tickets are available now.",
+    startsAt: "2026-09-05T18:00:00.000Z",
+    displayDate: "5th September, 2026 · 7PM till dawn",
+    heroImage: "/EVENTS/SummerFinale-main.JPG",
+    summary: `🌊🔥 AFTER THE SUCCESS OF THE FIRST EDITION… WE'RE BACK FOR THE SUMMER FINALE! 🔥🌊
+
+The first edition was a movie, and because the love was massive, we're taking it BIGGER, WETTER & CRAZIER! 👻💦
+
+FLUX SUMMER EXPERIENCE — SUMMER FINALE is happening 5TH SEPTEMBER at DCUBE PLACE, SATELLITE, EKSU! 🎉
+
+To everyone who just finished their exams… this is your chance to breathe, relax and wash away that exam stress! 📚➡️💦
+
+And to all the FINAL YEAR BROTHERS & SISTERS FYB from all departments who are about to leave school… you can't possibly leave without ONE LAST CRAZY PARTY AS A STUDENT! 🎓🔥
+
+Come with your friends. Come with your squad. Come ready to get WET and catch a serious vibe! 😂💦
+
+We've got FOAMING MACHINES, SWIMMING POOL, WATER GUNS, FREE BARBING, FREE PIERCING, FREE HENNA & FREE TATTOO SESSIONS… everything you need for that ultimate WATER SPLASH PARTY EXPERIENCE! 🌊🔫🫧
+
+⏰ 7PM TILL DAWN
+📍 DCUBE PLACE, SATELLITE, EKSU
+📅 5TH SEPTEMBER
+
+EVERYONE IS INVITED! ❤️‍🔥
+
+Whether you're celebrating finishing exams, celebrating your final year, or you simply want to have the craziest summer experience — LET'S ALL MEET AT DCUBE PLACE! 👻🌊
+
+FLUX SUMMER EXPERIENCE — SUMMER FINALE
+ONE LAST SPLASH. ONE LAST MEMORY. ONE BIG NIGHT. 💦🔥`,
     status: "upcoming",
     tiers: [
       {

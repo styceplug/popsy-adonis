@@ -8,7 +8,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
   description:
-    "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
+    "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
   alternates: {
     canonical: "/events",
   },
@@ -18,14 +18,14 @@ export const metadata: Metadata = {
     
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
     images: [
       {
         // Use the upcoming event hero as the share image
-        url: "/EVENTS/SUMMER%20FINALE.jpeg",
+        url: "/EVENTS/SummerFinale-main.JPG",
         width: 1200,
         height: 630,
-        alt: "Summer Finale - After Exam Party — Popsy Adonis",
+        alt: "FLUX Summer Experience — Summer Finale — Popsy Adonis",
       },
     ],
   },
@@ -33,14 +33,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Events & Ticketing | Popsy Adonis",
     description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. Early bird tickets are now available for Summer Finale - After Exam Party.",
-    images: ["/EVENTS/SUMMER%20FINALE.jpeg"],
+      "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
+    images: ["/EVENTS/SummerFinale-main.JPG"],
   },
 };
 
 function getEventDisplayDate(event: { slug: string }) {
   if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
-  if (event.slug === "summer-finale-after-exam-party") return "Date to be announced";
+  if (event.slug === "summer-finale-after-exam-party") return "5th September, 2026 · 7PM till dawn";
   return undefined;
 }
 
@@ -55,7 +55,7 @@ function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]
     city: event.city,
     startsAt: event.startsAt.toISOString(),
     displayDate: getEventDisplayDate(event),
-    heroImage: event.heroImage ?? "/EVENTS/SUMMER%20FINALE.jpeg",
+    heroImage: event.heroImage ?? "/EVENTS/SummerFinale-main.JPG",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
     tiers: event.ticketTiers.map((tier) => ({
@@ -98,7 +98,7 @@ export default async function EventsPage() {
           Upcoming Events
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-paper/64">
-          Early bird tickets are now available for Summer Finale - After Exam Party.
+          FLUX Summer Experience — Summer Finale lands at D Cube Place, Satellite, EKSU on 5th September. 7PM till dawn.
         </p>
         <div className="mt-12 grid gap-5">
           {upcomingEvents.map((event) => (

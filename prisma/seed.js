@@ -354,13 +354,35 @@ async function main() {
       id: "event-summer-finale-after-exam-party",
       title: "Summer Finale - After Exam Party",
       slug: "summer-finale-after-exam-party",
-      description:
-        "We heard you. After the massive success of FLUX Summer Experience, the demand has been loud. Popsy Adonis is bringing the Summer Finale - After Exam Party: another unforgettable experience filled with music, vibes, fun, free barbing, free tattoo sessions, free piercing, and more. This one is going to be bigger, louder, and crazier.",
-      venue: "To be announced",
+      description: `🌊🔥 AFTER THE SUCCESS OF THE FIRST EDITION… WE'RE BACK FOR THE SUMMER FINALE! 🔥🌊
+
+The first edition was a movie, and because the love was massive, we're taking it BIGGER, WETTER & CRAZIER! 👻💦
+
+FLUX SUMMER EXPERIENCE — SUMMER FINALE is happening 5TH SEPTEMBER at DCUBE PLACE, SATELLITE, EKSU! 🎉
+
+To everyone who just finished their exams… this is your chance to breathe, relax and wash away that exam stress! 📚➡️💦
+
+And to all the FINAL YEAR BROTHERS & SISTERS FYB from all departments who are about to leave school… you can't possibly leave without ONE LAST CRAZY PARTY AS A STUDENT! 🎓🔥
+
+Come with your friends. Come with your squad. Come ready to get WET and catch a serious vibe! 😂💦
+
+We've got FOAMING MACHINES, SWIMMING POOL, WATER GUNS, FREE BARBING, FREE PIERCING, FREE HENNA & FREE TATTOO SESSIONS… everything you need for that ultimate WATER SPLASH PARTY EXPERIENCE! 🌊🔫🫧
+
+⏰ 7PM TILL DAWN
+📍 DCUBE PLACE, SATELLITE, EKSU
+📅 5TH SEPTEMBER
+
+EVERYONE IS INVITED! ❤️‍🔥
+
+Whether you're celebrating finishing exams, celebrating your final year, or you simply want to have the craziest summer experience — LET'S ALL MEET AT DCUBE PLACE! 👻🌊
+
+FLUX SUMMER EXPERIENCE — SUMMER FINALE
+ONE LAST SPLASH. ONE LAST MEMORY. ONE BIG NIGHT. 💦🔥`,
+      venue: "D Cube's Place, Satellite, EKSU",
       city: "Ekiti",
-      startsAt: new Date("2026-08-31T17:00:00.000Z"),
+      startsAt: new Date("2026-09-05T18:00:00.000Z"),
       status: "PUBLISHED",
-      heroImage: "/EVENTS/SUMMER%20FINALE.jpeg",
+      heroImage: "/EVENTS/SummerFinale-main.JPG",
       ticketTiers: [
         {
           id: "tier-summer-finale-early-bird",

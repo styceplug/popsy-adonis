@@ -306,7 +306,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
             <textarea
               value={form.description}
               onChange={(event) => setForm((current) => (current ? { ...current, description: event.target.value } : current))}
-              className="min-h-32 rounded-ui border border-white/10 bg-ink p-3 text-sm leading-6 text-paper"
+              className="min-h-48 rounded-ui border border-white/10 bg-ink p-3 text-sm leading-6 text-paper"
               placeholder="What should fans expect? At least a sentence or two."
             />
           </label>
@@ -359,7 +359,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
               value={form.heroImage ?? ""}
               onChange={(event) => setForm((current) => (current ? { ...current, heroImage: event.target.value } : current))}
               className={inputStyles}
-              placeholder="/EVENTS/SUMMER%20FINALE.jpeg"
+              placeholder="/EVENTS/SummerFinale-main.JPG"
             />
             {form.heroImage ? (
               <span

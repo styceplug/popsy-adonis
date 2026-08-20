@@ -14,13 +14,39 @@ export function generateStaticParams() {
 
 function getEventDisplayDate(event: { slug: string }) {
   if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
-  if (event.slug === "summer-finale-after-exam-party") return "Date to be announced";
+  if (event.slug === "summer-finale-after-exam-party") return "5th September, 2026 · 7PM till dawn";
   return undefined;
+}
+
+function getEventSeoDescription(event: Event) {
+  if (event.slug === "summer-finale-after-exam-party") {
+    return "FLUX Summer Experience — Summer Finale. After-exam water splash party on 5th September at D Cube Place, Satellite, EKSU. Foam, pool, water guns, free barbing, piercing, henna and tattoos. 7PM till dawn.";
+  }
+
+  const fallback = `${event.title} — a Popsy Adonis experience in ${event.city}. ${
+    event.status === "upcoming" ? "Get your tickets now." : "See the recap and gallery."
+  }`;
+
+  return (event.summary ?? fallback).replace(/\s+/g, " ").trim().slice(0, 220);
+}
+
+function getWriteupParagraphs(text: string) {
+  return text
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 }
 
 function getEventExpectations(event: Event) {
   if (event.slug === "summer-finale-after-exam-party") {
-    return ["Free barbing", "Free tattoo sessions", "Free piercing", "Music, vibes, and after-exam party energy"];
+    return [
+      "Foam machines",
+      "Swimming pool",
+      "Water guns",
+      "Free barbing",
+      "Free piercing",
+      "Free henna and tattoo sessions",
+    ];
   }
 
   return ["Free swimming access", "Free piercing sessions", "Free tattoo sessions", "Music, entertainment, and summer-party energy"];
@@ -53,7 +79,7 @@ function mapDbEventToPublicEvent(event: {
     city: event.city,
     startsAt: event.startsAt.toISOString(),
     displayDate: getEventDisplayDate(event),
-    heroImage: event.heroImage ?? "/EVENTS/SUMMER%20FINALE.jpeg",
+    heroImage: event.heroImage ?? "/EVENTS/SummerFinale-main.JPG",
     summary: event.description,
     status: isPast ? "past" : "upcoming",
     tiers: event.ticketTiers.map((tier) => ({
@@ -86,13 +112,7 @@ export async function generateMetadata({
   const pageUrl = `${SITE_URL}/events/${event.slug}`;
   const imageUrl = `${SITE_URL}${event.heroImage}`;
 
-  const description =
-    event.summary ??
-    `${event.title} — a Popsy Adonis experience in ${event.city}. ${
-      event.status === "upcoming"
-        ? "Get your tickets now."
-        : "See the recap and gallery."
-    }`;
+  const description = getEventSeoDescription(event);
 
   const shortTitle =
     event.status === "upcoming"
@@ -216,10 +236,17 @@ export default async function EventDetailPage({
       </section>
       <section className="section-shell grid gap-8 py-16 md:grid-cols-[1fr_420px]">
         <div className="max-w-2xl text-lg leading-9 text-paper/68">
-          <p>
-            {event.summary ??
-              "A Popsy Adonis experience built around music, campus culture, community, and unforgettable moments."}
-          </p>
+          {getWriteupParagraphs(
+            event.summary ??
+              "A Popsy Adonis experience built around music, campus culture, community, and unforgettable moments.",
+          ).map((paragraph, index) => (
+            <p
+              key={`${index}-${paragraph.slice(0, 24)}`}
+              className={`whitespace-pre-line ${index === 0 ? "font-black text-paper" : "mt-5"}`}
+            >
+              {paragraph}
+            </p>
+          ))}
           {event.status === "upcoming" ? (
             <div className="mt-8 rounded-ui border border-gold/30 bg-gold/10 p-5">
               <p className="text-sm font-black uppercase text-gold">
