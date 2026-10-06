@@ -49,6 +49,24 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum AffiliateStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum AffiliateCommissionStatus {
+  PENDING
+  EARNED
+  REVERSED
+}
+
+enum AffiliateWithdrawalStatus {
+  PROCESSING
+  PAID
+  FAILED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -117,6 +135,10 @@ model Event {
   ticketTiers   TicketTier[]
   tickets       Ticket[]
   addOns        EventAddOn[]
+  // Share of ticket revenue paid to the referring affiliate, in basis points (1000 = 10%).
+  affiliateCommissionBps Int @default(0)
+  affiliateCommissions   AffiliateCommission[]
+  affiliateLinkStats     AffiliateLinkStat[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -272,8 +294,13 @@ model Order {
   tickets            Ticket[]
   addOnRedemptions   EventAddOnRedemption[]
   transaction        Transaction?
+  affiliateId        String?
+  affiliate          Affiliate?   @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+  affiliateCommissions AffiliateCommission[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
+
+  @@index([affiliateId])
 }
 
 model OrderItem {
@@ -306,6 +333,8 @@ model Transaction {
   developerFeeKobo   Int
   adonisAmountKobo   Int
   transactionFeeKobo Int               @default(0)
+  // Held back from the Adonis share and left in the main Paystack balance for affiliate payouts.
+  affiliateCommissionKobo Int          @default(0)
   splitCode          String?
   gatewayResponse    Json?
   paidAt             DateTime?
@@ -363,4 +392,87 @@ model AdminAuditLog {
   @@index([createdAt])
   @@index([actorName])
   @@index([entityType, entityId])
+}
+
+model Affiliate {
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  passwordHash          String
+  fullName              String
+  phone                 String?
+  code                  String          @unique
+  status                AffiliateStatus @default(PENDING)
+  // When set, replaces the per-event rate for this affiliate on every event.
+  commissionBpsOverride Int?
+  bankCode              String?
+  bankName              String?
+  accountNumber         String?
+  accountName           String?
+  paystackRecipientCode String?
+  approvedAt            DateTime?
+  approvedBy            String?
+  orders                Order[]
+  commissions           AffiliateCommission[]
+  withdrawals           AffiliateWithdrawal[]
+  linkStats             AffiliateLinkStat[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([status])
+}
+
+model AffiliateLinkStat {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  clicks      Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([affiliateId, eventId])
+}
+
+model AffiliateCommission {
+  id                 String                    @id @default(cuid())
+  affiliateId        String
+  affiliate          Affiliate                 @relation(fields: [affiliateId], references: [id])
+  orderId            String
+  order              Order                     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventId            String
+  event              Event                     @relation(fields: [eventId], references: [id])
+  ticketCount        Int
+  ticketSubtotalKobo Int
+  rateBps            Int
+  amountKobo         Int
+  // PENDING until Paystack confirms the payment, then EARNED and withdrawable.
+  status             AffiliateCommissionStatus @default(PENDING)
+  earnedAt           DateTime?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  @@unique([orderId, eventId])
+  @@index([affiliateId, status])
+  @@index([eventId])
+}
+
+model AffiliateWithdrawal {
+  id            String                    @id @default(cuid())
+  affiliateId   String
+  affiliate     Affiliate                 @relation(fields: [affiliateId], references: [id])
+  amountKobo    Int
+  status        AffiliateWithdrawalStatus @default(PROCESSING)
+  reference     String                    @unique
+  transferCode  String?
+  bankName      String
+  accountNumber String
+  accountName   String
+  failureReason String?
+  paidAt        DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([createdAt])
 }

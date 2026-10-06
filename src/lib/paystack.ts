@@ -15,6 +15,8 @@ export async function initializePaystackTransaction(payload: {
   transactionFeeKobo?: number;
   estimatedGatewayFeeKobo?: number;
   organizerCommissionKobo?: number;
+  affiliateCommissionKobo?: number;
+  affiliateCode?: string;
 }) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
 
@@ -49,6 +51,8 @@ export async function initializePaystackTransaction(payload: {
       reference: payload.reference,
       currency: "NGN",
       callback_url: `${getAppBaseUrl()}/checkout/success?reference=${payload.reference}`,
+      // Flat split: the shares below go to the subaccounts and whatever is left stays in the
+      // main balance. With an affiliate sale that remainder is the commission, held for payout.
       split: {
         type: "flat",
         bearer_type: "subaccount",
@@ -69,6 +73,8 @@ export async function initializePaystackTransaction(payload: {
         developerFeeKobo: payload.developerFeeKobo,
         adonisAmountKobo: payload.adonisAmountKobo,
         organizerCommissionKobo: payload.organizerCommissionKobo,
+        affiliateCommissionKobo: payload.affiliateCommissionKobo ?? 0,
+        affiliateCode: payload.affiliateCode,
         estimatedGatewayFeeKobo: payload.estimatedGatewayFeeKobo,
         transactionFeeKobo: payload.transactionFeeKobo ?? payload.developerFeeKobo,
         adonisSubaccount,

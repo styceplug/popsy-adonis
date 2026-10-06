@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -5,7 +6,9 @@ import {
   initializePaystackTransaction,
   makePaymentReference,
 } from "@/lib/paystack";
-import { calculateCheckoutPaymentBreakdown } from "@/lib/fees";
+import { affiliateRefCookieName } from "@/lib/affiliate-auth";
+import { getEffectiveCommissionBps } from "@/lib/affiliates";
+import { calculateBasisPointAmount, calculateCheckoutPaymentBreakdown } from "@/lib/fees";
 import { prisma } from "@/lib/prisma";
 import { getTicketPromoStatus } from "@/lib/ticket-promos";
 
@@ -51,6 +54,15 @@ export async function POST(request: Request) {
   const { email, phone, customerName, joinMailingList, items } = parsed.data;
   const reference = makePaymentReference();
 
+  // Last affiliate link the buyer clicked. Buying through your own link earns nothing.
+  const cookieStore = await cookies();
+  const refCode = cookieStore.get(affiliateRefCookieName)?.value?.trim().toUpperCase();
+  const referrer = refCode ? await prisma.affiliate.findUnique({ where: { code: refCode } }) : null;
+  const affiliate =
+    referrer && referrer.status === "APPROVED" && referrer.email.toLowerCase() !== email.trim().toLowerCase()
+      ? referrer
+      : null;
+
   if (joinMailingList) {
     const normalizedEmail = email.trim().toLowerCase();
     await prisma.waitlistSubscriber
@@ -66,6 +78,13 @@ export async function POST(request: Request) {
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const orderItems: Prisma.OrderItemUncheckedCreateWithoutOrderInput[] = [];
       const checkoutPromoQuantities = new Map<string, number>();
+      const affiliateSales = new Map<string, { eventBps: number; ticketCount: number; subtotalKobo: number }>();
+      const addAffiliateSale = (eventId: string, eventBps: number, ticketCount: number, subtotalKobo: number) => {
+        const sale = affiliateSales.get(eventId) ?? { eventBps, ticketCount: 0, subtotalKobo: 0 };
+        sale.ticketCount += ticketCount;
+        sale.subtotalKobo += subtotalKobo;
+        affiliateSales.set(eventId, sale);
+      };
 
       for (const item of items) {
         if (item.type === "product") {
@@ -149,6 +168,7 @@ export async function POST(request: Request) {
           }
 
           if (promoQuantity > 0 && promo.promo && promo.code && promo.label && promo.promoPriceKobo) {
+            addAffiliateSale(tier.eventId, tier.event.affiliateCommissionBps, promoQuantity, promo.promoPriceKobo * promoQuantity);
             orderItems.push({
               itemType: "ticket",
               ticketTierId: tier.id,
@@ -171,6 +191,8 @@ export async function POST(request: Request) {
           const standardQuantity = item.quantity - promoQuantity;
 
           if (standardQuantity <= 0) continue;
+
+          addAffiliateSale(tier.eventId, tier.event.affiliateCommissionBps, standardQuantity, tier.priceKobo * standardQuantity);
 
           orderItems.push({
             itemType: "ticket",
@@ -204,7 +226,22 @@ export async function POST(request: Request) {
       const transactionFeeKobo = breakdown.transactionFeeKobo;
       const estimatedGatewayFeeKobo = breakdown.estimatedGatewayFeeKobo;
       const developerFeeKobo = breakdown.dreamAmountKobo;
-      const adonisAmountKobo = nonTicketSubtotalKobo + breakdown.adonisAmountKobo;
+      // Commission is a share of ticket revenue only, and it comes out of the Adonis side.
+      const affiliateCommissions = affiliate
+        ? Array.from(affiliateSales, ([eventId, sale]) => {
+            const rateBps = getEffectiveCommissionBps(sale.eventBps, affiliate.commissionBpsOverride);
+            return {
+              eventId,
+              ticketCount: sale.ticketCount,
+              ticketSubtotalKobo: sale.subtotalKobo,
+              rateBps,
+              amountKobo: calculateBasisPointAmount(sale.subtotalKobo, rateBps),
+            };
+          })
+        : [];
+      // Rates are capped at 50%, so this can never exceed the Adonis ticket share.
+      const affiliateCommissionKobo = affiliateCommissions.reduce((sum, commission) => sum + commission.amountKobo, 0);
+      const adonisAmountKobo = nonTicketSubtotalKobo + breakdown.adonisAmountKobo - affiliateCommissionKobo;
       const organizerCommissionKobo = breakdown.organizerCommissionKobo;
       const totalKobo = subtotalKobo + transactionFeeKobo;
 
@@ -216,10 +253,21 @@ export async function POST(request: Request) {
           platformFeeKobo: developerFeeKobo,
           transactionFeeKobo,
           totalKobo,
+          affiliateId: affiliateCommissions.length > 0 ? affiliate?.id : undefined,
           items: { create: orderItems },
         },
         include: { items: true },
       });
+
+      if (affiliate && affiliateCommissions.length > 0) {
+        await tx.affiliateCommission.createMany({
+          data: affiliateCommissions.map((commission) => ({
+            ...commission,
+            affiliateId: affiliate.id,
+            orderId: order.id,
+          })),
+        });
+      }
 
       const transaction = await tx.transaction.create({
         data: {
@@ -229,7 +277,9 @@ export async function POST(request: Request) {
           developerFeeKobo,
           adonisAmountKobo,
           transactionFeeKobo,
+          affiliateCommissionKobo,
           gatewayResponse: {
+            affiliateCommissionKobo,
             ticketSubtotalKobo,
             eventAddOnSubtotalKobo,
             productSubtotalKobo,
@@ -257,6 +307,8 @@ export async function POST(request: Request) {
       developerFeeKobo: result.transaction.developerFeeKobo,
       adonisAmountKobo: result.transaction.adonisAmountKobo,
       transactionFeeKobo: result.transaction.transactionFeeKobo,
+      affiliateCommissionKobo: result.transaction.affiliateCommissionKobo,
+      affiliateCode: result.transaction.affiliateCommissionKobo > 0 ? affiliate?.code : undefined,
       estimatedGatewayFeeKobo:
         typeof result.transaction.gatewayResponse === "object" &&
         result.transaction.gatewayResponse &&

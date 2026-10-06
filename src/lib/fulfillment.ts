@@ -95,6 +95,12 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     });
   }
 
+  // Payment is confirmed, so any affiliate commission on this order becomes withdrawable.
+  await prisma.affiliateCommission.updateMany({
+    where: { orderId: transaction.orderId, status: "PENDING" },
+    data: { status: "EARNED", earnedAt: new Date() },
+  });
+
   const ticketGroups = new Map<string, TicketGroup>();
 
   for (const item of transaction.order.items) {

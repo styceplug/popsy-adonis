@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReferralCapture } from "@/components/affiliate/referral-capture";
 import { CartLink } from "@/components/checkout/cart-link";
 import { CartProvider } from "@/components/providers/cart-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -86,6 +87,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
+        <ReferralCapture />
         <CartProvider>
           <SiteHeader />
           {children}
