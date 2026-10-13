@@ -135,6 +135,10 @@ model Event {
   ticketTiers   TicketTier[]
   tickets       Ticket[]
   addOns        EventAddOn[]
+  // Shown instead of the real date when set, e.g. "Date to be announced". startsAt still sorts the event.
+  dateLabel     String?
+  // "What to expect" list on the event page. Empty falls back to the default list.
+  highlights    String[]     @default([])
   // Share of ticket revenue paid to the referring affiliate, in basis points (1000 = 10%).
   affiliateCommissionBps Int @default(0)
   affiliateCommissions   AffiliateCommission[]

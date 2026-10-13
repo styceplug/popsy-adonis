@@ -24,6 +24,8 @@ type AdminEvent = {
   startsAt: string;
   status: "DRAFT" | "PUBLISHED" | "SOLD_OUT" | "COMPLETED" | "CANCELLED";
   heroImage: string | null;
+  dateLabel: string | null;
+  highlights: string[];
   ticketTiers: AdminTicketTier[];
 };
 
@@ -37,8 +39,9 @@ type TierFormState = {
   soldCount: number;
 };
 
-type EventFormState = Omit<AdminEvent, "ticketTiers" | "startsAt"> & {
+type EventFormState = Omit<AdminEvent, "ticketTiers" | "startsAt" | "highlights"> & {
   startsAt: string;
+  highlightsText: string;
   ticketTiers: TierFormState[];
 };
 
@@ -93,14 +96,19 @@ function emptyEvent(): EventFormState {
     startsAt: "",
     status: "DRAFT",
     heroImage: "",
+    dateLabel: "",
+    highlightsText: "",
     ticketTiers: [emptyTier()],
   };
 }
 
 function eventToForm(event: AdminEvent): EventFormState {
+  const { highlights, ...rest } = event;
   return {
-    ...event,
+    ...rest,
     heroImage: event.heroImage ?? "",
+    dateLabel: event.dateLabel ?? "",
+    highlightsText: highlights.join("\n"),
     startsAt: toLocalDateTimeInput(event.startsAt),
     ticketTiers: event.ticketTiers.map((tier) => ({
       id: tier.id,
@@ -160,6 +168,8 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
         startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : "",
         status: form.status,
         heroImage: form.heroImage,
+        dateLabel: form.dateLabel,
+        highlights: form.highlightsText.split(/\n+/).map((line) => line.trim()).filter(Boolean),
         ticketTiers: form.ticketTiers.map((tier) => ({
           id: tier.id,
           name: tier.name,
@@ -335,6 +345,31 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
               type="datetime-local"
               className={inputStyles}
             />
+            <span className="text-xs font-normal leading-5 text-paper/42">
+              Not confirmed yet? Pick an approximate date for ordering and fill in the date label below.
+            </span>
+          </label>
+          <label className="grid gap-2 text-sm font-bold text-paper/72">
+            Date label (optional)
+            <input
+              value={form.dateLabel ?? ""}
+              onChange={(event) => setForm((current) => (current ? { ...current, dateLabel: event.target.value } : current))}
+              className={inputStyles}
+              placeholder="Date to be announced"
+            />
+            <span className="text-xs font-normal leading-5 text-paper/42">
+              Shown on the site and tickets instead of the date. Leave empty to show the real date.
+            </span>
+          </label>
+          <label className="grid gap-2 text-sm font-bold text-paper/72 md:col-span-2">
+            What to expect
+            <textarea
+              value={form.highlightsText}
+              onChange={(event) => setForm((current) => (current ? { ...current, highlightsText: event.target.value } : current))}
+              className="min-h-28 rounded-ui border border-white/10 bg-ink px-3 py-2 text-sm text-paper"
+              placeholder={"Free piercings\nFree barbing\nFree tattoo session"}
+            />
+            <span className="text-xs font-normal leading-5 text-paper/42">One item per line. Shown in the What to expect box on the event page.</span>
           </label>
           <label className="grid gap-2 text-sm font-bold text-paper/72">
             Visibility

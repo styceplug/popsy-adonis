@@ -32,6 +32,7 @@ export async function POST(
                   slug: true,
                   venue: true,
                   startsAt: true,
+                  dateLabel: true,
                 },
               },
             },

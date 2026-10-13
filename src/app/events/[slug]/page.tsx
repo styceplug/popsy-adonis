@@ -12,7 +12,8 @@ export function generateStaticParams() {
   return events.map((event) => ({ slug: event.slug }));
 }
 
-function getEventDisplayDate(event: { slug: string }) {
+function getEventDisplayDate(event: { slug: string; dateLabel?: string | null }) {
+  if (event.dateLabel?.trim()) return event.dateLabel.trim();
   if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
   if (event.slug === "summer-finale-after-exam-party") return "5th September, 2026 · 7PM till dawn";
   return undefined;
@@ -37,7 +38,9 @@ function getWriteupParagraphs(text: string) {
     .filter(Boolean);
 }
 
-function getEventExpectations(event: Event) {
+function getEventExpectations(event: Event, highlights?: string[]) {
+  if (highlights && highlights.length > 0) return highlights;
+
   if (event.slug === "summer-finale-after-exam-party") {
     return [
       "Foam machines",
@@ -49,7 +52,7 @@ function getEventExpectations(event: Event) {
     ];
   }
 
-  return ["Free swimming access", "Free piercing sessions", "Free tattoo sessions", "Music, entertainment, and summer-party energy"];
+  return ["Free piercing sessions", "Free barbing", "Free tattoo sessions", "Music, entertainment, and nonstop party energy"];
 }
 
 function mapDbEventToPublicEvent(event: {
@@ -60,6 +63,7 @@ function mapDbEventToPublicEvent(event: {
   venue: string;
   city: string;
   startsAt: Date;
+  dateLabel: string | null;
   status: string;
   heroImage: string | null;
   ticketTiers: Array<{
@@ -210,7 +214,7 @@ export default async function EventDetailPage({
     timeStyle: "short",
   }).format(new Date(event.startsAt));
   const displayDate = event.displayDate ?? date;
-  const expectations = getEventExpectations(event);
+  const expectations = getEventExpectations(event, dbEvent?.highlights);
 
   return (
     <main className="bg-ink pt-24 text-paper">

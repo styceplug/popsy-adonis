@@ -38,6 +38,8 @@ export default async function AdminEventsPage() {
             startsAt: event.startsAt.toISOString(),
             status: event.status,
             heroImage: event.heroImage,
+            dateLabel: event.dateLabel,
+            highlights: event.highlights,
             ticketTiers: event.ticketTiers.map((tier) => ({
               id: tier.id,
               name: tier.name,

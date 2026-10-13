@@ -38,7 +38,8 @@ export const metadata: Metadata = {
   },
 };
 
-function getEventDisplayDate(event: { slug: string }) {
+function getEventDisplayDate(event: { slug: string; dateLabel?: string | null }) {
+  if (event.dateLabel?.trim()) return event.dateLabel.trim();
   if (event.slug === "summer-time-in-ekiti") return "Fri, 7th August, 2026";
   if (event.slug === "summer-finale-after-exam-party") return "5th September, 2026 · 7PM till dawn";
   return undefined;

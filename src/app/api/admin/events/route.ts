@@ -23,6 +23,8 @@ const eventSchema = z.object({
   startsAt: z.string().datetime(),
   status: z.enum(["DRAFT", "PUBLISHED", "SOLD_OUT", "COMPLETED", "CANCELLED"]),
   heroImage: z.string().trim().optional().nullable(),
+  dateLabel: z.string().trim().max(80).optional().nullable(),
+  highlights: z.array(z.string().trim().min(1).max(120)).max(20).default([]),
   ticketTiers: z.array(tierSchema).default([]),
 });
 
@@ -61,6 +63,8 @@ export async function POST(request: NextRequest) {
       startsAt: new Date(data.startsAt),
       status: data.status,
       heroImage: data.heroImage || null,
+      dateLabel: data.dateLabel || null,
+      highlights: data.highlights,
     },
     create: {
       id: data.id,
@@ -72,6 +76,8 @@ export async function POST(request: NextRequest) {
       startsAt: new Date(data.startsAt),
       status: data.status,
       heroImage: data.heroImage || null,
+      dateLabel: data.dateLabel || null,
+      highlights: data.highlights,
     },
   });
 
