@@ -26,6 +26,8 @@ jobs:
           SOURCE: "./"
           TARGET: "/var/www/popsyadonis.com/html"
           EXCLUDE: "/.git/, /.github/, /.next/, /node_modules/"
+          # Fail the workflow when the server-side build or restart fails, instead of showing green.
+          SCRIPT_AFTER_REQUIRED: true
           SCRIPT_AFTER: |
             set -e
             cd /var/www/popsyadonis.com/html
@@ -42,9 +44,9 @@ jobs:
               npm install -g pm2
             fi
 
-            pm2 reload popsy-adonis --update-env || pm2 start npm --name popsy-adonis -- start
+            pm2 restart popsy-adonis --update-env || pm2 start npm --name popsy-adonis -- start
             pm2 save
 
             chown -R www-data:www-data /var/www/popsyadonis.com/html
-            find /var/www/popsyadonis.com/html -type d -exec chmod 755 {} \;
-            find /var/www/popsyadonis.com/html -type f -exec chmod 644 {} \;
+            find /var/www/popsyadonis.com/html -path /var/www/popsyadonis.com/html/node_modules -prune -o -type d -exec chmod 755 {} \;
+            find /var/www/popsyadonis.com/html -path /var/www/popsyadonis.com/html/node_modules -prune -o -type f -exec chmod 644 {} \;
