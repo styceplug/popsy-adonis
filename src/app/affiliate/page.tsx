@@ -2,6 +2,7 @@ import { AffiliateBankForm } from "@/components/affiliate/affiliate-bank-form";
 import { AffiliateLogoutButton } from "@/components/affiliate/affiliate-logout-button";
 import { AffiliateWithdrawForm } from "@/components/affiliate/affiliate-withdraw-form";
 import { CopyLinkButton } from "@/components/affiliate/copy-link-button";
+import { affiliateEventsOnSaleWhere } from "@/lib/affiliate-on-sale";
 import { requireAffiliate } from "@/lib/affiliate-auth";
 import {
   buildAffiliateLink,
@@ -30,18 +31,11 @@ const withdrawalLabels = {
 
 export default async function AffiliateDashboardPage() {
   const affiliate = await requireAffiliate();
-  const now = new Date();
-  // Keep an event listed until roughly the morning after it starts.
-  const stillSellingSince = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
   const [balance, events, salesByEvent, linkStats, recentSales, withdrawals] = await Promise.all([
     getAffiliateBalance(affiliate.id),
     prisma.event.findMany({
-      where: {
-        status: "PUBLISHED",
-        ticketTiers: { some: { isActive: true } },
-        OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: stillSellingSince } }],
-      },
+      where: affiliateEventsOnSaleWhere(),
       include: { ticketTiers: { where: { isActive: true }, orderBy: { priceKobo: "asc" } } },
       orderBy: { startsAt: "asc" },
     }),
