@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 
 type Audience = "subscribers" | "buyers" | "both";
@@ -18,6 +19,8 @@ export function SubscriberBroadcastForm({
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resumeId, setResumeId] = useState<string | null>(null);
+  const router = useRouter();
 
   const audiences: Array<{ value: Audience; label: string; description: string; count: number }> = [
     {
@@ -42,27 +45,57 @@ export function SubscriberBroadcastForm({
   const selectedAudience = audiences.find((item) => item.value === audience);
 
   async function sendBroadcast() {
-    setStatus("");
     setError("");
     setIsSubmitting(true);
 
-    try {
-      const response = await fetch("/api/admin/subscribers/broadcast", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, message, audience }),
-      });
-      const payload = await response.json().catch(() => null);
+    let currentId = resumeId;
 
-      if (!response.ok) {
-        throw new Error(payload?.message ?? "Unable to send broadcast.");
+    try {
+      let done = false;
+
+      while (!done) {
+        const response = await fetch("/api/admin/subscribers/broadcast", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject,
+            message,
+            audience,
+            broadcastId: currentId ?? undefined,
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok || !payload?.broadcastId) {
+          const timedOut = response.status === 504;
+          throw new Error(
+            timedOut
+              ? "The server timed out. Press continue to keep sending."
+              : (payload?.message ?? "Unable to send broadcast."),
+          );
+        }
+
+        currentId = payload.broadcastId;
+        done = Boolean(payload.done);
+        setResumeId(done ? null : payload.broadcastId);
+        const finished = payload.sentCount + payload.failedCount;
+        setStatus(
+          done
+            ? `Sent to ${payload.sentCount} of ${payload.recipientCount} recipient${payload.recipientCount === 1 ? "" : "s"}${payload.failedCount ? `. ${payload.failedCount} could not be sent.` : "."}`
+            : `Sending ${finished} of ${payload.recipientCount}...`,
+        );
       }
 
-      setStatus(`Sent to ${payload.sentCount} of ${payload.recipientCount} recipient${payload.recipientCount === 1 ? "" : "s"}.`);
       setSubject("");
       setMessage("");
+      router.refresh();
     } catch (broadcastError) {
-      setError(broadcastError instanceof Error ? broadcastError.message : "Unable to send broadcast.");
+      if (currentId) setResumeId(currentId);
+      setError(
+        broadcastError instanceof Error
+          ? broadcastError.message
+          : "Unable to send broadcast.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -89,6 +122,7 @@ export function SubscriberBroadcastForm({
                   name="audience"
                   value={item.value}
                   checked={audience === item.value}
+                  disabled={Boolean(resumeId)}
                   onChange={() => setAudience(item.value)}
                   className="mt-1 size-4 accent-gold"
                 />
@@ -106,7 +140,8 @@ export function SubscriberBroadcastForm({
           <input
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
-            className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-paper"
+            disabled={Boolean(resumeId)}
+            className="h-11 rounded-ui border border-white/10 bg-ink px-3 text-paper disabled:opacity-60"
             placeholder="PA FLUX drop update"
           />
         </label>
@@ -115,7 +150,8 @@ export function SubscriberBroadcastForm({
           <textarea
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            className="min-h-40 rounded-ui border border-white/10 bg-ink p-3 text-paper"
+            disabled={Boolean(resumeId)}
+            className="min-h-40 rounded-ui border border-white/10 bg-ink p-3 text-paper disabled:opacity-60"
             placeholder="Write the email body..."
           />
         </label>
@@ -126,12 +162,15 @@ export function SubscriberBroadcastForm({
 
       <button
         type="button"
-        disabled={!subject.trim() || !message.trim() || (selectedAudience?.count ?? 0) === 0 || isSubmitting}
+        disabled={
+          isSubmitting ||
+          (!resumeId && (!subject.trim() || !message.trim() || (selectedAudience?.count ?? 0) === 0))
+        }
         onClick={sendBroadcast}
         className="focus-ring mt-5 inline-flex h-11 items-center gap-2 rounded-ui bg-gold px-5 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Send size={16} />
-        {isSubmitting ? "Sending..." : "Send broadcast"}
+        {isSubmitting ? "Sending..." : resumeId ? "Continue sending" : "Send broadcast"}
       </button>
     </div>
   );

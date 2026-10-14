@@ -159,6 +159,29 @@ async function sendWithResend(payload: {
   return data;
 }
 
+let smtpTransporter: nodemailer.Transporter | null = null;
+
+function getSmtpTransporter() {
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT ?? 587),
+      secure: process.env.SMTP_SECURE === "true",
+      pool: true,
+      maxConnections: 1,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      connectionTimeout: 8_000,
+      greetingTimeout: 8_000,
+      socketTimeout: 12_000,
+    });
+  }
+
+  return smtpTransporter;
+}
+
 async function sendEmail(payload: {
   to: string;
   subject: string;
@@ -184,15 +207,7 @@ async function sendEmail(payload: {
 
   // throw new Error("Unable to send email. Resend cap may be reached and SMTP fallback is not configured.");
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  const transporter = getSmtpTransporter();
 
   try {
     const info = await transporter.sendMail({
