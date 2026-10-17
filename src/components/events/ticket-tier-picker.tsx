@@ -19,7 +19,9 @@ type TicketPromoStatus = {
 
 export function TicketTierPicker({ event }: { event: Event }) {
   const { addItem } = useCart();
-  const [selectedTier, setSelectedTier] = useState(event.tiers[0]?.id);
+  const [selectedTier, setSelectedTier] = useState(
+    (event.tiers.find((item) => item.onSale !== false) ?? event.tiers[0])?.id,
+  );
   const [quantity, setQuantity] = useState(1);
   const [wasAdded, setWasAdded] = useState(false);
   const [addedAddOnId, setAddedAddOnId] = useState("");
@@ -77,12 +79,15 @@ export function TicketTierPicker({ event }: { event: Event }) {
               itemPromo.promoPriceKobo,
           );
 
+          const itemOnSale = item.onSale !== false;
+
           return (
             <button
               key={item.id}
               onClick={() => setSelectedTier(item.id)}
-              className={`focus-ring rounded-ui border p-4 text-left transition ${
-                selectedTier === item.id ? "border-gold bg-gold/12" : "border-white/10 hover:border-white/28"
+              disabled={!itemOnSale}
+              className={`focus-ring rounded-ui border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                selectedTier === item.id && itemOnSale ? "border-gold bg-gold/12" : "border-white/10 hover:border-white/28"
               }`}
             >
               <span className="flex items-center justify-between gap-4">
@@ -99,6 +104,11 @@ export function TicketTierPicker({ event }: { event: Event }) {
                 </span>
               </span>
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
+              {!itemOnSale ? (
+                <span className="mt-3 inline-flex rounded-full border border-lava/35 bg-lava/10 px-3 py-1 text-[11px] font-black uppercase text-lava">
+                  No longer on sale
+                </span>
+              ) : null}
               {itemPromo?.label ? (
                 <span className="mt-3 flex flex-wrap gap-2">
                   <span className="inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
@@ -140,7 +150,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
         </p>
       ) : null}
       <button
-        disabled={!tier}
+        disabled={!tier || tier.onSale === false}
         onClick={() => {
           if (!tier) return;
 
@@ -185,7 +195,11 @@ export function TicketTierPicker({ event }: { event: Event }) {
         className="focus-ring mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-ui bg-gold px-5 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ShoppingCart size={17} />
-        {wasAdded ? "Added to cart" : `Add ${tier?.name ?? "Ticket"} - ${formatNaira(selectedTotalKobo)}`}
+        {tier?.onSale === false
+          ? "No longer on sale"
+          : wasAdded
+            ? "Added to cart"
+            : `Add ${tier?.name ?? "Ticket"} - ${formatNaira(selectedTotalKobo)}`}
       </button>
       <Link
         href="/checkout"

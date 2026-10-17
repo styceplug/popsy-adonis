@@ -28,6 +28,8 @@ export type Event = {
     name: string;
     priceKobo: number;
     perks: string[];
+    // false shows the tier but blocks buying it (switched off in admin, or sold out).
+    onSale?: boolean;
   }>;
   addOns?: Array<{
     id: string;

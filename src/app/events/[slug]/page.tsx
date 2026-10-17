@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isEventPast } from "@/lib/event-display";
 import { notFound } from "next/navigation";
 import { TicketTierPicker } from "@/components/events/ticket-tier-picker";
 import type { Event } from "@/lib/sample-data";
@@ -63,6 +64,7 @@ function mapDbEventToPublicEvent(event: {
   venue: string;
   city: string;
   startsAt: Date;
+  endsAt: Date | null;
   dateLabel: string | null;
   status: string;
   heroImage: string | null;
@@ -73,7 +75,7 @@ function mapDbEventToPublicEvent(event: {
     perks: string[];
   }>;
 }): Event {
-  const isPast = event.status === "COMPLETED" || event.startsAt < new Date();
+  const isPast = isEventPast(event);
 
   return {
     id: event.id,
@@ -161,8 +163,8 @@ export default async function EventDetailPage({
   const dbEvent = await prisma.event.findUnique({
     where: { slug },
     include: {
+      // Switched-off tiers stay listed; the picker shows them as no longer on sale.
       ticketTiers: {
-        where: { isActive: true },
         orderBy: { priceKobo: "asc" },
       },
       addOns: {
@@ -178,7 +180,6 @@ export default async function EventDetailPage({
   const dbTiers = dbEvent?.ticketTiers ?? await prisma.ticketTier.findMany({
     where: {
       eventId: event.id,
-      isActive: true,
     },
     orderBy: { priceKobo: "asc" },
   });
@@ -198,6 +199,7 @@ export default async function EventDetailPage({
             name: tier.name,
             priceKobo: tier.priceKobo,
             perks: tier.perks,
+            onSale: tier.isActive && tier.soldCount < tier.capacity,
           }))
         : event.tiers,
     addOns: dbAddOns.map((addOn) => ({

@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { isEventPast } from "@/lib/event-display";
 import { EventCard } from "@/components/events/event-card";
 import type { Event } from "@/lib/sample-data";
 import { events as sampleEvents } from "@/lib/sample-data";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+
+// Read events on every request so admin changes show at once, not only after a rebuild.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Events & Ticketing | Popsy Adonis",
@@ -46,7 +50,7 @@ function getEventDisplayDate(event: { slug: string; dateLabel?: string | null })
 }
 
 function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]): Event {
-  const isPast = event.status === "COMPLETED" || event.startsAt < new Date();
+  const isPast = isEventPast(event);
 
   return {
     id: event.id,
