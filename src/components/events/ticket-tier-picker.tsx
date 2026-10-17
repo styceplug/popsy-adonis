@@ -106,7 +106,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
               {!itemOnSale ? (
                 <span className="mt-3 inline-flex rounded-full border border-lava/35 bg-lava/10 px-3 py-1 text-[11px] font-black uppercase text-lava">
-                  No longer on sale
+                  Sold out
                 </span>
               ) : null}
               {itemPromo?.label ? (
@@ -196,7 +196,7 @@ export function TicketTierPicker({ event }: { event: Event }) {
       >
         <ShoppingCart size={17} />
         {tier?.onSale === false
-          ? "No longer on sale"
+          ? "Sold out"
           : wasAdded
             ? "Added to cart"
             : `Add ${tier?.name ?? "Ticket"} - ${formatNaira(selectedTotalKobo)}`}
