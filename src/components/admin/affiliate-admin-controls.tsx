@@ -131,3 +131,53 @@ export function RecheckWithdrawalButton({ withdrawalId }: { withdrawalId: string
     </div>
   );
 }
+
+export function WithdrawalActionButtons({ withdrawalId }: { withdrawalId: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  async function run(action: "send" | "markPaid" | "cancel") {
+    if (action === "markPaid" && !window.confirm("Only do this after you have sent the money yourself. Record as paid?")) return;
+    if (action === "cancel" && !window.confirm("Cancel this request? The amount goes back to the affiliate's balance.")) return;
+
+    setBusy(action);
+    setMessage("");
+    const result = await post(`/api/admin/affiliates/withdrawals/${withdrawalId}/action`, { action });
+    setBusy(null);
+    setMessage(result.payload?.message ?? (result.ok ? "Done" : "Unable to update."));
+    router.refresh();
+  }
+
+  return (
+    <div className="mt-2 grid gap-2">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => run("send")}
+          className={`${smallButton} bg-gold text-ink hover:bg-paper`}
+        >
+          {busy === "send" ? "Sending..." : "Send via Paystack"}
+        </button>
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => run("markPaid")}
+          className={`${smallButton} border border-white/12 text-paper/68 hover:border-gold hover:text-gold`}
+        >
+          Mark as paid
+        </button>
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => run("cancel")}
+          className={`${smallButton} border border-white/12 text-paper/68 hover:border-lava hover:text-lava`}
+        >
+          Cancel
+        </button>
+      </div>
+      {message ? <p className="text-xs font-bold text-paper/50">{message}</p> : null}
+    </div>
+  );
+}

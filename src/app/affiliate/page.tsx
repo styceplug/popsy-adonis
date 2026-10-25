@@ -24,9 +24,10 @@ function formatDate(value: Date | string) {
 }
 
 const withdrawalLabels = {
+  QUEUED: { text: "Requested", className: "text-paper/68" },
   PROCESSING: { text: "On its way", className: "text-paper/68" },
   PAID: { text: "Paid", className: "text-gold" },
-  FAILED: { text: "Not sent", className: "text-lava" },
+  FAILED: { text: "Cancelled", className: "text-lava" },
 } as const;
 
 export default async function AffiliateDashboardPage() {
@@ -77,7 +78,7 @@ export default async function AffiliateDashboardPage() {
     : !bank
       ? "Add your bank details first."
       : balance.processingKobo > 0
-        ? "You have a withdrawal on its way. You can request another once it lands."
+        ? "You have a payout request open. You can request another once it is paid."
         : balance.availableKobo < minimumKobo
           ? `You can withdraw once your balance reaches ${formatNaira(minimumKobo)}.`
           : undefined;
@@ -217,7 +218,7 @@ export default async function AffiliateDashboardPage() {
             <p className="mt-2 font-display text-4xl font-black">{formatNaira(balance.availableKobo)}</p>
             <p className="mt-1 text-xs text-paper/45">
               {formatNaira(balance.paidKobo)} paid out so far
-              {balance.processingKobo > 0 ? ` · ${formatNaira(balance.processingKobo)} on its way` : ""}
+              {balance.processingKobo > 0 ? ` · ${formatNaira(balance.processingKobo)} requested` : ""}
             </p>
             <div className="mt-4">
               <AffiliateWithdrawForm

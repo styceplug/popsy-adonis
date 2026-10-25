@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   const pending = await prisma.affiliateWithdrawal.count({
-    where: { affiliateId: affiliate.id, status: "PROCESSING" },
+    where: { affiliateId: affiliate.id, status: { in: ["QUEUED", "PROCESSING"] } },
   });
   if (pending > 0) {
     return NextResponse.json({ message: "Wait for your current withdrawal to finish before changing bank details." }, { status: 409 });

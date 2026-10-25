@@ -50,7 +50,8 @@ export async function getAffiliateBalance(affiliateId: string, db: Db = prisma) 
     _sum: { amountKobo: true },
   });
   const processing = await db.affiliateWithdrawal.aggregate({
-    where: { affiliateId, status: "PROCESSING" },
+    // Requested and in-flight payouts are both reserved until they are paid or cancelled.
+    where: { affiliateId, status: { in: ["QUEUED", "PROCESSING"] } },
     _sum: { amountKobo: true },
   });
 

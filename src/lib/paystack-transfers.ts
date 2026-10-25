@@ -38,6 +38,12 @@ async function paystackRequest<T>(path: string, init?: RequestInit): Promise<T> 
   return data.data as T;
 }
 
+/** Money in the main Paystack balance (kobo) that transfers can be paid from. */
+export async function getTransferBalanceKobo() {
+  const data = await paystackRequest<Array<{ currency: string; balance: number }>>("/balance");
+  return data.find((entry) => entry.currency === "NGN")?.balance ?? 0;
+}
+
 export type PaystackBank = { name: string; code: string };
 
 let bankCache: { banks: PaystackBank[]; expiresAt: number } | null = null;

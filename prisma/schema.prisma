@@ -62,6 +62,8 @@ enum AffiliateCommissionStatus {
 }
 
 enum AffiliateWithdrawalStatus {
+  // Requested by the affiliate, waiting for the Paystack balance or an admin to pay it.
+  QUEUED
   PROCESSING
   PAID
   FAILED
@@ -466,7 +468,7 @@ model AffiliateWithdrawal {
   affiliateId   String
   affiliate     Affiliate                 @relation(fields: [affiliateId], references: [id])
   amountKobo    Int
-  status        AffiliateWithdrawalStatus @default(PROCESSING)
+  status        AffiliateWithdrawalStatus @default(QUEUED)
   reference     String                    @unique
   transferCode  String?
   bankName      String

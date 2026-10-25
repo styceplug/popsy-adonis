@@ -65,9 +65,9 @@ export function AffiliateWithdrawForm({
         disabled={!isValid || isSubmitting}
         className="focus-ring h-11 rounded-ui bg-gold px-4 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Sending..." : isValid ? `Withdraw ${formatNaira(amountKobo)}` : "Withdraw to bank"}
+        {isSubmitting ? "Sending request..." : isValid ? `Request ${formatNaira(amountKobo)}` : "Request payout"}
       </button>
-      <p className="text-xs text-paper/45">Minimum withdrawal {formatNaira(minimumKobo)}. Paid straight to your saved bank account.</p>
+      <p className="text-xs text-paper/45">Minimum {formatNaira(minimumKobo)}. Paid to your saved bank account once your request is processed.</p>
       {message ? (
         <p className={`rounded-ui border p-3 text-sm ${message.ok ? "border-gold/40 bg-gold/10 text-gold" : "border-lava/40 bg-lava/10 text-lava"}`}>
           {message.text}

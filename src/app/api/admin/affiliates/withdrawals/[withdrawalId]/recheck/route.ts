@@ -29,11 +29,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ status: updated?.status, paystackStatus: transfer.status });
   } catch (error) {
-    // Paystack has no record of the transfer, so it was never created and the money is safe to release.
+    // Paystack has no record of the transfer, so it was never created. Back to the queue to retry.
     if (error instanceof PaystackApiError && /not found/i.test(error.message)) {
       const updated = await prisma.affiliateWithdrawal.update({
         where: { id: withdrawal.id },
-        data: withdrawal.status === "PROCESSING" ? { status: "FAILED", failureReason: "Paystack has no record of this transfer." } : {},
+        data: withdrawal.status === "PROCESSING" ? { status: "QUEUED", failureReason: "Paystack has no record of this transfer." } : {},
       });
       return NextResponse.json({ status: updated.status, paystackStatus: "not_found" });
     }

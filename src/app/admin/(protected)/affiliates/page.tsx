@@ -2,7 +2,9 @@ import {
   AffiliateStatusButton,
   CommissionRateForm,
   RecheckWithdrawalButton,
+  WithdrawalActionButtons,
 } from "@/components/admin/affiliate-admin-controls";
+import { getTransferBalanceKobo } from "@/lib/paystack-transfers";
 import { formatBps } from "@/lib/affiliates";
 import { formatNaira } from "@/lib/format-money";
 import { prisma } from "@/lib/prisma";
@@ -22,6 +24,7 @@ const statusClass: Record<string, string> = {
   PENDING: "text-paper/68",
   APPROVED: "text-gold",
   SUSPENDED: "text-lava",
+  QUEUED: "text-gold",
   PROCESSING: "text-paper/68",
   PAID: "text-gold",
   FAILED: "text-lava",
@@ -66,7 +69,7 @@ export default async function AdminAffiliatesPage() {
   for (const row of withdrawalsByAffiliate) {
     const entry = withdrawnMap.get(row.affiliateId) ?? { paid: 0, processing: 0 };
     if (row.status === "PAID") entry.paid += row._sum.amountKobo ?? 0;
-    if (row.status === "PROCESSING") entry.processing += row._sum.amountKobo ?? 0;
+    if (row.status === "PROCESSING" || row.status === "QUEUED") entry.processing += row._sum.amountKobo ?? 0;
     withdrawnMap.set(row.affiliateId, entry);
   }
 
@@ -76,12 +79,25 @@ export default async function AdminAffiliatesPage() {
   const totalPaid = [...withdrawnMap.values()].reduce((sum, row) => sum + row.paid, 0);
   const totalProcessing = [...withdrawnMap.values()].reduce((sum, row) => sum + row.processing, 0);
   const pendingCount = affiliates.filter((affiliate) => affiliate.status === "PENDING").length;
+  const owedKobo = Math.max(totalEarned - totalPaid, 0);
+  const paystackBalanceKobo = await getTransferBalanceKobo().catch(() => null);
+  const requestedCount = withdrawals.filter((withdrawal) => withdrawal.status === "QUEUED").length;
 
   const stats = [
     { label: "Affiliate ticket sales", value: formatNaira(totalSales), hint: `${totalTickets} tickets` },
     { label: "Commission earned", value: formatNaira(totalEarned), hint: "Across all affiliates" },
-    { label: "Paid out", value: formatNaira(totalPaid), hint: totalProcessing > 0 ? `${formatNaira(totalProcessing)} in transit` : "Sent to banks" },
-    { label: "Still owed", value: formatNaira(Math.max(totalEarned - totalPaid - totalProcessing, 0)), hint: "Keep this in the Paystack balance" },
+    { label: "Paid out", value: formatNaira(totalPaid), hint: totalProcessing > 0 ? `${formatNaira(totalProcessing)} requested or in transit` : "Sent to banks" },
+    { label: "Still owed", value: formatNaira(owedKobo), hint: "Earned, not yet paid out" },
+    {
+      label: "Paystack balance",
+      value: paystackBalanceKobo === null ? "Unavailable" : formatNaira(paystackBalanceKobo),
+      hint:
+        paystackBalanceKobo === null
+          ? "Could not reach Paystack"
+          : paystackBalanceKobo < owedKobo
+            ? `${formatNaira(owedKobo - paystackBalanceKobo)} short of what is owed`
+            : "Covers what is owed",
+    },
   ];
 
   return (
@@ -93,7 +109,7 @@ export default async function AdminAffiliatesPage() {
         Paystack balance when an affiliate withdraws.
       </p>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-5">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-ui border border-white/10 bg-white/[0.035] p-4">
             <p className="text-xs font-black uppercase text-paper/45">{stat.label}</p>
@@ -235,7 +251,15 @@ export default async function AdminAffiliatesPage() {
       </div>
 
       <h3 className="mt-10 font-display text-2xl font-black">Withdrawals</h3>
-      <p className="mt-2 text-sm text-paper/55">Sent automatically through Paystack when an affiliate asks. Nothing here needs approval.</p>
+      <p className="mt-2 text-sm text-paper/55">
+        Affiliates request payouts. A request is paid from the Paystack balance straight away when the balance covers
+        it; otherwise it waits here. Top up the balance and press Send, or pay by bank transfer and press Mark as paid.
+      </p>
+      {requestedCount > 0 ? (
+        <p className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-black uppercase text-gold">
+          {requestedCount} request{requestedCount === 1 ? "" : "s"} waiting
+        </p>
+      ) : null}
       <div className="mt-4 overflow-x-auto rounded-ui border border-white/10">
         <div className="min-w-[820px]">
           <div className="grid grid-cols-[1fr_.6fr_1.2fr_1fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
@@ -264,6 +288,7 @@ export default async function AdminAffiliatesPage() {
                   <p className="mt-1 text-xs text-paper/45">{formatDate(withdrawal.paidAt ?? withdrawal.createdAt)}</p>
                   {withdrawal.failureReason ? <p className="mt-1 text-xs text-lava">{withdrawal.failureReason}</p> : null}
                   {withdrawal.status === "PROCESSING" ? <RecheckWithdrawalButton withdrawalId={withdrawal.id} /> : null}
+                  {withdrawal.status === "QUEUED" ? <WithdrawalActionButtons withdrawalId={withdrawal.id} /> : null}
                 </div>
               </div>
             ))}
