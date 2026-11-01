@@ -5,6 +5,12 @@ on:
     branches:
       - main # Change this to 'master' if that is your default branch name
 
+# Never let two deploys run on the server at the same time: overlapping
+# `npm ci` runs in the same folder corrupt node_modules (ENOTEMPTY errors).
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -36,6 +42,9 @@ jobs:
               cp /var/www/popsyadonis.com/.env .env
             fi
 
+            # Clear node_modules first: a previously interrupted install can leave
+            # half-removed folders that make `npm ci` fail with ENOTEMPTY.
+            rm -rf node_modules
             npm ci
             npm run db:generate
             npm run build
