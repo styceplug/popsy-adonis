@@ -35,7 +35,7 @@ export default async function AdminAffiliatesPage() {
     prisma.affiliate.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }] }),
     prisma.event.findMany({
       where: { status: { in: ["PUBLISHED", "SOLD_OUT"] } },
-      select: { id: true, title: true, startsAt: true, affiliateCommissionBps: true },
+      select: { id: true, title: true, startsAt: true, dateLabel: true, affiliateCommissionBps: true },
       orderBy: { startsAt: "desc" },
     }),
     prisma.affiliateCommission.groupBy({
@@ -126,7 +126,7 @@ export default async function AdminAffiliatesPage() {
           <div key={event.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div>
               <p className="font-black text-paper">{event.title}</p>
-              <p className="mt-1 text-xs text-paper/45">{formatDate(event.startsAt)}</p>
+              <p className="mt-1 text-xs text-paper/45">{event.dateLabel?.trim() || formatDate(event.startsAt)}</p>
             </div>
             <CommissionRateForm
               url="/api/admin/affiliates/event-rate"

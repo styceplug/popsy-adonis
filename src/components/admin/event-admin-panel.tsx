@@ -190,7 +190,26 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
     setIsSaving(false);
 
     if (!response.ok) {
-      setFeedback({ tone: "error", message: payload?.message ?? "Unable to save event. Check the fields and try again." });
+      // Name the fields the server rejected instead of a bare "Enter valid event details."
+      const fieldLabels: Record<string, string> = {
+        title: "Title",
+        slug: "Link name",
+        description: "Description (at least 10 characters)",
+        venue: "Venue",
+        city: "City",
+        startsAt: "Date & time",
+        dateLabel: "Date label",
+        highlights: "What to expect",
+        heroImage: "Hero image",
+        ticketTiers: "Ticket tiers (each needs a name, price and tickets available)",
+      };
+      const badFields = Object.keys(payload?.issues?.fieldErrors ?? {}).map((field) => fieldLabels[field] ?? field);
+      setFeedback({
+        tone: "error",
+        message: badFields.length
+          ? `Check these fields: ${badFields.join(", ")}.`
+          : (payload?.message ?? "Unable to save event. Check the fields and try again."),
+      });
       return;
     }
 
@@ -230,7 +249,8 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
                   <span>
                     <span className="block font-display text-2xl font-black text-paper">{event.title}</span>
                     <span className="mt-1 block text-xs text-paper/45">
-                      {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(event.startsAt))} ·{" "}
+                      {event.dateLabel?.trim() ||
+                        new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeZone: "Africa/Lagos" }).format(new Date(event.startsAt))} ·{" "}
                       {event.venue}, {event.city}
                     </span>
                     <span className="mt-2 block text-xs font-bold text-paper/58">

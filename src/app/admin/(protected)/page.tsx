@@ -101,7 +101,8 @@ export default async function AdminDashboardPage() {
                     <h3 className="font-display text-2xl font-black">{event.title}</h3>
                     <p className="mt-1 text-sm text-paper/55">
                       {event.venue}, {event.city} ·{" "}
-                      {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short" }).format(event.startsAt)}
+                      {event.dateLabel?.trim() ||
+                        new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Lagos" }).format(event.startsAt)}
                     </p>
                   </div>
                   <p className="rounded-full border border-gold/35 bg-gold/10 px-3 py-1 text-xs font-black uppercase text-gold">
