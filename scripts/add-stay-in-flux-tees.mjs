@@ -1,21 +1,19 @@
 // Adds the PA FLUX "Stay in Flux" tee: one standalone product per colour, sizes L, XL and XXL.
-// Safe to run again: products match by slug and variants by SKU, so a rerun updates them.
+// Safe to run again: products match by slug and variants by SKU, so a rerun updates names, text,
+// images and prices but leaves stock alone.
 //
-//   node scripts/add-stay-in-flux-tees.mjs <stock per size> [--publish] [--archive-others]
+//   node scripts/add-stay-in-flux-tees.mjs [--publish] [--archive-others]
 //
+// Every colour and size starts with STOCK_PER_VARIANT units; change individual counts in admin later.
 // --publish         puts the tees on sale (otherwise they are saved as Draft to check first)
 // --archive-others  takes every other merch product off the store (status Archived; reversible in admin)
 import { PrismaClient } from "@prisma/client";
 
-const [stockArg] = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+const STOCK_PER_VARIANT = 100;
+
 const publish = process.argv.includes("--publish");
 const archiveOthers = process.argv.includes("--archive-others");
-const stock = Number(stockArg);
-
-if (!Number.isInteger(stock) || stock < 0) {
-  console.error("Usage: node scripts/add-stay-in-flux-tees.mjs <stock per size> [--publish] [--archive-others]");
-  process.exit(1);
-}
+const stock = STOCK_PER_VARIANT;
 
 const SIZES = ["L", "XL", "XXL"];
 const IMG = "/paflux/stay-in-flux";
@@ -100,7 +98,8 @@ try {
       const sku = `PAF-SIF-${tee.code}-${size}`;
       await prisma.productVariant.upsert({
         where: { sku },
-        update: { productId: product.id, size, color: tee.color, priceKobo: tee.priceNaira * 100, stock },
+        // Stock is only set on first creation, so a rerun never wipes out sales already made.
+        update: { productId: product.id, size, color: tee.color, priceKobo: tee.priceNaira * 100 },
         create: { productId: product.id, sku, size, color: tee.color, priceKobo: tee.priceNaira * 100, stock },
       });
     }
