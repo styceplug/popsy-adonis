@@ -2,6 +2,7 @@ import {
   AffiliateStatusButton,
   CommissionRateForm,
   RecheckWithdrawalButton,
+  ReopenWithdrawalButton,
   WithdrawalActionButtons,
 } from "@/components/admin/affiliate-admin-controls";
 import { getTransferBalanceKobo } from "@/lib/paystack-transfers";
@@ -289,6 +290,7 @@ export default async function AdminAffiliatesPage() {
                   {withdrawal.failureReason ? <p className="mt-1 text-xs text-lava">{withdrawal.failureReason}</p> : null}
                   {withdrawal.status === "PROCESSING" ? <RecheckWithdrawalButton withdrawalId={withdrawal.id} /> : null}
                   {withdrawal.status === "QUEUED" ? <WithdrawalActionButtons withdrawalId={withdrawal.id} /> : null}
+                  {withdrawal.status === "FAILED" ? <ReopenWithdrawalButton withdrawalId={withdrawal.id} /> : null}
                 </div>
               </div>
             ))}

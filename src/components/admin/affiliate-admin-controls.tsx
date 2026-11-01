@@ -181,3 +181,32 @@ export function WithdrawalActionButtons({ withdrawalId }: { withdrawalId: string
     </div>
   );
 }
+
+export function ReopenWithdrawalButton({ withdrawalId }: { withdrawalId: string }) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function reopen() {
+    setIsSubmitting(true);
+    setMessage("");
+    const result = await post(`/api/admin/affiliates/withdrawals/${withdrawalId}/action`, { action: "reopen" });
+    setIsSubmitting(false);
+    setMessage(result.payload?.message ?? (result.ok ? "Reopened." : "Unable to reopen."));
+    router.refresh();
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        disabled={isSubmitting}
+        onClick={reopen}
+        className={`${smallButton} border border-white/12 text-paper/68 hover:border-gold hover:text-gold`}
+      >
+        {isSubmitting ? "Reopening..." : "Reopen to pay"}
+      </button>
+      {message ? <p className="mt-1 text-xs font-bold text-paper/50">{message}</p> : null}
+    </div>
+  );
+}
