@@ -46,6 +46,7 @@ export default async function AdminEventsPage() {
               priceKobo: tier.priceKobo,
               capacity: tier.capacity,
               soldCount: tier.soldCount,
+              entryDays: tier.entryDays,
               perks: tier.perks,
               isActive: tier.isActive,
             })),

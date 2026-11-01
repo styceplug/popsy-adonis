@@ -5,13 +5,16 @@ import jsQR from "jsqr";
 import { Camera, CheckCircle2, Keyboard, RotateCcw, XCircle } from "lucide-react";
 
 type CheckInPayload = {
-  status: "success" | "duplicate" | "not_found" | "unpaid" | "invalid";
+  status: "success" | "duplicate" | "not_found" | "unpaid" | "invalid" | "wrong_day" | "choose_day";
   message: string;
   ticket?: {
     qrCode: string;
     attendeeName?: string | null;
     attendeeEmail?: string | null;
     checkedInAt?: string | null;
+    checkInDays?: string[];
+    tierName?: string | null;
+    entryDays?: string[];
     event: {
       title: string;
       venue: string;
@@ -37,7 +40,8 @@ declare global {
   }
 }
 
-export function AdminCheckInPanel() {
+/** gateDays: entry days used by any live event, e.g. ["Day 1", "Day 3"]. Empty hides the picker. */
+export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -48,6 +52,7 @@ export function AdminCheckInPanel() {
   const [scannerNotice, setScannerNotice] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gateDay, setGateDay] = useState("");
 
   const checkIn = useCallback(async (nextCode: string) => {
     if (!nextCode.trim() || isSubmitting) return;
@@ -58,7 +63,7 @@ export function AdminCheckInPanel() {
     const response = await fetch("/api/admin/tickets/checkin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: nextCode }),
+      body: JSON.stringify({ code: nextCode, day: gateDay || undefined }),
     });
     const payload = (await response.json().catch(() => null)) as CheckInPayload | null;
 
@@ -70,7 +75,7 @@ export function AdminCheckInPanel() {
     }
 
     setResult(payload);
-  }, [isSubmitting]);
+  }, [gateDay, isSubmitting]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -184,10 +189,34 @@ export function AdminCheckInPanel() {
     not_found: "border-lava/40 bg-lava/10 text-lava",
     unpaid: "border-lava/40 bg-lava/10 text-lava",
     invalid: "border-lava/40 bg-lava/10 text-lava",
+    wrong_day: "border-lava/40 bg-lava/10 text-lava",
+    choose_day: "border-gold/40 bg-gold/10 text-gold",
   } as const;
 
   return (
     <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_420px]">
+      {gateDays.length > 0 ? (
+        <div className="rounded-ui border border-gold/30 bg-gold/10 p-4 lg:col-span-2">
+          <label className="flex flex-wrap items-center gap-3 text-sm font-black text-gold">
+            Gate day for multi-day tickets
+            <select
+              value={gateDay}
+              onChange={(event) => setGateDay(event.target.value)}
+              className="h-10 rounded-ui border border-white/10 bg-ink px-3 text-sm text-paper"
+            >
+              <option value="">Not set</option>
+              {gateDays.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="mt-2 text-xs leading-5 text-paper/58">
+            Set this to today at multi-day events, or their tickets will not scan. Normal one-entry tickets check in the same as always.
+          </p>
+        </div>
+      ) : null}
       <div className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
         <div className="aspect-video overflow-hidden rounded-ui border border-white/10 bg-ink">
           {isCameraActive ? (
@@ -264,6 +293,17 @@ export function AdminCheckInPanel() {
                 <p><span className="text-paper/42">Attendee:</span> {result.ticket.attendeeName ?? "Guest"}</p>
                 <p><span className="text-paper/42">Email:</span> {result.ticket.attendeeEmail ?? result.ticket.order.email}</p>
                 <p><span className="text-paper/42">Event:</span> {result.ticket.event.title}</p>
+                {result.ticket.tierName ? (
+                  <p><span className="text-paper/42">Ticket:</span> {result.ticket.tierName}</p>
+                ) : null}
+                {result.ticket.entryDays && result.ticket.entryDays.length > 0 ? (
+                  <p>
+                    <span className="text-paper/42">Valid for:</span> {result.ticket.entryDays.join(", ")}
+                    {result.ticket.checkInDays && result.ticket.checkInDays.length > 0
+                      ? ` (used: ${result.ticket.checkInDays.join(", ")})`
+                      : ""}
+                  </p>
+                ) : null}
                 <p><span className="text-paper/42">Venue:</span> {result.ticket.event.venue}</p>
                 <p><span className="text-paper/42">Reference:</span> {result.ticket.order.reference}</p>
                 {result.ticket.checkedInAt ? (

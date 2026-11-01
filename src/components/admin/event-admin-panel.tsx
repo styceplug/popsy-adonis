@@ -11,6 +11,7 @@ type AdminTicketTier = {
   capacity: number;
   soldCount: number;
   perks: string[];
+  entryDays: string[];
   isActive: boolean;
 };
 
@@ -35,6 +36,7 @@ type TierFormState = {
   priceNaira: string;
   capacity: string;
   perksText: string;
+  entryDaysText: string;
   isActive: boolean;
   soldCount: number;
 };
@@ -80,6 +82,7 @@ function emptyTier(): TierFormState {
     priceNaira: "",
     capacity: "500",
     perksText: "",
+    entryDaysText: "",
     isActive: true,
     soldCount: 0,
   };
@@ -116,6 +119,7 @@ function eventToForm(event: AdminEvent): EventFormState {
       priceNaira: String(tier.priceKobo / 100),
       capacity: String(tier.capacity),
       perksText: tier.perks.join("\n"),
+      entryDaysText: tier.entryDays.join(", "),
       isActive: tier.isActive,
       soldCount: tier.soldCount,
     })),
@@ -176,6 +180,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
           priceNaira: Number(tier.priceNaira),
           capacity: Number(tier.capacity),
           perks: tier.perksText.split(/\n+/).map((perk) => perk.trim()).filter(Boolean),
+          entryDays: tier.entryDaysText.split(",").map((day) => day.trim().replace(/\s+/g, " ")).filter(Boolean),
           isActive: tier.isActive,
         })),
       }),
@@ -466,6 +471,19 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
                     className="min-h-16 rounded-ui border border-white/10 bg-ink p-2.5 text-xs font-normal normal-case leading-5 text-paper"
                     placeholder={"Early access\nFree barbing"}
                   />
+                </label>
+                <label className="mt-3 grid gap-1.5 text-xs font-black uppercase text-paper/45">
+                  Entry days (multi-day events only)
+                  <input
+                    value={tier.entryDaysText}
+                    onChange={(event) => updateTier(index, { entryDaysText: event.target.value })}
+                    className="h-10 rounded-ui border border-white/10 bg-ink px-3 text-sm font-normal normal-case text-paper"
+                    placeholder="Day 1, Day 3"
+                  />
+                  <span className="text-[11px] font-normal normal-case leading-4 text-paper/42">
+                    Leave empty for a normal one-entry ticket. Otherwise list the days it gets in on, separated by commas, and
+                    pick the same day at the check-in gate.
+                  </span>
                 </label>
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                   <label className="flex items-center gap-2 text-xs font-bold text-paper/60">

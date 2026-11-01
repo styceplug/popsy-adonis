@@ -10,6 +10,7 @@ const tierSchema = z.object({
   priceNaira: z.number().min(0),
   capacity: z.number().int().positive().max(1_000_000),
   perks: z.array(z.string().trim().min(1)).default([]),
+  entryDays: z.array(z.string().trim().min(1).max(40)).max(10).default([]),
   isActive: z.boolean().default(true),
 });
 
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
         priceKobo: Math.round(tier.priceNaira * 100),
         capacity: tier.capacity,
         perks: tier.perks,
+        entryDays: tier.entryDays,
         isActive: tier.isActive,
       },
       create: {
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
         priceKobo: Math.round(tier.priceNaira * 100),
         capacity: tier.capacity,
         perks: tier.perks,
+        entryDays: tier.entryDays,
         isActive: tier.isActive,
       },
     });

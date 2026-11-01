@@ -171,6 +171,8 @@ model TicketTier {
   capacity  Int
   soldCount Int      @default(0)
   perks     String[]
+  // Days this ticket gets in on, e.g. ["Day 1", "Day 3"]. Empty = one entry, any day (the usual case).
+  entryDays String[] @default([])
   isActive  Boolean  @default(true)
   promos    TicketPromo[]
   createdAt DateTime @default(now())
@@ -211,7 +213,9 @@ model Ticket {
   attendeeEmail String?
   qrCode        String    @unique
   qrImageUrl    String?
+  // First check-in time. Multi-day tickets also record each day they were used.
   checkedInAt   DateTime?
+  checkInDays   String[]  @default([])
   createdAt     DateTime  @default(now())
 
   @@index([eventId, qrCode])
