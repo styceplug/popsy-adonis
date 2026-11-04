@@ -532,3 +532,44 @@ export async function sendMerchOrderNotification(message: MerchOrderNotification
       </tr>`),
   });
 }
+
+type MerchStatusUpdateMessage = {
+  to: string;
+  reference: string;
+  statusLabel: string;
+  statusHint: string;
+  note?: string | null;
+  orderStatusUrl: string;
+};
+
+/** Tells the buyer their merch order moved, e.g. ready for pickup or on its way. */
+export async function sendMerchStatusUpdate(message: MerchStatusUpdateMessage) {
+  return sendEmail({
+    to: message.to,
+    subject: `Your PA FLUX order: ${message.statusLabel}`,
+    text: [
+      message.statusLabel,
+      "",
+      message.statusHint,
+      ...(message.note ? ["", message.note] : []),
+      "",
+      `Order reference: ${message.reference}`,
+      `Track your order: ${message.orderStatusUrl}`,
+    ].join("\n"),
+    html: emailShell(`
+      <tr>
+        <td style="padding:28px;">
+          <div style="font-size:13px;font-weight:800;color:#c8a24a;text-transform:uppercase;letter-spacing:.08em;">PA FLUX order update</div>
+          <h1 style="margin:8px 0 8px;font-size:26px;line-height:1.15;color:#fffdf8;">${escapeHtml(message.statusLabel)}</h1>
+          <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:rgba(255,253,248,.72);">${escapeHtml(message.statusHint)}</p>
+          ${
+            message.note
+              ? `<div style="margin:0 0 18px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:14px;line-height:22px;color:#f5f0e8;">${escapeHtml(message.note).replaceAll("\n", "<br />")}</div>`
+              : ""
+          }
+          <div style="font-family:Consolas,monospace;font-size:12px;color:rgba(255,253,248,.5);margin-bottom:18px;">${escapeHtml(message.reference)}</div>
+          ${ctaButton("Track your order", message.orderStatusUrl)}
+        </td>
+      </tr>`),
+  });
+}

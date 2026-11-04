@@ -13,6 +13,7 @@ type OrderStatusPayload = {
     subtotalKobo: number;
     transactionFeeKobo: number;
     totalKobo: number;
+    items: Array<{ itemType: string }>;
     tickets: Array<{
       id: string;
       qrCode: string;
@@ -106,6 +107,17 @@ export function OrderStatus({ reference }: { reference?: string }) {
           <span>{formatNaira(orderStatus.order.totalKobo)}</span>
         </div>
       </div>
+      {isPaid && orderStatus.order.items.some((item) => item.itemType === "product") ? (
+        <div className="mt-5 border-t border-white/10 pt-5">
+          <p className="text-sm text-paper/62">We&apos;ll update you as your PA FLUX order is prepared and sent.</p>
+          <Link
+            href={`/orders/${encodeURIComponent(orderStatus.reference)}`}
+            className="mt-3 inline-flex rounded-ui bg-gold px-3 py-2 text-xs font-black text-ink hover:bg-paper"
+          >
+            Track your order
+          </Link>
+        </div>
+      ) : null}
       {orderStatus.order.tickets.length > 0 ? (
         <div className="mt-5 border-t border-white/10 pt-5">
           <p className="text-xs font-black uppercase text-gold">Issued tickets</p>

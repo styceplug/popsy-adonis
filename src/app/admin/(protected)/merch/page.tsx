@@ -1,7 +1,15 @@
 import { Package } from "lucide-react";
+import { MerchOrderStatusForm } from "@/components/admin/merch-order-status-form";
 import { ProductAdminPanel } from "@/components/admin/product-admin-panel";
 import { formatNaira } from "@/lib/format-money";
+import { getMerchStatusOption } from "@/lib/merch-status";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+function formatDate(value: Date) {
+  return new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Lagos" }).format(value);
+}
 
 export const metadata = {
   title: "PA FLUX | Popsy Adonis Admin",
@@ -12,30 +20,16 @@ export const metadata = {
 };
 
 export default async function AdminMerchPage() {
-  const [products, orderItems] = await Promise.all([
+  const [products, orders] = await Promise.all([
     prisma.product.findMany({
       include: { variants: { orderBy: [{ color: "asc" }, { size: "asc" }] } },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.orderItem.findMany({
-      where: {
-        itemType: "product",
-        variantId: { not: null },
-      },
-      include: {
-        variant: {
-          include: {
-            product: true,
-          },
-        },
-        order: {
-          include: {
-            transaction: true,
-          },
-        },
-      },
-      orderBy: { order: { createdAt: "desc" } },
-      take: 150,
+    prisma.order.findMany({
+      where: { items: { some: { itemType: "product" } } },
+      include: { items: true, transaction: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
     }),
   ]);
 
@@ -44,7 +38,7 @@ export default async function AdminMerchPage() {
       <p className="text-xs font-black uppercase text-gold">Selling</p>
       <h2 className="mt-2 font-display text-5xl font-black">PA FLUX store</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/58">
-        Manage merch products, prices, and stock, and see recent orders.
+        Manage merch products, prices, and stock, and update order status.
       </p>
 
       <div className="mt-8">
@@ -69,51 +63,88 @@ export default async function AdminMerchPage() {
       </div>
 
       <section className="mt-10">
-        <p className="text-xs font-black uppercase text-gold">Recent orders</p>
-        <div className="mt-4 overflow-hidden rounded-ui border border-white/10">
-        <div className="grid grid-cols-[1fr_.8fr_.55fr_.7fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
-          <p>Buyer</p>
-          <p>Item</p>
-          <p>Qty</p>
-          <p>Payment</p>
-        </div>
-        <div className="divide-y divide-white/10">
-          {orderItems.map((item) => {
-            const isPaid = item.order.status === "PAID" || item.order.transaction?.status === "SUCCESS";
-            return (
-              <div key={item.id} className="grid grid-cols-[1fr_.8fr_.55fr_.7fr] gap-4 px-4 py-4 text-sm">
-                <div>
-                  <p className="font-black text-paper">{item.order.email}</p>
-                  <p className="mt-1 text-xs text-paper/45">{item.order.phone || "No phone number"}</p>
-                </div>
-                <div>
-                  <p className="font-black text-paper">{item.variant?.product.name ?? item.title}</p>
-                  <p className="mt-1 text-xs text-paper/45">
-                    {item.variant?.color ?? "-"} / {item.variant?.size ?? "-"}
-                  </p>
-                  <p className="mt-1 text-xs text-paper/45">{formatNaira(item.totalKobo)}</p>
-                </div>
-                <div>
-                  <p className="font-display text-3xl font-black text-paper">{item.quantity}</p>
-                  <p className="mt-1 text-xs text-paper/45">unit{item.quantity === 1 ? "" : "s"}</p>
-                </div>
-                <div>
-                  <p className={isPaid ? "font-black text-gold" : "font-black text-paper/50"}>
-                    {isPaid ? "Paid" : "Pending"}
-                  </p>
-                  <p className="mt-1 break-all font-mono text-xs text-paper/45">
-                    {item.order.transaction?.reference ?? "No reference"}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-          {orderItems.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-paper/50">
-              <Package className="mx-auto mb-3 text-paper/30" size={28} />
-              No PA FLUX orders yet.
+        <p className="text-xs font-black uppercase text-gold">Orders</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-paper/55">
+          Update each paid order as it moves. The buyer sees the status and your note on the order page linked in their
+          receipt email.
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-ui border border-white/10">
+          <div className="min-w-[860px]">
+            <div className="grid grid-cols-[1fr_1.1fr_.7fr_1.1fr] gap-4 border-b border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black uppercase text-paper/45">
+              <p>Buyer</p>
+              <p>Items</p>
+              <p>Payment</p>
+              <p>Status</p>
             </div>
-          ) : null}
+            <div className="divide-y divide-white/10">
+              {orders.map((order) => {
+                const isPaid = order.transaction?.status === "SUCCESS";
+                const merchItems = order.items.filter((item) => item.itemType === "product");
+                const status = getMerchStatusOption(order.merchStatus ?? (isPaid ? "CONFIRMED" : null));
+                return (
+                  <div key={order.id} className="grid grid-cols-[1fr_1.1fr_.7fr_1.1fr] gap-4 px-4 py-4 text-sm">
+                    <div className="min-w-0">
+                      <p className="break-all font-black text-paper">{order.email}</p>
+                      <p className="mt-1 text-xs text-paper/45">{order.phone || "No phone number"}</p>
+                      <p className="mt-1 text-xs text-paper/45">{formatDate(order.createdAt)}</p>
+                    </div>
+                    <div>
+                      {merchItems.map((item) => {
+                        const meta =
+                          item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+                            ? (item.metadata as Record<string, unknown>)
+                            : {};
+                        const details = [meta.color, meta.size].filter((value) => typeof value === "string" && value).join(" / ");
+                        return (
+                          <p key={item.id} className="mb-1 text-paper">
+                            <span className="font-black">{item.title}</span>
+                            {details ? <span className="text-paper/55"> ({details})</span> : null}
+                            <span className="text-paper/55"> ×{item.quantity}</span>
+                          </p>
+                        );
+                      })}
+                      <p className="mt-1 text-xs text-paper/45">{formatNaira(order.totalKobo)} total</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className={isPaid ? "font-black text-gold" : "font-black text-paper/50"}>{isPaid ? "Paid" : "Not paid"}</p>
+                      <p className="mt-1 break-all font-mono text-xs text-paper/45">
+                        {order.transaction?.reference ?? "No reference"}
+                      </p>
+                      {order.transaction ? (
+                        <a
+                          href={`/orders/${encodeURIComponent(order.transaction.reference)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 inline-block text-xs font-black text-gold hover:text-paper"
+                        >
+                          Customer view
+                        </a>
+                      ) : null}
+                    </div>
+                    <div>
+                      {isPaid ? (
+                        <>
+                          <p className="mb-2 text-xs font-black uppercase text-paper/62">Now: {status.label}</p>
+                          <MerchOrderStatusForm
+                            orderId={order.id}
+                            status={order.merchStatus ?? "CONFIRMED"}
+                            note={order.merchNote ?? ""}
+                          />
+                        </>
+                      ) : (
+                        <p className="text-xs text-paper/45">Waiting for payment</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {orders.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-paper/50">
+                  <Package className="mx-auto mb-3 text-paper/30" size={28} />
+                  No PA FLUX orders yet.
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </section>

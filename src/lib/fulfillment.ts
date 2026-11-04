@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import QRCode from "qrcode";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { getEventDisplayDate } from "@/lib/event-display";
-import { sendPurchaseReceipt, sendTicketReceipt } from "@/lib/mailer";
+import { sendMerchOrderNotification, sendPurchaseReceipt, sendTicketReceipt } from "@/lib/mailer";
+import { getMerchNotifyEmail, getOrderStatusUrl } from "@/lib/merch-orders";
 import { prisma } from "@/lib/prisma";
 
 type TicketMetadata = {
@@ -63,6 +64,8 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
   }
 
   const wasAlreadySuccessful = transaction.status === "SUCCESS";
+  const merchItems = transaction.order.items.filter((item) => item.itemType === "product");
+  const orderStatusUrl = merchItems.length > 0 ? getOrderStatusUrl(reference) : undefined;
 
   const receipt = {
     to: transaction.order.email,
@@ -70,6 +73,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     subtotalKobo: transaction.order.subtotalKobo,
     transactionFeeKobo: transaction.order.transactionFeeKobo,
     totalKobo: transaction.order.totalKobo,
+    orderStatusUrl,
     items: transaction.order.items.map((item) => ({
       title: item.title,
       quantity: item.quantity,
@@ -243,6 +247,32 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
         ticketUrl,
       });
     }
+  }
+
+  if (!wasAlreadySuccessful && merchItems.length > 0) {
+    await prisma.order.update({
+      where: { id: transaction.orderId },
+      data: { merchStatus: "CONFIRMED", merchStatusUpdatedAt: new Date() },
+    });
+
+    await sendMerchOrderNotification({
+      to: getMerchNotifyEmail(),
+      reference,
+      buyerEmail: transaction.order.email,
+      buyerPhone: transaction.order.phone,
+      totalKobo: transaction.order.totalKobo,
+      items: merchItems.map((item) => {
+        const meta = item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+          ? (item.metadata as Record<string, unknown>)
+          : {};
+        const details = [meta.color, meta.size].filter((value) => typeof value === "string" && value).join(" / ");
+        return { title: item.title, quantity: item.quantity, totalKobo: item.totalKobo, details: details || undefined };
+      }),
+      adminUrl: `${getAppBaseUrl()}/admin/merch`,
+      orderStatusUrl: orderStatusUrl ?? getOrderStatusUrl(reference),
+    }).catch((mailError) => {
+      console.error("Unable to send merch order notification", mailError);
+    });
   }
 
   // null means no email was due on this run, so callers can tell "not sent" from "not attempted".

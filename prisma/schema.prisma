@@ -49,6 +49,16 @@ enum ProductStatus {
   ARCHIVED
 }
 
+// Delivery progress of a paid merch order, set by staff and shown on the customer's order page.
+enum MerchOrderStatus {
+  CONFIRMED
+  PROCESSING
+  READY
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 enum AffiliateStatus {
   PENDING
   APPROVED
@@ -304,6 +314,10 @@ model Order {
   tickets            Ticket[]
   addOnRedemptions   EventAddOnRedemption[]
   transaction        Transaction?
+  merchStatus        MerchOrderStatus?
+  // Optional message to the customer, e.g. pickup point or rider details.
+  merchNote          String?
+  merchStatusUpdatedAt DateTime?
   affiliateId        String?
   affiliate          Affiliate?   @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
   affiliateCommissions AffiliateCommission[]
