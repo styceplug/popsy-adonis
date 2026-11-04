@@ -1,14 +1,18 @@
 import type { MetadataRoute } from "next";
-import { artists, events, posts, products } from "@/lib/sample-data";
+import { prisma } from "@/lib/prisma";
+import { artists, events, posts } from "@/lib/sample-data";
 
 const SITE_URL = "https://popsyadonis.com";
 const LAST_MODIFIED = new Date("2026-06-24T00:00:00.000Z");
+
+// Products come from the database, so build the sitemap on request rather than once at build time.
+export const dynamic = "force-dynamic";
 
 function absoluteUrl(path: string) {
   return `${SITE_URL}${path}`;
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 1 },
     { url: absoluteUrl("/about"), lastModified: LAST_MODIFIED, changeFrequency: "monthly", priority: 0.8 },
@@ -44,9 +48,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     images: [absoluteUrl(artist.image)],
   }));
 
+  // Only pieces on sale right now; a database hiccup leaves them out rather than breaking the sitemap.
+  const products = await prisma.product
+    .findMany({
+      where: { status: "ACTIVE", variants: { some: {} } },
+      select: { slug: true, images: true, updatedAt: true },
+    })
+    .catch(() => []);
+
   const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
     url: absoluteUrl(`/paflux/${product.slug}`),
-    lastModified: LAST_MODIFIED,
+    lastModified: product.updatedAt,
     changeFrequency: "weekly",
     priority: 0.65,
     images: product.images.map(absoluteUrl),

@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
-import { useCart } from "@/components/providers/cart-provider";
+import { useCart, type CartItem } from "@/components/providers/cart-provider";
 import { calculateCheckoutPaymentBreakdown } from "@/lib/fees";
 import { formatNaira } from "@/lib/format-money";
 
 export default function CheckoutPage() {
-  const { items, subtotalKobo, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, subtotalKobo, updateQuantity, removeItem, clearCart, replaceItems } = useCart();
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -44,6 +44,7 @@ export default function CheckoutPage() {
           email,
           phone,
           joinMailingList,
+          expectedSubtotalKobo: subtotalKobo,
           items: items.map((item) => {
             if (item.type === "product") {
               return {
@@ -74,6 +75,22 @@ export default function CheckoutPage() {
       });
 
       const payload = await response.json();
+
+      // The server priced the order differently from the cart (usually a promo that no longer
+      // applies). Nothing was charged: show the real prices and let the buyer decide.
+      if (response.status === 409 && payload?.code === "PRICE_CHANGED" && Array.isArray(payload.lines)) {
+        const repriced = repriceCart(items, payload.lines as PricedLine[]);
+        const promoBefore = countPromoTickets(items);
+        const promoAfter = countPromoTickets(repriced);
+        replaceItems(repriced);
+        setError(
+          promoAfter < promoBefore
+            ? "The promo price couldn't be applied to this order. It may have ended or sold out, or this email or phone number has already used it. Your cart now shows the current price. Check the total, then tap Pay again."
+            : payload.message ?? "Some prices in your cart have changed. Check the total, then tap Pay again.",
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(payload.message ?? "Unable to initialize checkout.");
@@ -225,4 +242,57 @@ export default function CheckoutPage() {
       </section>
     </main>
   );
+}
+
+type PricedLine = {
+  type: string;
+  ticketTierId?: string | null;
+  variantId?: string | null;
+  eventAddOnId?: string | null;
+  title: string;
+  quantity: number;
+  unitKobo: number;
+  promoLabel?: string;
+};
+
+function countPromoTickets(items: CartItem[]) {
+  return items.reduce((sum, item) => (item.type === "ticket" && item.metadata?.promo ? sum + item.quantity : sum), 0);
+}
+
+/** Rebuilds the cart from the server's priced lines, keeping each item's image and details. */
+function repriceCart(current: CartItem[], lines: PricedLine[]): CartItem[] {
+  const next = new Map<string, CartItem>();
+
+  for (const line of lines) {
+    let item: CartItem | null = null;
+
+    if (line.type === "product") {
+      const source = current.find((entry) => entry.type === "product" && entry.variantId === line.variantId);
+      if (source) item = { ...source, quantity: line.quantity, unitKobo: line.unitKobo };
+    } else if (line.type === "addon") {
+      const source = current.find((entry) => entry.type === "addon" && entry.eventAddOnId === line.eventAddOnId);
+      if (source) item = { ...source, quantity: line.quantity, unitKobo: line.unitKobo };
+    } else if (line.type === "ticket") {
+      const source = current.find((entry) => entry.type === "ticket" && entry.ticketTierId === line.ticketTierId);
+      if (source && source.type === "ticket") {
+        const metadata = { ...(source.metadata ?? {}) };
+        delete metadata.promo;
+        if (line.promoLabel) metadata.promo = line.promoLabel;
+        item = {
+          ...source,
+          id: `${source.eventId}:${source.ticketTierId}:${line.promoLabel ? "promo" : "standard"}`,
+          title: line.title,
+          quantity: line.quantity,
+          unitKobo: line.unitKobo,
+          metadata,
+        };
+      }
+    }
+
+    if (!item) continue;
+    const existing = next.get(item.id);
+    next.set(item.id, existing ? { ...existing, quantity: existing.quantity + item.quantity } : item);
+  }
+
+  return [...next.values()];
 }

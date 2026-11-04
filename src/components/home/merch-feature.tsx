@@ -3,10 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import { ProductCard } from "@/components/commerce/product-card";
 import { brand } from "@/lib/sample-data";
 import { prisma } from "@/lib/prisma";
+import { toStoreProduct } from "@/lib/store-products";
 
 export async function MerchFeature() {
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", variants: { some: {} } },
     include: { variants: { orderBy: [{ color: "asc" }, { size: "asc" }] } },
     orderBy: { createdAt: "asc" },
     take: 6,
@@ -24,7 +25,7 @@ export async function MerchFeature() {
               Stay in Flux.
             </h2>
             <p className="mt-5 max-w-md text-sm leading-7 text-ink/58">
-              The first PA FLUX pieces are available now: tees, joggers, and a reminder to keep becoming. Pick your chapter, choose your size, and move.
+              PA FLUX pieces are available now. Pick your colour, choose your size, and keep becoming.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -37,35 +38,14 @@ export async function MerchFeature() {
             </div>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {products.map((product) => {
-              const firstVariant = product.variants[0];
-
-              return (
-                <ProductCard
-                  key={product.id}
-                  product={{
-                    id: product.id,
-                    defaultVariantId: firstVariant?.id ?? "",
-                    name: product.name,
-                    slug: product.slug,
-                    description: product.description,
-                    priceKobo: firstVariant?.priceKobo ?? 0,
-                    images: product.images,
-                    colors: [...new Set(product.variants.map((variant) => variant.color).filter(Boolean))] as string[],
-                    sizes: [...new Set(product.variants.map((variant) => variant.size).filter(Boolean))] as string[],
-                    variants: product.variants.map((variant) => ({
-                      id: variant.id,
-                      size: variant.size ?? "",
-                      color: variant.color ?? "",
-                      priceKobo: variant.priceKobo,
-                      stock: variant.stock,
-                    })),
-                    tag: "PA FLUX",
-                  }}
-                />
-              );
-            })}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 xl:grid-cols-3">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={toStoreProduct(product)}
+                sizes="(min-width: 1280px) 260px, (min-width: 1024px) 30vw, 50vw"
+              />
+            ))}
           </div>
         </div>
       </div>

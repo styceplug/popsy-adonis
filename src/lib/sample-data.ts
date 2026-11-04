@@ -81,7 +81,7 @@ export type Product = {
 export const brand = {
   siteName: "Popsy Adonis",
   merchName: "PA FLUX",
-  email: "adonistv.001@gmail.com",
+  email: "popsyadonis@gmail.com",
   phone: "+234 707 640 1108",
   whatsapp: "+234 707 640 1108",
   whatsappHref: "https://wa.me/2347076401108",

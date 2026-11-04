@@ -51,6 +51,8 @@ type CartContextValue = {
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
+  /** Swaps the whole cart, e.g. after checkout re-prices it. */
+  replaceItems: (items: CartItem[]) => void;
 };
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -144,6 +146,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => writeCartSnapshot([]), []);
 
+  const replaceItems = useCallback((nextItems: CartItem[]) => writeCartSnapshot(nextItems), []);
+
   const value = useMemo(() => {
     const subtotalKobo = items.reduce((sum, item) => sum + item.unitKobo * item.quantity, 0);
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -156,8 +160,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQuantity,
       removeItem,
       clearCart,
+      replaceItems,
     };
-  }, [addItem, clearCart, items, removeItem, updateQuantity]);
+  }, [addItem, clearCart, items, removeItem, replaceItems, updateQuantity]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

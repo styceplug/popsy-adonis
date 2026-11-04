@@ -156,22 +156,22 @@ export async function getTicketPromoStatus(
     },
   });
 
-  const reservedItems = promoItems.filter((item) => isReservedPromoItem(item, promo.code, now));
-  const used = reservedItems.reduce((sum, item) => sum + item.quantity, 0);
   const buyerEmail = normalizeEmail(options.email);
   const buyerPhone = normalizePhone(options.phone);
-  const buyerUsed = buyerEmail || buyerPhone
-    ? reservedItems
-        .filter((item) => {
-          const orderEmail = normalizeEmail(item.order.email);
-          const orderPhone = normalizePhone(item.order.phone);
+  const isThisBuyer = (item: PromoOrderItem) => {
+    const orderEmail = normalizeEmail(item.order.email);
+    const orderPhone = normalizePhone(item.order.phone);
 
-          return Boolean(
-            (buyerEmail && orderEmail === buyerEmail) ||
-              (buyerPhone && orderPhone === buyerPhone),
-          );
-        })
-        .reduce((sum, item) => sum + item.quantity, 0)
+    return Boolean((buyerEmail && orderEmail === buyerEmail) || (buyerPhone && orderPhone === buyerPhone));
+  };
+  // A buyer's own unpaid attempt (payment failed, or they backed out of Paystack) must not
+  // count against them when they try again, or the retry is charged full price.
+  const reservedItems = promoItems.filter(
+    (item) => isReservedPromoItem(item, promo.code, now) && !(item.order.status === OrderStatus.PENDING && isThisBuyer(item)),
+  );
+  const used = reservedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const buyerUsed = buyerEmail || buyerPhone
+    ? reservedItems.filter(isThisBuyer).reduce((sum, item) => sum + item.quantity, 0)
     : 0;
   const buyerRemaining = Math.max(promo.maxPerBuyer - buyerUsed, 0);
   const remaining = Math.max(promo.quantityLimit - used, 0);

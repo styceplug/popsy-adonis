@@ -41,7 +41,30 @@ const checkoutSchema = z.object({
       ]),
     )
     .min(1),
+  // Subtotal the buyer saw in their cart. If the server prices the order differently (a promo
+  // ended, sold out, or was already used), we stop and show the new prices instead of charging them.
+  expectedSubtotalKobo: z.number().int().nonnegative().optional(),
 });
+
+type PricedLine = {
+  type: string;
+  ticketTierId?: string | null;
+  variantId?: string | null;
+  eventAddOnId?: string | null;
+  title: string;
+  quantity: number;
+  unitKobo: number;
+  promoLabel?: string;
+};
+
+class PriceChangedError extends Error {
+  constructor(
+    readonly lines: PricedLine[],
+    readonly subtotalKobo: number,
+  ) {
+    super("Prices changed.");
+  }
+}
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -51,7 +74,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid checkout payload.", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { email, phone, customerName, joinMailingList, items } = parsed.data;
+  const { email, phone, customerName, joinMailingList, items, expectedSubtotalKobo } = parsed.data;
   const reference = makePaymentReference();
 
   // Last affiliate link the buyer clicked. Buying through your own link earns nothing.
@@ -211,6 +234,29 @@ export async function POST(request: Request) {
       }
 
       const subtotalKobo = orderItems.reduce((sum, item) => sum + item.totalKobo, 0);
+
+      if (expectedSubtotalKobo !== undefined && expectedSubtotalKobo !== subtotalKobo) {
+        // Throwing rolls the transaction back, so no order is created and nothing is charged.
+        throw new PriceChangedError(
+          orderItems.map((item) => {
+            const metadata =
+              item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+                ? (item.metadata as Record<string, unknown>)
+                : {};
+            return {
+              type: item.itemType,
+              ticketTierId: item.ticketTierId,
+              variantId: item.variantId,
+              eventAddOnId: item.eventAddOnId,
+              title: item.title,
+              quantity: item.quantity,
+              unitKobo: item.unitKobo,
+              promoLabel: typeof metadata.promoLabel === "string" ? metadata.promoLabel : undefined,
+            };
+          }),
+          subtotalKobo,
+        );
+      }
       const ticketSubtotalKobo = orderItems
         .filter((item) => item.itemType === "ticket")
         .reduce((sum, item) => sum + item.totalKobo, 0);
@@ -342,6 +388,18 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof PriceChangedError) {
+      return NextResponse.json(
+        {
+          code: "PRICE_CHANGED",
+          message: "Some prices in your cart have changed. Your cart now shows the current prices. Check the total, then tap Pay again.",
+          subtotalKobo: error.subtotalKobo,
+          lines: error.lines,
+        },
+        { status: 409 },
+      );
+    }
+
     await prisma.transaction
       .update({
         where: { reference },

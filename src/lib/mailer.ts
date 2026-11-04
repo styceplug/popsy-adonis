@@ -17,6 +17,8 @@ type ReceiptItem = {
 type ReceiptMessage = {
   to: string;
   reference: string;
+  // Set for orders with merch, so the buyer can follow delivery.
+  orderStatusUrl?: string;
   subtotalKobo: number;
   transactionFeeKobo: number;
   totalKobo: number;
@@ -309,7 +311,7 @@ function paragraphsToHtml(message: string) {
 
 export async function sendContactMessage(message: ContactMessage) {
   return sendEmail({
-    to: process.env.MAIL_TO ?? "adonistv.001@gmail.com",
+    to: process.env.MAIL_TO ?? "popsyadonis@gmail.com",
     subject: `New Popsy Adonis inquiry from ${message.name}`,
     text: [
       `Name: ${message.name}`,
@@ -351,6 +353,7 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
       `Subtotal: ${formatNairaForEmail(message.subtotalKobo)}`,
       `Transaction Fee: ${formatNairaForEmail(message.transactionFeeKobo)}`,
       `Total Payable: ${formatNairaForEmail(message.totalKobo)}`,
+      ...(message.orderStatusUrl ? ["", `Track your order: ${message.orderStatusUrl}`] : []),
     ].join("\n"),
     html: emailShell(`
       <tr>
@@ -377,6 +380,7 @@ export async function sendPurchaseReceipt(message: ReceiptMessage) {
               <td align="right" style="padding:14px 0 0;font-size:18px;font-weight:900;color:#fffdf8;">${formatNairaForEmail(message.totalKobo)}</td>
             </tr>
           </table>
+          ${message.orderStatusUrl ? `<div style="margin-top:22px;">${ctaButton("Track your order", message.orderStatusUrl)}</div>` : ""}
         </td>
       </tr>`),
   });
@@ -431,6 +435,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
       `Total Payable: ${formatNairaForEmail(message.totalKobo)}`,
       "",
       "Show the QR code at the gate for validation.",
+      ...(message.orderStatusUrl ? ["", `Track your merch order: ${message.orderStatusUrl}`] : []),
     ].join("\n"),
     html: emailShell(`
       <tr>
@@ -443,6 +448,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
           <div style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:13px;line-height:20px;color:#f5f0e8;">
             Total Payable: <strong>${formatNairaForEmail(message.totalKobo)}</strong>. Keep this email available on arrival.
           </div>
+          ${message.orderStatusUrl ? `<div style="margin-top:18px;">${ctaButton("Track your merch order", message.orderStatusUrl)}</div>` : ""}
         </td>
       </tr>`),
   });
@@ -467,6 +473,61 @@ export async function sendSubscriberBroadcast(message: SubscriberBroadcastMessag
           <div style="margin-top:22px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:12px;line-height:19px;color:rgba(255,253,248,.62);">
             You are receiving this because you joined the PA FLUX early access list. To unsubscribe, reply with <strong style="color:#fffdf8;">UNSUBSCRIBE</strong>.
           </div>
+        </td>
+      </tr>`),
+  });
+}
+
+type MerchOrderNotification = {
+  to: string;
+  reference: string;
+  buyerEmail: string;
+  buyerPhone?: string | null;
+  totalKobo: number;
+  items: Array<{ title: string; quantity: number; totalKobo: number; details?: string }>;
+  adminUrl: string;
+  orderStatusUrl: string;
+};
+
+/** Tells the team a paid merch order came in. */
+export async function sendMerchOrderNotification(message: MerchOrderNotification) {
+  const lines = message.items.map(
+    (item) => `- ${item.title}${item.details ? ` (${item.details})` : ""} x${item.quantity}: ${formatNairaForEmail(item.totalKobo)}`,
+  );
+
+  return sendEmail({
+    to: message.to,
+    subject: `New PA FLUX order - ${message.reference}`,
+    text: [
+      "A merch order has been paid.",
+      "",
+      `Reference: ${message.reference}`,
+      `Buyer: ${message.buyerEmail}`,
+      `Phone: ${message.buyerPhone || "Not provided"}`,
+      "",
+      "Items:",
+      ...lines,
+      "",
+      `Total paid: ${formatNairaForEmail(message.totalKobo)}`,
+      "",
+      `Update the order status: ${message.adminUrl}`,
+      `Customer's order page: ${message.orderStatusUrl}`,
+    ].join("\n"),
+    html: emailShell(`
+      <tr>
+        <td style="padding:28px;">
+          <div style="font-size:13px;font-weight:800;color:#c8a24a;text-transform:uppercase;letter-spacing:.08em;">New PA FLUX order</div>
+          <h1 style="margin:8px 0 8px;font-size:26px;line-height:1.15;color:#fffdf8;">${formatNairaForEmail(message.totalKobo)} paid</h1>
+          <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:rgba(255,253,248,.72);">
+            ${escapeHtml(message.buyerEmail)}<br />${escapeHtml(message.buyerPhone || "No phone number")}
+          </p>
+          <div style="font-family:Consolas,monospace;font-size:12px;color:rgba(255,253,248,.5);margin-bottom:18px;">${escapeHtml(message.reference)}</div>
+          ${message.items
+            .map(
+              (item) => `<p style="margin:0 0 10px;font-size:14px;line-height:21px;color:#fffdf8;">${escapeHtml(item.title)}${item.details ? ` <span style="color:rgba(255,253,248,.52);">(${escapeHtml(item.details)})</span>` : ""} ×${item.quantity}: <strong>${formatNairaForEmail(item.totalKobo)}</strong></p>`,
+            )
+            .join("")}
+          <div style="margin-top:20px;">${ctaButton("Update order status", message.adminUrl)}</div>
         </td>
       </tr>`),
   });
