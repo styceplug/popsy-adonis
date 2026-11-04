@@ -66,7 +66,7 @@ export function SubscriberBroadcastForm({
         });
         const payload = await response.json().catch(() => null);
 
-        if (!response.ok || !payload?.broadcastId) {
+        if (!response.ok || !payload?.broadcastId || payload.stopped) {
           const timedOut = response.status === 504;
           throw new Error(
             timedOut

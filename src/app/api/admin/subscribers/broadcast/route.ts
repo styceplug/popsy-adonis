@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
   let sent = 0;
   let failed = 0;
   const sentSubscriberIds: string[] = [];
+  let stoppedMessage: string | null = null;
 
   for (const recipient of pending) {
     if (sent + failed >= MAX_CHUNK) break;
@@ -143,8 +144,15 @@ export async function POST(request: NextRequest) {
       sent += 1;
       if (recipient.subscriberId) sentSubscriberIds.push(recipient.subscriberId);
     } catch (error) {
-      failed += 1;
+      const message = error instanceof Error ? error.message : "Unable to send email.";
       console.error(`Unable to send subscriber broadcast to ${recipient.email}`, error);
+      // A 550 from the mail host blocks the whole mailbox. Counting every
+      // remaining address as failed just burns the list.
+      if (/550|spam|discarded|EAUTH|authentication|too many|rate limit/i.test(message)) {
+        stoppedMessage = message;
+        break;
+      }
+      failed += 1;
     }
 
     await prisma.emailBroadcast.update({
@@ -165,7 +173,7 @@ export async function POST(request: NextRequest) {
 
   const sentCount = broadcast.sentCount + sent;
   const failedCount = broadcast.failedCount + failed;
-  const done = sentCount + failedCount >= recipients.length;
+  const done = !stoppedMessage && sentCount + failedCount >= recipients.length;
 
   if (done) {
     await createAdminAuditLog({
@@ -191,5 +199,9 @@ export async function POST(request: NextRequest) {
     sentCount,
     failedCount,
     done,
+    stopped: Boolean(stoppedMessage),
+    message: stoppedMessage
+      ? `The mail server rejected the send: ${stoppedMessage}`
+      : undefined,
   });
 }

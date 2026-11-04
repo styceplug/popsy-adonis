@@ -11,11 +11,12 @@ export const metadata = {
 };
 
 export default async function AdminSubscribersPage() {
-  const [subscribers, broadcasts, ticketBuyers] = await Promise.all([
+  const [subscribers, activeSubscriberCount, broadcasts, ticketBuyers] = await Promise.all([
     prisma.waitlistSubscriber.findMany({
       orderBy: { createdAt: "desc" },
       take: 200,
     }),
+    prisma.waitlistSubscriber.count({ where: { isActive: true } }),
     prisma.emailBroadcast.findMany({
       orderBy: { createdAt: "desc" },
       take: 10,
@@ -39,7 +40,12 @@ export default async function AdminSubscribersPage() {
           <div className="rounded-ui border border-white/10 bg-white/[0.035]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
               <p className="text-xs font-black uppercase text-gold">Subscription list</p>
-              <p className="text-xs font-black uppercase text-paper/45">{activeSubscribers.length} active</p>
+              <div className="flex items-center gap-4">
+                <p className="text-xs font-black uppercase text-paper/45">{activeSubscriberCount} active</p>
+                <a href="/api/admin/subscribers/export?list=subscribers" className="text-xs font-black uppercase text-gold">
+                  Export CSV
+                </a>
+              </div>
             </div>
             <div className="grid grid-cols-[1fr_.55fr_.7fr] gap-4 border-b border-white/10 px-4 py-3 text-xs font-black uppercase text-paper/45">
               <p>Email</p>
@@ -66,7 +72,12 @@ export default async function AdminSubscribersPage() {
           <div className="rounded-ui border border-white/10 bg-white/[0.035]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
               <p className="text-xs font-black uppercase text-gold">Ticket buyers</p>
-              <p className="text-xs font-black uppercase text-paper/45">{ticketBuyers.length} emails</p>
+              <div className="flex items-center gap-4">
+                <p className="text-xs font-black uppercase text-paper/45">{ticketBuyers.length} emails</p>
+                <a href="/api/admin/subscribers/export?list=buyers" className="text-xs font-black uppercase text-gold">
+                  Export CSV
+                </a>
+              </div>
             </div>
             <p className="border-b border-white/10 px-4 py-3 text-xs leading-5 text-paper/45">
               Everyone who has paid for a ticket, collected automatically from orders. Always up to date - nothing to import.
@@ -97,7 +108,7 @@ export default async function AdminSubscribersPage() {
         </div>
 
         <div className="grid h-fit gap-5">
-          <SubscriberBroadcastForm subscriberCount={activeSubscribers.length} buyerCount={ticketBuyers.length} />
+          <SubscriberBroadcastForm subscriberCount={activeSubscriberCount} buyerCount={ticketBuyers.length} />
           <div className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
             <p className="text-xs font-black uppercase text-gold">Recent broadcasts</p>
             <div className="mt-4 grid gap-3">
