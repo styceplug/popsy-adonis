@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { isEventPast } from "@/lib/event-display";
 import { notFound } from "next/navigation";
+import { OtherLiveEvents } from "@/components/events/other-live-events";
 import { TicketTierPicker } from "@/components/events/ticket-tier-picker";
 import type { Event } from "@/lib/sample-data";
 import { events } from "@/lib/sample-data";
 import { prisma } from "@/lib/prisma";
+import { openGraphFor } from "@/lib/seo";
 
-const SITE_URL = "https://popsyadonis.com";
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
@@ -115,9 +116,6 @@ export async function generateMetadata({
     };
   }
 
-  const pageUrl = `${SITE_URL}/events/${event.slug}`;
-  const imageUrl = `${SITE_URL}${event.heroImage}`;
-
   const description = getEventSeoDescription(event);
 
   const shortTitle =
@@ -131,26 +129,13 @@ export async function generateMetadata({
     alternates: {
       canonical: `/events/${event.slug}`,
     },
-    openGraph: {
-      type: "website",
-      url: pageUrl,
+    // The card is drawn by ./opengraph-image.tsx: flyer plus title, date and venue at 1200x630.
+    openGraph: openGraphFor({
       title: shortTitle,
       description,
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${event.title} — Popsy Adonis`,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: shortTitle,
-      description,
-      images: [imageUrl],
-    },
+      path: `/events/${event.slug}`,
+      image: { url: `/events/${event.slug}/opengraph-image`, width: 1200, height: 630, alt: event.title },
+    }),
   };
 }
 
@@ -282,6 +267,7 @@ export default async function EventDetailPage({
         </div>
         {ticketEvent.tiers.length > 0 ? <TicketTierPicker event={ticketEvent} /> : null}
       </section>
+      <OtherLiveEvents currentSlug={event.slug} />
     </main>
   );
 }

@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    siteName: "Popsy Adonis",
+    locale: "en_NG",
     url: "https://popsyadonis.com/events/archive",
     title: "Past Events Archive | Popsy Adonis",
     description:
@@ -18,8 +20,6 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/EVENTS/EKSU%20FEST%2B%2B%2B%2B.jpg",
-        width: 1200,
-        height: 630,
         alt: "EKSU Fest 2.0 — Popsy Adonis Past Events",
       },
     ],

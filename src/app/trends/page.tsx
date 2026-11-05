@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import { PostCard } from "@/components/trends/post-card";
 import { posts } from "@/lib/sample-data";
+import { openGraphFor } from "@/lib/seo";
+
+const pageTitle = "Trends & Promotions | Popsy Adonis";
+const pageDescription =
+  "Read Popsy Adonis culture updates, event announcements, music releases, promotional drops, and EKSU entertainment stories.";
 
 export const metadata: Metadata = {
-  title: "Trends & Promotions | Popsy Adonis",
-  description:
-    "Read Popsy Adonis culture updates, event announcements, music releases, promotional drops, and EKSU entertainment stories.",
+  title: pageTitle,
+  description: pageDescription,
   alternates: {
     canonical: "/trends",
   },
+  openGraph: openGraphFor({ title: pageTitle, description: pageDescription, path: "/trends" }),
 };
 
 export default function TrendsPage() {

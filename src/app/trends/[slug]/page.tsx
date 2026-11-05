@@ -29,10 +29,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     openGraph: {
       type: "article",
+      siteName: "Popsy Adonis",
+      locale: "en_NG",
       url: `${SITE_URL}/trends/${post.slug}`,
       title,
       description: post.excerpt,
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
+      images: [{ url: imageUrl, alt: post.title }],
     },
     twitter: {
       card: "summary_large_image",

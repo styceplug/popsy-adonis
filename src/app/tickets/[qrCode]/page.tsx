@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock3, MapPin, ShieldCheck } from "lucide-react";
+import { OtherLiveEvents } from "@/components/events/other-live-events";
 import { getEventDisplayDate } from "@/lib/event-display";
 import { prisma } from "@/lib/prisma";
 
@@ -28,6 +29,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
     : new Intl.DateTimeFormat("en-NG", {
         dateStyle: "full",
         timeStyle: "short",
+        timeZone: "Africa/Lagos",
       }).format(displayDate);
   const isPaid = ticket.order.status === "PAID" || ticket.order.transaction?.status === "SUCCESS";
   const hasCheckedIn = Boolean(ticket.checkedInAt);
@@ -95,6 +97,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
           </aside>
         </div>
       </section>
+      <OtherLiveEvents currentSlug={ticket.event.slug} />
     </main>
   );
 }

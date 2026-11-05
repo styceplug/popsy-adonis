@@ -10,6 +10,7 @@ import { formatNaira } from "@/lib/format-money";
 import { getPriceRange, getStockState, parseDescription, splitProductName } from "@/lib/product-display";
 import { prisma } from "@/lib/prisma";
 import type { Product } from "@/lib/sample-data";
+import { openGraphFor } from "@/lib/seo";
 import { toStoreProduct } from "@/lib/store-products";
 
 const SITE_URL = "https://popsyadonis.com";
@@ -25,25 +26,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const title = `${product.name} | PA FLUX`;
   const description = summarise(product.description);
-  const imageUrl = product.images[0] ? `${SITE_URL}${product.images[0]}` : undefined;
 
   return {
     title,
     description,
     alternates: { canonical: `/paflux/${product.slug}` },
-    openGraph: {
-      type: "website",
-      url: `${SITE_URL}/paflux/${product.slug}`,
+    // The card is drawn by ./opengraph-image.tsx: photo, name, colour and price at 1200x630.
+    openGraph: openGraphFor({
       title,
       description,
-      images: imageUrl ? [{ url: imageUrl, alt: product.name }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: imageUrl ? [imageUrl] : undefined,
-    },
+      path: `/paflux/${product.slug}`,
+      image: { url: `/paflux/${product.slug}/opengraph-image`, width: 1200, height: 630, alt: product.name },
+    }),
   };
 }
 

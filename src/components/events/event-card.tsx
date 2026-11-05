@@ -6,6 +6,7 @@ export function EventCard({ event }: { event: Event }) {
   const date = new Intl.DateTimeFormat("en-NG", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Africa/Lagos",
   }).format(new Date(event.startsAt));
   const displayDate = event.displayDate ?? date;
 

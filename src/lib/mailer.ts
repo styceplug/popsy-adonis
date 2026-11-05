@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
+import { getOneClickUnsubscribeUrl, getUnsubscribeUrl } from "@/lib/unsubscribe";
 
 type ContactMessage = {
   name: string;
@@ -189,6 +190,7 @@ async function sendEmail(payload: {
   subject: string;
   text: string;
   html?: string;
+  headers?: Record<string, string>;
 }) {
   // try {
   //   const resendResult = await sendWithResend(payload);
@@ -218,6 +220,7 @@ async function sendEmail(payload: {
       subject: payload.subject,
       text: payload.text,
       html: payload.html,
+      headers: payload.headers,
     });
 
     return {
@@ -455,14 +458,21 @@ export async function sendTicketReceipt(message: TicketMessage) {
 }
 
 export async function sendSubscriberBroadcast(message: SubscriberBroadcastMessage) {
+  const unsubscribeUrl = getUnsubscribeUrl(message.to);
+
   return sendEmail({
     to: message.to,
     subject: message.subject,
+    // Gmail and Yahoo show these as an "Unsubscribe" button next to the sender, and expect them on bulk mail.
+    headers: {
+      "List-Unsubscribe": `<${getOneClickUnsubscribeUrl(message.to)}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
     text: [
       message.message,
       "",
-      "You are receiving this because you joined the PA FLUX early access list.",
-      "To unsubscribe, reply to this email with UNSUBSCRIBE.",
+      "You are receiving this because you joined the Popsy Adonis list or bought a ticket.",
+      `Unsubscribe: ${unsubscribeUrl}`,
     ].join("\n"),
     html: emailShell(`
       <tr>
@@ -471,7 +481,7 @@ export async function sendSubscriberBroadcast(message: SubscriberBroadcastMessag
           <h1 style="margin:8px 0 18px;font-size:28px;line-height:1.15;color:#fffdf8;">${escapeHtml(message.subject)}</h1>
           ${paragraphsToHtml(message.message)}
           <div style="margin-top:22px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:12px;line-height:19px;color:rgba(255,253,248,.62);">
-            You are receiving this because you joined the PA FLUX early access list. To unsubscribe, reply with <strong style="color:#fffdf8;">UNSUBSCRIBE</strong>.
+            You are receiving this because you joined the Popsy Adonis list or bought a ticket. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#c8a24a;font-weight:800;">Unsubscribe</a>
           </div>
         </td>
       </tr>`),

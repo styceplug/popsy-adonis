@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { aboutCopy, brand, songs } from "@/lib/sample-data";
+import { openGraphFor } from "@/lib/seo";
+
+const pageTitle = "About Popsy Adonis | EKSU Media, Music & Culture";
+const pageDescription =
+  "Learn about Popsy Adonis, the EKSU-rooted media, music, events, and entertainment platform shaping student culture in Ekiti and beyond.";
 
 export const metadata: Metadata = {
-  title: "About Popsy Adonis | EKSU Media, Music & Culture",
-  description:
-    "Learn about Popsy Adonis, the EKSU-rooted media, music, events, and entertainment platform shaping student culture in Ekiti and beyond.",
+  title: pageTitle,
+  description: pageDescription,
   alternates: {
     canonical: "/about",
   },
+  openGraph: openGraphFor({ title: pageTitle, description: pageDescription, path: "/about" }),
 };
 
 export default function AboutPage() {

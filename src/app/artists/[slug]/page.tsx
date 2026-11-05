@@ -31,10 +31,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     openGraph: {
       type: "profile",
+      siteName: "Popsy Adonis",
+      locale: "en_NG",
       url: `${SITE_URL}/artists/${artist.slug}`,
       title,
       description,
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: artist.name }],
+      images: [{ url: imageUrl, alt: artist.name }],
     },
     twitter: {
       card: "summary_large_image",

@@ -52,6 +52,13 @@ async function loadRecipients(audience: Audience): Promise<Recipient[]> {
           })
         ).map((order) => order.email);
 
+  // Buyers who opted out are stored as inactive subscribers; never email them.
+  const optedOut = new Set(
+    (
+      await prisma.waitlistSubscriber.findMany({ where: { isActive: false }, select: { email: true } })
+    ).map((subscriber) => subscriber.email.trim().toLowerCase()),
+  );
+
   const recipients = new Map<string, Recipient>();
   for (const subscriber of subscribers) {
     const email = subscriber.email.trim().toLowerCase();
@@ -60,7 +67,7 @@ async function loadRecipients(audience: Audience): Promise<Recipient[]> {
   }
   for (const rawEmail of buyerEmails) {
     const email = rawEmail.trim().toLowerCase();
-    if (!email || recipients.has(email)) continue;
+    if (!email || recipients.has(email) || optedOut.has(email)) continue;
     recipients.set(email, { email });
   }
 

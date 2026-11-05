@@ -16,10 +16,17 @@ export async function getTicketBuyers(): Promise<TicketBuyer[]> {
     orderBy: { createdAt: "desc" },
   });
 
+  // People who unsubscribed are left out, so exports and broadcasts never include them.
+  const optedOut = new Set(
+    (
+      await prisma.waitlistSubscriber.findMany({ where: { isActive: false }, select: { email: true } })
+    ).map((subscriber) => subscriber.email.trim().toLowerCase()),
+  );
+
   const buyers = new Map<string, TicketBuyer>();
   for (const order of orders) {
     const email = order.email.trim().toLowerCase();
-    if (!email) continue;
+    if (!email || optedOut.has(email)) continue;
 
     const existing = buyers.get(email);
     if (existing) {

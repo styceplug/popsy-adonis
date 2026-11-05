@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { isEventPast } from "@/lib/event-display";
+import { openGraphFor } from "@/lib/seo";
 import { EventCard } from "@/components/events/event-card";
 import type { Event } from "@/lib/sample-data";
 import { events as sampleEvents } from "@/lib/sample-data";
@@ -9,38 +10,44 @@ import Link from "next/link";
 // Read events on every request so admin changes show at once, not only after a rebuild.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Events & Ticketing | Popsy Adonis",
-  description:
-    "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
-  alternates: {
-    canonical: "/events",
-  },
-  openGraph: {
-    type: "website",
-    url: "https://popsyadonis.com/events",
-    
-    title: "Events & Ticketing | Popsy Adonis",
-    description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
-    images: [
-      {
-        // Use the upcoming event hero as the share image
-        url: "/EVENTS/SummerFinale-main.JPG",
-        width: 1200,
-        height: 630,
-        alt: "FLUX Summer Experience — Summer Finale — Popsy Adonis",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Events & Ticketing | Popsy Adonis",
-    description:
-      "Upcoming Popsy Adonis events in Ekiti and Lagos. FLUX Summer Experience — Summer Finale takes over D Cube Place, Satellite, EKSU on 5th September, 2026. 7PM till dawn.",
-    images: ["/EVENTS/SummerFinale-main.JPG"],
-  },
-};
+const EVENTS_TITLE = "Events & Ticketing | Popsy Adonis";
+
+// The share card and description follow whichever event is next, so they never go stale.
+export async function generateMetadata(): Promise<Metadata> {
+  const candidates = await prisma.event
+    .findMany({
+      where: { status: { in: ["PUBLISHED", "SOLD_OUT"] } },
+      orderBy: { startsAt: "asc" },
+      select: { slug: true, title: true, venue: true, city: true, startsAt: true, endsAt: true, dateLabel: true, status: true },
+    })
+    .catch(() => []);
+  const next = candidates.find((event) => !isEventPast(event));
+
+  const nextDate = next ? getEventDisplayDate(next) : null;
+  const description = next
+    ? `Upcoming Popsy Adonis events in Ekiti and beyond. Next up: ${next.title}, ${
+        typeof nextDate === "string"
+          ? nextDate
+          : new Intl.DateTimeFormat("en-NG", { dateStyle: "long", timeZone: "Africa/Lagos" }).format(next.startsAt)
+      } at ${next.venue}, ${next.city}. Get your tickets on popsyadonis.com.`
+    : "Popsy Adonis events and ticketing: parties, festivals and campus experiences in Ekiti and beyond.";
+
+  return {
+    title: EVENTS_TITLE,
+    description,
+    alternates: {
+      canonical: "/events",
+    },
+    openGraph: openGraphFor({
+      title: EVENTS_TITLE,
+      description,
+      path: "/events",
+      image: next
+        ? { url: `/events/${next.slug}/opengraph-image`, width: 1200, height: 630, alt: next.title }
+        : undefined,
+    }),
+  };
+}
 
 function getEventDisplayDate(event: { slug: string; dateLabel?: string | null }) {
   if (event.dateLabel?.trim()) return event.dateLabel.trim();

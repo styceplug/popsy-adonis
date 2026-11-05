@@ -5,15 +5,15 @@ import { CartProvider } from "@/components/providers/cart-provider";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { brand } from "@/lib/sample-data";
+import { DEFAULT_OG_IMAGE, HOME_DESCRIPTION, HOME_TITLE, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 const siteUrl = "https://popsyadonis.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Popsy Adonis | Nigerian Entertainment, Artists, Events & PA FLUX",
-  description:
-    "A high-end Nigerian entertainment and lifestyle platform for trends, artist portfolios, events, promotions, ticketing, and PA FLUX clothing.",
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
   alternates: {
     canonical: "/",
   },
@@ -33,29 +33,17 @@ export const metadata: Metadata = {
     shortcut: "/favicon.jpg",
     apple: "/favicon.jpg",
   },
+  // Each page sets its own title and link (see openGraphFor). Nothing page-specific goes here,
+  // or every page that forgets to set its own would share the homepage's preview.
   openGraph: {
-    siteName: "Popsy Adonis",
     type: "website",
+    siteName: SITE_NAME,
     locale: "en_NG",
-    url: "https://popsyadonis.com",
-    title: "Popsy Adonis | Nigerian Entertainment, Artists, Events & PA FLUX",
-    description:
-      "A high-end Nigerian entertainment and lifestyle platform for trends, artist portfolios, events, promotions, ticketing, and PA FLUX clothing.",
-    images: [
-      {
-        url: "/POPSY%20ADONIS%20FLUX%20PARTY.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "Popsy Adonis",
-      },
-    ],
+    images: [DEFAULT_OG_IMAGE],
   },
+  // X reads the title, description and image from the Open Graph tags above.
   twitter: {
     card: "summary_large_image",
-    title: "Popsy Adonis | Nigerian Entertainment, Artists, Events & PA FLUX",
-    description:
-      "A high-end Nigerian entertainment and lifestyle platform for trends, artist portfolios, events, promotions, ticketing, and PA FLUX clothing.",
-    images: ["/POPSY%20ADONIS%20FLUX%20PARTY.jpeg"],
   },
 };
 

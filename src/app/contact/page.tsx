@@ -4,14 +4,19 @@ import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
 import { SocialLinks } from "@/components/layout/social-links";
 import { brand } from "@/lib/sample-data";
+import { openGraphFor } from "@/lib/seo";
+
+const pageTitle = "Contact & Bookings | Popsy Adonis";
+const pageDescription =
+  "Contact Popsy Adonis for event hosting, artist bookings, music promotions, brand activations, PA FLUX, and culture partnerships.";
 
 export const metadata: Metadata = {
-  title: "Contact & Bookings | Popsy Adonis",
-  description:
-    "Contact Popsy Adonis for event hosting, artist bookings, music promotions, brand activations, PA FLUX, and culture partnerships.",
+  title: pageTitle,
+  description: pageDescription,
   alternates: {
     canonical: "/contact",
   },
+  openGraph: openGraphFor({ title: pageTitle, description: pageDescription, path: "/contact" }),
 };
 
 export default function ContactPage() {

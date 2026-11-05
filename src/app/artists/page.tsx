@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { artists, brand } from "@/lib/sample-data";
+import { openGraphFor } from "@/lib/seo";
+
+const pageTitle = "Artists Catalog | Popsy Adonis";
+const pageDescription =
+  "Explore the Popsy Adonis artists catalog: musicians, performers, DJs, collaborators, and campus culture talent available for bookings and promotions.";
 
 export const metadata: Metadata = {
-  title: "Artists Catalog | Popsy Adonis",
-  description:
-    "Explore the Popsy Adonis artists catalog: musicians, performers, DJs, collaborators, and campus culture talent available for bookings and promotions.",
+  title: pageTitle,
+  description: pageDescription,
   alternates: {
     canonical: "/artists",
   },
+  openGraph: openGraphFor({ title: pageTitle, description: pageDescription, path: "/artists" }),
 };
 
 export default function ArtistsPage() {

@@ -134,7 +134,8 @@ export async function POST(request: NextRequest) {
     await prisma.waitlistSubscriber
       .upsert({
         where: { email },
-        update: { isActive: true },
+        // Leave existing rows alone: re-subscribing someone who opted out needs their own say-so.
+        update: {},
         create: { email, source: "MANUAL_TICKET" },
       })
       .catch(() => undefined);
