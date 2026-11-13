@@ -7,9 +7,7 @@
 //
 // --publish  puts Movie Night on the events page (otherwise it is saved as Draft to check first)
 //
-// The Early Bird tier is created switched on, but tickets can only be bought from
-// Saturday 14th November 2026, 6PM (see src/lib/ticket-sales-schedule.ts). Until then the
-// event page shows the tier with its opening time.
+// The Early Bird tier is created switched on and on sale straight away.
 // The December date and venue are not announced yet, so the event shows "Date to be announced";
 // set the real date, venue and remove the date label in admin once they are confirmed.
 import { PrismaClient } from "@prisma/client";
@@ -32,7 +30,7 @@ We're bringing you two different movie niches in one night, so expect variety, e
 
 But don't come alone! Bring your movie buddy, your blanket and duvet, get comfortable and prepare for a different kind of movie experience. ❤️
 
-🎟️ EARLY BIRD DROPS SATURDAY 14TH NOVEMBER BY 6PM!
+🎟️ EARLY BIRD IS LIVE NOW!
 ₦2,000 ONLY — LIMITED TO 50 PEOPLE!
 
 Once the 50 slots are gone, they're gone!
@@ -95,7 +93,7 @@ try {
   });
 
   console.log(
-    `${event.status === "PUBLISHED" ? "Live" : "Draft"}: ${event.title} (/events/${event.slug}), Early Bird N2,000 x 50, on sale from Sat 14th Nov 2026, 6PM`,
+    `${event.status === "PUBLISHED" ? "Live" : "Draft"}: ${event.title} (/events/${event.slug}), Early Bird N2,000 x 50, on sale now`,
   );
 } finally {
   await prisma.$disconnect();
