@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { HeroShowcase } from "@/components/home/hero-showcase";
 import { MerchFeature } from "@/components/home/merch-feature";
+import { PaFluxGalleryTeaser } from "@/components/home/paflux-gallery-teaser";
+import { MixRoomFeature } from "@/components/mix-room/mix-room-feature";
 import { PastEventStrip } from "@/components/home/past-event-strip";
 import { TrendRail } from "@/components/home/trend-rail";
 import { UpcomingEvents } from "@/components/home/upcoming-events";
@@ -19,8 +21,10 @@ export default function Home() {
       <HeroShowcase />
       <TrendRail />
       <UpcomingEvents />
+      <MixRoomFeature />
       <PastEventStrip />
       <MerchFeature />
+      <PaFluxGalleryTeaser />
     </main>
   );
 }

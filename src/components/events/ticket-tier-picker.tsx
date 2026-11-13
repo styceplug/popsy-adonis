@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCart } from "@/components/providers/cart-provider";
 import type { Event } from "@/lib/sample-data";
 import { formatNaira } from "@/lib/format-money";
+import { formatSalesOpensAt } from "@/lib/ticket-sales-schedule";
 
 type TicketPromoStatus = {
   active: boolean;
@@ -104,7 +105,11 @@ export function TicketTierPicker({ event }: { event: Event }) {
                 </span>
               </span>
               <span className="mt-2 block text-xs text-paper/58">{item.perks.join(" / ")}</span>
-              {!itemOnSale ? (
+              {!itemOnSale && item.opensAt ? (
+                <span className="mt-3 inline-flex rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black uppercase text-gold">
+                  Opens {formatSalesOpensAt(item.opensAt)}
+                </span>
+              ) : !itemOnSale ? (
                 <span className="mt-3 inline-flex rounded-full border border-lava/35 bg-lava/10 px-3 py-1 text-[11px] font-black uppercase text-lava">
                   Sold out
                 </span>
@@ -195,7 +200,9 @@ export function TicketTierPicker({ event }: { event: Event }) {
         className="focus-ring mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-ui bg-gold px-5 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ShoppingCart size={17} />
-        {tier?.onSale === false
+        {tier?.onSale === false && tier.opensAt
+          ? `On sale ${formatSalesOpensAt(tier.opensAt)}`
+          : tier?.onSale === false
           ? "Sold out"
           : wasAdded
             ? "Added to cart"

@@ -8,6 +8,8 @@ export type Post = {
   mediaType: "video" | "audio" | "editorial";
   publishedAt: string;
   category: string;
+  // Shows the song list with Apple Music and Audiomack buttons under the article.
+  showStreamingLinks?: boolean;
 };
 
 export type Event = {
@@ -30,6 +32,8 @@ export type Event = {
     perks: string[];
     // false shows the tier but blocks buying it (switched off in admin, or sold out).
     onSale?: boolean;
+    // Set while the tier has not gone on sale yet (ISO time it opens); shown instead of "Sold out".
+    opensAt?: string;
   }>;
   addOns?: Array<{
     id: string;
@@ -56,6 +60,8 @@ export type Song = {
   title: string;
   date: string;
   artists: string;
+  appleMusic?: string;
+  audiomack?: string;
 };
 
 export type Product = {
@@ -86,6 +92,10 @@ export const brand = {
   whatsapp: "+234 707 640 1108",
   whatsappHref: "https://wa.me/2347076401108",
   address: "Ekiti, Nigeria",
+  streaming: {
+    appleMusic: "https://music.apple.com/artist/popsy-adonis/1783845507",
+    audiomack: "https://audiomack.com/popsyadonis",
+  },
   socials: [
     { label: "TikTok", href: "https://www.tiktok.com/@popsyadonis?_r=1&_t=ZS-97QiYPG83SW" },
     { label: "Instagram", href: "https://www.instagram.com/popsyadonis" },
@@ -103,10 +113,33 @@ export const aboutCopy = [
 ];
 
 export const songs: Song[] = [
-  { title: "ABINIBI", date: "26 Mar 2026", artists: "Emmey Boy, Popsy Adonis and Rusky The Great" },
-  { title: "LETTER TO AISHA", date: "25 May 2025", artists: "Popsy Adonis featuring Crux, Drekiss" },
-  { title: "MSN (Money Stops Nonsense)", date: "19 Feb 2025", artists: "Popsy Adonis featuring Blaizeman and Teazyand99others" },
-  { title: "OLD TAKER", date: "10 Dec 2024", artists: "Popsy Adonis, Diamond Boy, Rusky The Great, Pili Chara" },
+  {
+    title: "ABINIBI",
+    date: "26 Mar 2026",
+    artists: "Emmey Boy, Popsy Adonis and Rusky The Great",
+    appleMusic: "https://music.apple.com/album/abinibi-feat-ruskythegreat-popsy-adonis/1888395952?i=1888395953",
+  },
+  {
+    title: "LETTER TO AISHA",
+    date: "25 May 2025",
+    artists: "Popsy Adonis featuring Crux, Drekiss",
+    appleMusic: "https://music.apple.com/album/letter-to-aisha-feat-crux-drekiss/1811179084?i=1811179085",
+    audiomack: "https://audiomack.com/popsyadonis/song/letter-to-aishaaa",
+  },
+  {
+    title: "MSN (Money Stops Nonsense)",
+    date: "19 Feb 2025",
+    artists: "Popsy Adonis featuring Blaizeman and Teazyand99others",
+    appleMusic: "https://music.apple.com/album/msn-money-stop-nonsense-feat-blaizeman-teazyand99others/1798080969?i=1798080970",
+    audiomack: "https://audiomack.com/popsyadonis/song/67b476e0b4f50",
+  },
+  {
+    title: "OLD TAKER",
+    date: "10 Dec 2024",
+    artists: "Popsy Adonis, Diamond Boy, Rusky The Great, Pili Chara",
+    appleMusic: "https://music.apple.com/album/old-taker-feat-diamond-boy-ruskythegreat-pili-chara/1784281331?i=1784281332",
+    audiomack: "https://audiomack.com/popsyadonis/song/adonis-oldtaker",
+  },
 ];
 
 export const posts: Post[] = [
@@ -141,6 +174,7 @@ export const posts: Post[] = [
     mediaType: "audio",
     publishedAt: "June 2026",
     category: "Music",
+    showStreamingLinks: true,
   },
   {
     title: "How EKSU Fest became a student entertainment signal",
@@ -226,7 +260,7 @@ Whether you're celebrating finishing exams, celebrating your final year, or you 
 
 FLUX SUMMER EXPERIENCE — SUMMER FINALE
 ONE LAST SPLASH. ONE LAST MEMORY. ONE BIG NIGHT. 💦🔥`,
-    status: "upcoming",
+    status: "past",
     tiers: [
       {
         id: "tier-summer-finale-early-bird",
@@ -428,6 +462,8 @@ export const artists: Artist[] = [
     ],
     socials: [
       { label: "Spotify", href: "https://open.spotify.com/artist/17AXu8iavpMfXerr8b6F3S?si=FCpaweqbR8G9xbAqXJgoqA" },
+      { label: "Apple Music", href: "https://music.apple.com/artist/popsy-adonis/1783845507" },
+      { label: "Audiomack", href: "https://audiomack.com/popsyadonis" },
     ],
   },
   {

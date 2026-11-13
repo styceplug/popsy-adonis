@@ -28,11 +28,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: "/favicon.jpg",
-    shortcut: "/favicon.jpg",
-    apple: "/favicon.jpg",
-  },
+  // Tab and home-screen icons come from src/app/favicon.ico, icon.png and apple-icon.png.
   // Each page sets its own title and link (see openGraphFor). Nothing page-specific goes here,
   // or every page that forgets to set its own would share the homepage's preview.
   openGraph: {

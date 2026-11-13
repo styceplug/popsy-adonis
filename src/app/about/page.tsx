@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { aboutCopy, brand, songs } from "@/lib/sample-data";
+import { StreamingButtons } from "@/components/music/streaming-buttons";
 import { openGraphFor } from "@/lib/seo";
 
 const pageTitle = "About Popsy Adonis | EKSU Media, Music & Culture";
@@ -42,6 +43,9 @@ export default function AboutPage() {
           <div className="rounded-ui border border-white/10 bg-white/[0.035] p-6">
             <p className="text-xs font-black uppercase text-gold">Discography</p>
             <h2 className="mt-3 font-display text-4xl font-black md:text-5xl">Songs and collaborations</h2>
+            <div className="mt-5">
+              <StreamingButtons links={brand.streaming} size="md" />
+            </div>
             <div className="mt-8 grid gap-3">
               {songs.map((song) => (
                 <div key={song.title} className="rounded-ui border border-white/10 p-4">
@@ -50,6 +54,9 @@ export default function AboutPage() {
                     <p className="text-xs font-black uppercase text-gold">{song.date}</p>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-paper/62">{song.artists}</p>
+                  <div className="mt-4">
+                    <StreamingButtons links={song} title={song.title} />
+                  </div>
                 </div>
               ))}
             </div>

@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/events/archive"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/trends"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.85 },
     { url: absoluteUrl("/paflux"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.75 },
+    { url: absoluteUrl("/the-mix-room"), lastModified: new Date("2026-11-13T00:00:00.000Z"), changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/contact"), lastModified: LAST_MODIFIED, changeFrequency: "monthly", priority: 0.7 },
   ];
 

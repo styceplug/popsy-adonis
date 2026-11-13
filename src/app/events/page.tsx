@@ -56,6 +56,14 @@ function getEventDisplayDate(event: { slug: string; dateLabel?: string | null })
   return undefined;
 }
 
+function formatEventDate(startsAt: string) {
+  return new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "Africa/Lagos",
+  }).format(new Date(startsAt));
+}
+
 function mapDbEventToCard(event: Awaited<ReturnType<typeof getDbEvents>>[number]): Event {
   const isPast = isEventPast(event);
 
@@ -99,6 +107,7 @@ export default async function EventsPage() {
   const events = dbEvents.length > 0 ? dbEvents.map(mapDbEventToCard) : sampleEvents;
   const upcomingEvents = events.filter((event) => event.status === "upcoming");
   const pastEvents = events.filter((event) => event.status === "past");
+  const nextEvent = upcomingEvents[0];
 
   return (
     <main className="bg-ink pt-28 text-paper">
@@ -110,7 +119,9 @@ export default async function EventsPage() {
           Upcoming Events
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-paper/64">
-          FLUX Summer Experience — Summer Finale lands at D Cube Place, Satellite, EKSU on 5th September. 7PM till dawn.
+          {nextEvent
+            ? `Next up: ${nextEvent.title} — ${nextEvent.displayDate ?? formatEventDate(nextEvent.startsAt)} at ${nextEvent.venue}, ${nextEvent.city}.`
+            : "New dates are on the way. Check back soon for the next Popsy Adonis experience."}
         </p>
         <div className="mt-12 grid gap-5">
           {upcomingEvents.map((event) => (

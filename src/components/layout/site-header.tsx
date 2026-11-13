@@ -10,6 +10,7 @@ const navItems = [
   { label: "About", href: "/about" },
   { label: "Artists", href: "/artists" },
   { label: "Events", href: "/events" },
+  { label: "The Mix Room", href: "/the-mix-room" },
   { label: "Contact us", href: "/contact" },
 ];
 

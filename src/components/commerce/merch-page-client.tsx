@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { ComingSoonModal } from "@/components/commerce/coming-soon-modal";
 import { ProductCard } from "@/components/commerce/product-card";
+import { PaFluxGallery } from "@/components/paflux/paflux-gallery";
 import { brand, type Product } from "@/lib/sample-data";
 
 export function MerchPageClient({ products }: { products: Product[] }) {
@@ -67,6 +68,7 @@ export function MerchPageClient({ products }: { products: Product[] }) {
             </button>
           </div>
         </section>
+        <PaFluxGallery />
       </main>
 
       <ComingSoonModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

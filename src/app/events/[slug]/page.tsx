@@ -7,6 +7,7 @@ import type { Event } from "@/lib/sample-data";
 import { events } from "@/lib/sample-data";
 import { prisma } from "@/lib/prisma";
 import { openGraphFor } from "@/lib/seo";
+import { getTierSalesOpensAt } from "@/lib/ticket-sales-schedule";
 
 export const dynamic = "force-dynamic";
 
@@ -179,13 +180,17 @@ export default async function EventDetailPage({
     ...event,
     tiers:
       dbTiers.length > 0
-        ? dbTiers.map((tier) => ({
-            id: tier.id,
-            name: tier.name,
-            priceKobo: tier.priceKobo,
-            perks: tier.perks,
-            onSale: tier.isActive && tier.soldCount < tier.capacity,
-          }))
+        ? dbTiers.map((tier) => {
+            const opensAt = getTierSalesOpensAt(tier.id);
+            return {
+              id: tier.id,
+              name: tier.name,
+              priceKobo: tier.priceKobo,
+              perks: tier.perks,
+              onSale: tier.isActive && tier.soldCount < tier.capacity && !opensAt,
+              opensAt: tier.isActive && opensAt ? opensAt.toISOString() : undefined,
+            };
+          })
         : event.tiers,
     addOns: dbAddOns.map((addOn) => ({
       id: addOn.id,
@@ -199,6 +204,7 @@ export default async function EventDetailPage({
   const date = new Intl.DateTimeFormat("en-NG", {
     dateStyle: "full",
     timeStyle: "short",
+    timeZone: "Africa/Lagos",
   }).format(new Date(event.startsAt));
   const displayDate = event.displayDate ?? date;
   const expectations = getEventExpectations(event, dbEvent?.highlights);

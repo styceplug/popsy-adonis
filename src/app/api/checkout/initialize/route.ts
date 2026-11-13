@@ -11,6 +11,7 @@ import { getEffectiveCommissionBps } from "@/lib/affiliates";
 import { calculateBasisPointAmount, calculateCheckoutPaymentBreakdown } from "@/lib/fees";
 import { prisma } from "@/lib/prisma";
 import { getTicketPromoStatus } from "@/lib/ticket-promos";
+import { formatSalesOpensAt, getTierSalesOpensAt } from "@/lib/ticket-sales-schedule";
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -169,6 +170,11 @@ export async function POST(request: Request) {
 
           if (!tier || !tier.isActive || tier.event.status !== "PUBLISHED") {
             throw new Error("A ticket in your cart is unavailable.");
+          }
+
+          const opensAt = getTierSalesOpensAt(tier.id);
+          if (opensAt) {
+            throw new Error(`${tier.name} tickets go on sale ${formatSalesOpensAt(opensAt)}.`);
           }
 
           const remaining = tier.capacity - tier.soldCount;

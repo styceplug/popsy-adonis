@@ -26,7 +26,9 @@ export function SiteFooter() {
               <Link href="/artists" className="hover:text-paper">Artists Catalog</Link>
               <Link href="/events" className="hover:text-paper">Events</Link>
               <Link href="/events/archive" className="hover:text-paper">Past Events</Link>
+              <Link href="/the-mix-room" className="hover:text-paper">The Mix Room Podcast</Link>
               <Link href="/paflux" className="hover:text-paper">{brand.merchName} Store</Link>
+              <Link href="/paflux#gallery" className="hover:text-paper">{brand.merchName} Gallery</Link>
             </div>
           </div>
 

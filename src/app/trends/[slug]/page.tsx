@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { posts } from "@/lib/sample-data";
+import { StreamingButtons } from "@/components/music/streaming-buttons";
+import { brand, posts, songs } from "@/lib/sample-data";
 
 const SITE_URL = "https://popsyadonis.com";
 
@@ -70,6 +71,31 @@ export default async function TrendDetailPage({ params }: { params: Promise<{ sl
             </p>
           ))}
         </div>
+        {post.showStreamingLinks ? (
+          <div className="mx-auto mt-12 max-w-3xl rounded-ui border border-white/10 bg-white/[0.035] p-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase text-gold">Stream the songs</p>
+                <h2 className="mt-2 font-display text-3xl font-black">Listen now</h2>
+              </div>
+              <StreamingButtons links={brand.streaming} size="md" />
+            </div>
+            <div className="mt-6 grid gap-3">
+              {songs.map((song) => (
+                <div
+                  key={song.title}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-ui border border-white/10 p-4"
+                >
+                  <div>
+                    <p className="font-display text-xl font-black">{song.title}</p>
+                    <p className="mt-1 text-sm text-paper/58">{song.artists}</p>
+                  </div>
+                  <StreamingButtons links={song} title={song.title} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </article>
     </main>
   );
