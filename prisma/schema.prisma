@@ -500,3 +500,43 @@ model AffiliateWithdrawal {
   @@index([affiliateId, status])
   @@index([createdAt])
 }
+
+// Businesses Popsy Adonis recommends (photographers, DJs, decorators...). Listed on /vendors.
+model Vendor {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  // The service they are approved for, e.g. "Photography". Used to group and filter the list.
+  category    String
+  tagline     String?
+  description String
+  location    String?
+  phone       String?
+  whatsapp    String?
+  email       String?
+  instagram   String?
+  website     String?
+  logoUrl     String?
+  isActive    Boolean       @default(true)
+  isFeatured  Boolean       @default(false)
+  media       VendorMedia[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([isActive, category])
+}
+
+// Portfolio photos and videos for a vendor, uploaded from admin (stored on Cloudinary).
+model VendorMedia {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  url       String
+  // "image" or "video"
+  type      String   @default("image")
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([vendorId, sortOrder])
+}

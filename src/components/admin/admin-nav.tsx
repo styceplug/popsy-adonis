@@ -14,6 +14,7 @@ import {
   PenLine,
   ScrollText,
   Ticket,
+  Store,
   Users,
 } from "lucide-react";
 
@@ -52,6 +53,7 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     label: "People",
     items: [
       { label: "Affiliates", href: "/admin/affiliates", icon: Users, hint: "Ticket sellers, sales, and payouts" },
+      { label: "Vendors", href: "/admin/vendors", icon: Store, hint: "Approved vendors and portfolios" },
       { label: "Subscribers", href: "/admin/subscribers", icon: Mail, hint: "Email the waitlist" },
       { label: "Activity log", href: "/admin/logs", icon: ScrollText, hint: "Who did what, and when" },
     ],

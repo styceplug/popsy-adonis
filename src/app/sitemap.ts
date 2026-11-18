@@ -23,7 +23,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/paflux"), lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 0.75 },
     { url: absoluteUrl("/the-mix-room"), lastModified: new Date("2026-11-13T00:00:00.000Z"), changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/contact"), lastModified: LAST_MODIFIED, changeFrequency: "monthly", priority: 0.7 },
+    { url: absoluteUrl("/vendors"), lastModified: new Date(), changeFrequency: "weekly", priority: 0.75 },
   ];
+
+  const vendorRoutes: MetadataRoute.Sitemap = (
+    await prisma.vendor.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }).catch(() => [])
+  ).map((vendor) => ({
+    url: absoluteUrl(`/vendors/${vendor.slug}`),
+    lastModified: vendor.updatedAt,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 
   const eventRoutes: MetadataRoute.Sitemap = events.map((event) => ({
     url: absoluteUrl(`/events/${event.slug}`),
@@ -65,5 +75,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     images: product.images.map(absoluteUrl),
   }));
 
-  return [...staticRoutes, ...eventRoutes, ...postRoutes, ...artistRoutes, ...productRoutes];
+  return [...staticRoutes, ...eventRoutes, ...postRoutes, ...artistRoutes, ...productRoutes, ...vendorRoutes];
 }

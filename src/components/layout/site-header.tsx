@@ -11,6 +11,7 @@ const navItems = [
   { label: "Artists", href: "/artists" },
   { label: "Events", href: "/events" },
   { label: "The Mix Room", href: "/the-mix-room" },
+  { label: "Vendors", href: "/vendors" },
   { label: "Contact us", href: "/contact" },
 ];
 
