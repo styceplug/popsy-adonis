@@ -53,7 +53,29 @@ export async function POST(request: NextRequest) {
   const data = parsed.data;
   const slug = normalizeSlug(data.slug);
 
-  const event = await prisma.event.upsert({
+  // Check the two unique rules up front so admins get a clear message instead of a 500.
+  const tierNames = data.ticketTiers.map((tier) => tier.name.trim().toLowerCase());
+  const duplicateName = data.ticketTiers.find((tier, index) => tierNames.indexOf(tier.name.trim().toLowerCase()) !== index);
+  if (duplicateName) {
+    return NextResponse.json(
+      { message: `Two ticket tiers are both called "${duplicateName.name}". Give each tier a different name.` },
+      { status: 400 },
+    );
+  }
+
+  const slugOwner = await prisma.event.findUnique({ where: { slug }, select: { id: true, title: true } });
+  if (slugOwner && slugOwner.id !== data.id) {
+    return NextResponse.json(
+      { message: `The link name "${slug}" is already used by "${slugOwner.title}". Change the link name.` },
+      { status: 409 },
+    );
+  }
+
+  try {
+
+  // One transaction: if any tier fails, nothing is half-saved.
+  const event = await prisma.$transaction(async (tx) => {
+  const saved = await tx.event.upsert({
     where: { id: data.id ?? `new-${crypto.randomUUID()}` },
     update: {
       title: data.title,
@@ -83,7 +105,7 @@ export async function POST(request: NextRequest) {
   });
 
   for (const tier of data.ticketTiers) {
-    await prisma.ticketTier.upsert({
+    await tx.ticketTier.upsert({
       where: { id: tier.id ?? `new-${crypto.randomUUID()}` },
       update: {
         name: tier.name,
@@ -95,7 +117,7 @@ export async function POST(request: NextRequest) {
       },
       create: {
         id: tier.id,
-        eventId: event.id,
+        eventId: saved.id,
         name: tier.name,
         priceKobo: Math.round(tier.priceNaira * 100),
         capacity: tier.capacity,
@@ -105,6 +127,9 @@ export async function POST(request: NextRequest) {
       },
     });
   }
+
+  return saved;
+  }, { maxWait: 10_000, timeout: 20_000 });
 
   await createAdminAuditLog({
     actorName: session.name,
@@ -121,4 +146,13 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ event });
+  } catch (error) {
+    console.error("Unable to save event", error);
+    const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+    const message =
+      code === "P2002"
+        ? "Two ticket tiers have the same name, or the link name is taken. Rename and try again."
+        : `Unable to save event: ${error instanceof Error ? error.message.split("\n").filter(Boolean).pop() : "unknown error"}`;
+    return NextResponse.json({ message }, { status: code === "P2002" ? 409 : 500 });
+  }
 }
