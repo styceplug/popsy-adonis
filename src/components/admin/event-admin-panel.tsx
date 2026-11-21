@@ -153,6 +153,27 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
     );
   }
 
+  // Saved tiers with no sales are deleted straight away; unsaved ones are just dropped from the form.
+  async function deleteTier(index: number) {
+    const tier = form?.ticketTiers[index];
+    if (!tier?.id) return;
+    if (!window.confirm(`Delete the "${tier.name}" tier? This can't be undone.`)) return;
+
+    const response = await fetch(`/api/admin/ticket-tiers/${tier.id}`, { method: "DELETE" }).catch(() => null);
+    const payload = await response?.json().catch(() => null);
+
+    if (!response?.ok) {
+      setFeedback({ tone: "error", message: payload?.message ?? "Unable to delete the tier." });
+      return;
+    }
+
+    setForm((current) =>
+      current ? { ...current, ticketTiers: current.ticketTiers.filter((_, tierIndex) => tierIndex !== index) } : current,
+    );
+    setFeedback({ tone: "success", message: `Deleted the "${tier.name}" tier.` });
+    router.refresh();
+  }
+
   async function saveEvent() {
     if (!form || isSaving) return;
 
@@ -515,8 +536,17 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
                     />
                     On sale
                   </label>
-                  {tier.id ? (
+                  {tier.id && tier.soldCount > 0 ? (
                     <p className="text-xs text-paper/42">{tier.soldCount} sold so far</p>
+                  ) : tier.id ? (
+                    <button
+                      type="button"
+                      onClick={() => deleteTier(index)}
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-ui border border-lava/40 px-3 py-1.5 text-xs font-black text-lava hover:bg-lava/10"
+                    >
+                      <Trash2 size={13} />
+                      Delete tier
+                    </button>
                   ) : (
                     <button
                       onClick={() =>
