@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 
 type AdminTicketTier = {
   id: string;
@@ -151,6 +151,18 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
           }
         : current,
     );
+  }
+
+  // Moves a tier up or down. The new order is saved with "Save changes".
+  function moveTier(index: number, step: -1 | 1) {
+    setForm((current) => {
+      if (!current) return current;
+      const target = index + step;
+      if (target < 0 || target >= current.ticketTiers.length) return current;
+      const ticketTiers = [...current.ticketTiers];
+      [ticketTiers[index], ticketTiers[target]] = [ticketTiers[target], ticketTiers[index]];
+      return { ...current, ticketTiers };
+    });
   }
 
   // Saved tiers with no sales are deleted straight away; unsaved ones are just dropped from the form.
@@ -456,7 +468,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
             <div>
               <p className="text-xs font-black uppercase text-gold">Ticket tiers</p>
               <p className="mt-1 text-xs leading-5 text-paper/42">
-                Each tier is a ticket type fans can buy, like Early Bird or VIP. Untick &quot;On sale&quot; to hide one without deleting it.
+                Each tier is a ticket type fans can buy, like Early Bird or VIP. Use the arrows to set the order buyers see, then save. Untick &quot;On sale&quot; to stop selling one.
               </p>
             </div>
             <button
@@ -471,6 +483,29 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
           <div className="mt-3 grid gap-3">
             {form.ticketTiers.map((tier, index) => (
               <div key={tier.id ?? `new-${index}`} className="rounded-ui border border-white/10 p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-black uppercase text-paper/45">Position {index + 1}</p>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveTier(index, -1)}
+                      disabled={index === 0}
+                      className="grid size-8 place-items-center rounded-ui border border-white/10 text-paper/60 hover:border-paper hover:text-paper disabled:opacity-30"
+                      aria-label="Move tier up"
+                    >
+                      <ArrowUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveTier(index, 1)}
+                      disabled={index === form.ticketTiers.length - 1}
+                      className="grid size-8 place-items-center rounded-ui border border-white/10 text-paper/60 hover:border-paper hover:text-paper disabled:opacity-30"
+                      aria-label="Move tier down"
+                    >
+                      <ArrowDown size={14} />
+                    </button>
+                  </div>
+                </div>
                 <div className="grid gap-3 md:grid-cols-[1.2fr_.7fr_.7fr]">
                   <label className="grid gap-1.5 text-xs font-black uppercase text-paper/45">
                     Tier name

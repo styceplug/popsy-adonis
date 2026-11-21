@@ -37,7 +37,7 @@ export default async function AffiliateDashboardPage() {
     getAffiliateBalance(affiliate.id),
     prisma.event.findMany({
       where: affiliateEventsOnSaleWhere(),
-      include: { ticketTiers: { where: { isActive: true }, orderBy: { priceKobo: "asc" } } },
+      include: { ticketTiers: { where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }] } },
       orderBy: { startsAt: "asc" },
     }),
     prisma.affiliateCommission.groupBy({

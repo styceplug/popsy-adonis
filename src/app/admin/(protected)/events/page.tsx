@@ -13,7 +13,7 @@ export default async function AdminEventsPage() {
   const events = await prisma.event.findMany({
     include: {
       ticketTiers: {
-        orderBy: { priceKobo: "asc" },
+        orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }],
       },
     },
     orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],

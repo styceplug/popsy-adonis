@@ -56,7 +56,7 @@ export default async function AdminDashboardPage() {
       include: {
         ticketTiers: {
           where: { isActive: true },
-          orderBy: { priceKobo: "asc" },
+          orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }],
         },
       },
       orderBy: { startsAt: "asc" },

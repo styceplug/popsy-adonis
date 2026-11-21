@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  for (const tier of data.ticketTiers) {
+  // Tiers are saved in the order they appear in the form, which is the order buyers see.
+  for (const [sortOrder, tier] of data.ticketTiers.entries()) {
     await tx.ticketTier.upsert({
       where: { id: tier.id ?? `new-${crypto.randomUUID()}` },
       update: {
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
         perks: tier.perks,
         entryDays: tier.entryDays,
         isActive: tier.isActive,
+        sortOrder,
       },
       create: {
         id: tier.id,
@@ -124,6 +126,7 @@ export async function POST(request: NextRequest) {
         perks: tier.perks,
         entryDays: tier.entryDays,
         isActive: tier.isActive,
+        sortOrder,
       },
     });
   }

@@ -107,7 +107,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const dbEvent = await prisma.event.findUnique({
     where: { slug },
-    include: { ticketTiers: { where: { isActive: true }, orderBy: { priceKobo: "asc" } } },
+    include: { ticketTiers: { where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }] } },
   });
   const event = dbEvent ? mapDbEventToPublicEvent(dbEvent) : events.find((item) => item.slug === slug);
 
@@ -151,7 +151,7 @@ export default async function EventDetailPage({
     include: {
       // Switched-off tiers stay listed; the picker shows them as no longer on sale.
       ticketTiers: {
-        orderBy: { priceKobo: "asc" },
+        orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }],
       },
       addOns: {
         where: { isActive: true },
@@ -167,7 +167,7 @@ export default async function EventDetailPage({
     where: {
       eventId: event.id,
     },
-    orderBy: { priceKobo: "asc" },
+    orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }],
   });
   const dbAddOns = dbEvent?.addOns ?? await prisma.eventAddOn.findMany({
     where: {

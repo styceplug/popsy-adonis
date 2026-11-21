@@ -18,7 +18,7 @@ export default async function AdminIssueTicketPage() {
     include: {
       event: { select: { title: true, startsAt: true } },
     },
-    orderBy: [{ event: { startsAt: "asc" } }, { priceKobo: "asc" }],
+    orderBy: [{ event: { startsAt: "asc" } }, { sortOrder: "asc" }, { priceKobo: "asc" }],
   });
 
   return (

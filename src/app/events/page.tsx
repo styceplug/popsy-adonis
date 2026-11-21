@@ -95,7 +95,7 @@ async function getDbEvents() {
     include: {
       ticketTiers: {
         where: { isActive: true },
-        orderBy: { priceKobo: "asc" },
+        orderBy: [{ sortOrder: "asc" }, { priceKobo: "asc" }],
       },
     },
     orderBy: { startsAt: "asc" },

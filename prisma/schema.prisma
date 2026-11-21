@@ -183,6 +183,8 @@ model TicketTier {
   perks     String[]
   // Days this ticket gets in on, e.g. ["Day 1", "Day 3"]. Empty = one entry, any day (the usual case).
   entryDays String[] @default([])
+  // Display order set in admin. Ties (e.g. older tiers, all 0) fall back to price, cheapest first.
+  sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   promos    TicketPromo[]
   createdAt DateTime @default(now())

@@ -23,7 +23,7 @@ export default async function AdminPromosPage() {
           },
         },
       },
-      orderBy: [{ event: { startsAt: "asc" } }, { priceKobo: "asc" }],
+      orderBy: [{ event: { startsAt: "asc" } }, { sortOrder: "asc" }, { priceKobo: "asc" }],
     }),
     prisma.ticketPromo.findMany({
       orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
