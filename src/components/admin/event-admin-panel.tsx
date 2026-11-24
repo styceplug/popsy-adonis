@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowLeft, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { MAX_IMAGE_BYTES, uploadToCloudinary } from "@/lib/cloudinary-upload";
 
 type AdminTicketTier = {
   id: string;
@@ -133,11 +134,42 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
   const [form, setForm] = useState<EventFormState | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingHero, setIsUploadingHero] = useState(false);
+  const [heroFeedback, setHeroFeedback] = useState<Feedback | null>(null);
+  const heroInput = useRef<HTMLInputElement>(null);
 
   function openEditor(nextForm: EventFormState) {
     setForm(nextForm);
     setFeedback(null);
+    setHeroFeedback(null);
     window.scrollTo({ top: 0 });
+  }
+
+  function setHeroImage(url: string) {
+    setForm((current) => (current ? { ...current, heroImage: url } : current));
+    setHeroFeedback(null);
+  }
+
+  async function uploadHeroImage(file: File) {
+    if (!form || isUploadingHero || isSaving) return;
+
+    setHeroFeedback(null);
+    if (!file.type.startsWith("image/")) {
+      setHeroFeedback({ tone: "error", message: "Choose an image file." });
+      return;
+    }
+
+    setIsUploadingHero(true);
+    try {
+      const uploaded = await uploadToCloudinary(file, "popsy-adonis/events");
+      if (uploaded.type !== "image") throw new Error("Choose an image file.");
+      setHeroImage(uploaded.url);
+      setHeroFeedback({ tone: "success", message: "Image uploaded. Save the event to keep it." });
+    } catch (error) {
+      setHeroFeedback({ tone: "error", message: error instanceof Error ? error.message : "Unable to upload the image." });
+    } finally {
+      setIsUploadingHero(false);
+    }
   }
 
   function updateTier(index: number, patch: Partial<TierFormState>) {
@@ -187,7 +219,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
   }
 
   async function saveEvent() {
-    if (!form || isSaving) return;
+    if (!form || isSaving || isUploadingHero) return;
 
     setIsSaving(true);
     setFeedback(null);
@@ -247,6 +279,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
     }
 
     setForm((current) => (current ? { ...current, id: payload.event.id } : current));
+    setHeroFeedback(null);
     setFeedback({ tone: "success", message: "Saved. The public site is updated." });
     router.refresh();
   }
@@ -322,7 +355,8 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
           setForm(null);
           setFeedback(null);
         }}
-        className="focus-ring inline-flex h-10 items-center gap-2 rounded-ui border border-white/12 px-4 text-sm font-bold text-paper/72 hover:border-paper hover:text-paper"
+        disabled={isUploadingHero}
+        className="focus-ring inline-flex h-10 items-center gap-2 rounded-ui border border-white/12 px-4 text-sm font-bold text-paper/72 hover:border-paper hover:text-paper disabled:opacity-50"
       >
         <ArrowLeft size={15} />
         All events
@@ -446,21 +480,73 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
             </select>
             <span className="text-xs font-normal leading-5 text-paper/42">{statusHints[form.status]}</span>
           </label>
-          <label className="grid gap-2 text-sm font-bold text-paper/72 md:col-span-2">
-            Hero image
-            <input
-              value={form.heroImage ?? ""}
-              onChange={(event) => setForm((current) => (current ? { ...current, heroImage: event.target.value } : current))}
-              className={inputStyles}
-              placeholder="/EVENTS/SummerFinale-main.JPG"
-            />
+          <div className="grid min-w-0 gap-3 md:col-span-2">
+            <p className="text-sm font-bold text-paper/72">Hero image</p>
             {form.heroImage ? (
-              <span
-                className="block min-h-48 rounded-ui border border-white/10 bg-cover bg-center"
-                style={{ backgroundImage: `url(${form.heroImage})` }}
+              <div
+                role="img"
+                aria-label="Event hero image preview"
+                className="h-48 rounded-ui border border-white/10 bg-ink bg-contain bg-center bg-no-repeat sm:h-64"
+                style={{ backgroundImage: `url(${JSON.stringify(form.heroImage)})` }}
               />
             ) : null}
-          </label>
+            <input
+              ref={heroInput}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={isUploadingHero || isSaving}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
+                if (file) void uploadHeroImage(file);
+              }}
+            />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <button
+                type="button"
+                disabled={isUploadingHero || isSaving}
+                onClick={() => heroInput.current?.click()}
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-ui border border-white/12 px-4 text-sm font-black text-paper/72 hover:border-paper hover:text-paper disabled:opacity-50"
+              >
+                <ImagePlus size={16} />
+                {form.heroImage ? "Replace image" : "Upload image"}
+              </button>
+              <span className="text-xs text-paper/58">Up to {MAX_IMAGE_BYTES / (1024 * 1024)} MB</span>
+              {form.heroImage ? (
+                <button
+                  type="button"
+                  disabled={isUploadingHero || isSaving}
+                  onClick={() => setHeroImage("")}
+                  className="focus-ring inline-flex h-10 items-center gap-1.5 rounded-ui px-2 text-xs font-bold text-paper/62 hover:text-lava disabled:opacity-50"
+                >
+                  <Trash2 size={14} />
+                  Remove image
+                </button>
+              ) : null}
+            </div>
+            {isUploadingHero || heroFeedback ? (
+              <p
+                role={heroFeedback?.tone === "error" ? "alert" : "status"}
+                className={`break-words text-sm ${heroFeedback?.tone === "error" ? "text-lava" : "text-paper/72"}`}
+              >
+                {isUploadingHero ? "Uploading image..." : heroFeedback?.message}
+              </p>
+            ) : null}
+            <details className="text-sm text-paper/62">
+              <summary className="focus-ring w-fit cursor-pointer rounded-ui">Use an image link</summary>
+              <label className="mt-2 grid gap-2">
+                Image URL or site path
+                <input
+                  value={form.heroImage ?? ""}
+                  onChange={(event) => setHeroImage(event.currentTarget.value)}
+                  className={inputStyles}
+                  placeholder="/EVENTS/SummerFinale-main.JPG"
+                  disabled={isUploadingHero || isSaving}
+                />
+              </label>
+            </details>
+          </div>
         </div>
 
         <div className="mt-8">
@@ -606,7 +692,7 @@ export function EventAdminPanel({ events }: { events: AdminEvent[] }) {
         <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/10 pt-5">
           <button
             onClick={saveEvent}
-            disabled={isSaving}
+            disabled={isSaving || isUploadingHero}
             className="focus-ring h-11 rounded-ui bg-gold px-6 text-sm font-black text-ink hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSaving ? "Saving..." : form.id ? "Save changes" : "Create event"}
