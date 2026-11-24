@@ -79,6 +79,16 @@ Ticket checkout uses shared helpers in `src/lib/fees.ts`: customer Transaction F
 - `/admin/tickets` - ticket record lookup
 - `/admin/logs` - staff action audit logs
 
+### Ticket check-in codes
+
+Before deploying to an existing database, apply the additive ticket code schema change:
+
+```bash
+npx prisma db execute --schema prisma/schema.prisma --file prisma/add-ticket-check-in-code.sql
+```
+
+New tickets include a six-character check-in code beside the QR. Existing paid tickets get a code when the ticket link is opened or staff resend the ticket. Both methods use the same admission record, with one entry per eligible day for multi-day passes.
+
 ## Notes
 
 The current public pages use sample data in `src/lib/sample-data.ts`. Checkout uses the database-backed products, variants, events, and ticket tiers seeded by `npm run db:seed`.

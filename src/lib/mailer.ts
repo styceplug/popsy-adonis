@@ -32,7 +32,7 @@ type TicketMessage = ReceiptMessage & {
     venue?: string;
     startsAt?: Date | string;
     attendeeName?: string | null;
-    qrCode: string;
+    checkInCode: string;
     qrImageUrl?: string | null;
     qrImageHttpUrl?: string;
     ticketUrl: string;
@@ -402,7 +402,8 @@ export async function sendTicketReceipt(message: TicketMessage) {
               ${ticket.startsAt ? `<div style="font-size:13px;color:rgba(255,253,248,.6);margin-top:4px;">${formatDateForEmail(ticket.startsAt)}</div>` : ""}
               <div style="font-size:13px;color:rgba(255,253,248,.6);margin-top:12px;">Attendee: <strong style="color:#fffdf8;">${escapeHtml(ticket.attendeeName ?? "Guest")}</strong></div>
               <div style="margin-top:18px;">${ctaButton("Open ticket", ticket.ticketUrl)}</div>
-              <div style="font-family:Consolas,monospace;font-size:11px;color:rgba(255,253,248,.42);margin-top:14px;word-break:break-all;">${escapeHtml(ticket.qrCode)}</div>
+              <div style="margin-top:16px;font-size:12px;color:#c8a24a;">Check-in code</div>
+              <div style="font-family:Consolas,monospace;font-size:24px;font-weight:900;color:#fffdf8;">${escapeHtml(ticket.checkInCode)}</div>
             </td>
             <td width="170" align="center" style="padding:18px;vertical-align:middle;">
               ${ticket.qrImageUrl
@@ -417,7 +418,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
 
   return sendEmail({
     to: message.to,
-    subject: `Your Popsy Adonis ticket QR codes - ${message.reference}`,
+    subject: `Your Popsy Adonis tickets - ${message.reference}`,
     text: [
       "Your ticket purchase is confirmed.",
       "",
@@ -428,7 +429,7 @@ export async function sendTicketReceipt(message: TicketMessage) {
         [
           `${index + 1}. ${ticket.eventTitle}`,
           `Attendee: ${ticket.attendeeName ?? "Guest"}`,
-          `QR Code: ${ticket.qrCode}`,
+          `Check-in code: ${ticket.checkInCode}`,
           `Ticket URL: ${ticket.ticketUrl}`,
         ]
           .filter(Boolean)
@@ -437,15 +438,15 @@ export async function sendTicketReceipt(message: TicketMessage) {
       "",
       `Total Payable: ${formatNairaForEmail(message.totalKobo)}`,
       "",
-      "Show the QR code at the gate for validation.",
+      "Show the QR code or give staff your six-character check-in code at the gate.",
       ...(message.orderStatusUrl ? ["", `Track your merch order: ${message.orderStatusUrl}`] : []),
     ].join("\n"),
     html: emailShell(`
       <tr>
         <td style="padding:28px;">
           <div style="font-size:13px;font-weight:800;color:#c8a24a;text-transform:uppercase;letter-spacing:.08em;">Ticket confirmed</div>
-          <h1 style="margin:8px 0 8px;font-size:28px;line-height:1.15;color:#fffdf8;">Your QR ticket is ready.</h1>
-          <p style="margin:0 0 20px;font-size:14px;line-height:22px;color:rgba(255,253,248,.68);">Scan the QR code at the gate or open the ticket link below. The QR code points to your live ticket page.</p>
+          <h1 style="margin:8px 0 8px;font-size:28px;line-height:1.15;color:#fffdf8;">Your ticket is ready.</h1>
+          <p style="margin:0 0 20px;font-size:14px;line-height:22px;color:rgba(255,253,248,.68);">Show the QR code or give staff your six-character check-in code at the gate.</p>
           <div style="font-family:Consolas,monospace;font-size:12px;color:rgba(255,253,248,.5);margin-bottom:18px;">${escapeHtml(message.reference)}</div>
           ${ticketsHtml}
           <div style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(200,162,74,.10);border:1px solid rgba(200,162,74,.28);font-size:13px;line-height:20px;color:#f5f0e8;">

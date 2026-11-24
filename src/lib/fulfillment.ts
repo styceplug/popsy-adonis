@@ -5,6 +5,7 @@ import { getEventDisplayDate } from "@/lib/event-display";
 import { sendMerchOrderNotification, sendPurchaseReceipt, sendTicketReceipt } from "@/lib/mailer";
 import { getMerchNotifyEmail, getOrderStatusUrl } from "@/lib/merch-orders";
 import { prisma } from "@/lib/prisma";
+import { ensureTicketCheckInCode, withNewCheckInCode } from "@/lib/ticket-check-in-code";
 
 type TicketMetadata = {
   eventId: string;
@@ -48,7 +49,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
     venue?: string;
     startsAt?: Date | string;
     attendeeName?: string | null;
-    qrCode: string;
+    checkInCode: string;
     qrImageUrl?: string | null;
     qrImageHttpUrl?: string;
     ticketUrl: string;
@@ -186,7 +187,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
         venue: ticket.event.venue,
         startsAt: getEventDisplayDate(ticket.event),
         attendeeName: ticket.attendeeName,
-        qrCode: ticket.qrCode,
+        checkInCode: await ensureTicketCheckInCode(ticket),
         qrImageUrl: ticket.qrImageUrl,
         qrImageHttpUrl: `${getAppBaseUrl()}/api/tickets/${ticket.qrCode}/qr`,
         ticketUrl: `${getAppBaseUrl()}/tickets/${ticket.qrCode}`,
@@ -212,28 +213,31 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
         width: 320,
       });
 
-      const ticket = await prisma.ticket.create({
-        data: {
-          orderId: transaction.orderId,
-          eventId: group.eventId,
-          tierId: group.ticketTierId,
-          attendeeName: group.attendeeNames?.[index],
-          attendeeEmail: transaction.order.email,
-          qrCode,
-          qrImageUrl,
-        },
-        include: {
-          event: {
-            select: {
-              title: true,
-              slug: true,
-              venue: true,
-              startsAt: true,
-              dateLabel: true,
+      const ticket = await withNewCheckInCode((checkInCode) =>
+        prisma.ticket.create({
+          data: {
+            orderId: transaction.orderId,
+            eventId: group.eventId,
+            tierId: group.ticketTierId,
+            attendeeName: group.attendeeNames?.[index],
+            attendeeEmail: transaction.order.email,
+            qrCode,
+            qrImageUrl,
+            checkInCode,
+          },
+          include: {
+            event: {
+              select: {
+                title: true,
+                slug: true,
+                venue: true,
+                startsAt: true,
+                dateLabel: true,
+              },
             },
           },
-        },
-      });
+        }),
+      );
       createdTicketsCount += 1;
 
       issuedTickets.push({
@@ -241,7 +245,7 @@ export async function fulfillSuccessfulTransaction(reference: string, gatewayRes
         venue: ticket.event.venue,
         startsAt: getEventDisplayDate(ticket.event),
         attendeeName: ticket.attendeeName,
-        qrCode: ticket.qrCode,
+        checkInCode: await ensureTicketCheckInCode(ticket),
         qrImageUrl: ticket.qrImageUrl,
         qrImageHttpUrl,
         ticketUrl,

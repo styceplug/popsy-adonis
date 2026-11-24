@@ -318,7 +318,7 @@ export function ManualTicketForm({ tiers }: { tiers: IssuableTier[] }) {
               ))}
             </div>
             <p className="mt-4 text-xs leading-5 text-paper/48">
-              If the email does not arrive, open the ticket above and show the QR code, or resend it from the Tickets page.
+              If the email does not arrive, open the ticket above for its QR and check-in codes, or resend it from the Tickets page.
             </p>
           </div>
         ) : null}

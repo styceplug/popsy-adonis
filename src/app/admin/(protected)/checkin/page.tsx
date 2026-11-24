@@ -25,7 +25,7 @@ export default async function AdminCheckInPage() {
       <p className="text-xs font-black uppercase text-gold">At the gate</p>
       <h2 className="mt-2 font-display text-5xl font-black">Check in</h2>
       <p className="mt-4 max-w-2xl text-sm leading-6 text-paper/58">
-        Scan a ticket QR code or paste the ticket URL/code manually. Successful scans immediately mark the ticket as checked in.
+        Scan the ticket QR code or enter the attendee&apos;s six-character check-in code.
       </p>
       <AdminCheckInPanel gateDays={gateDays} />
     </div>

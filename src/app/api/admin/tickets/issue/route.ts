@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     message: emailSent
       ? `${quantity} ticket${quantity === 1 ? "" : "s"} issued and emailed to ${email}.`
-      : `${quantity} ticket${quantity === 1 ? "" : "s"} issued, but the email did not send. Open the ticket below and show the QR code.`,
+      : `${quantity} ticket${quantity === 1 ? "" : "s"} issued, but the email did not send. Open the ticket below to see its QR and check-in codes.`,
     emailSent,
     emailError: result.emailError,
     reference,

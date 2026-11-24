@@ -4,6 +4,7 @@ import { CheckCircle2, Clock3, MapPin, ShieldCheck } from "lucide-react";
 import { OtherLiveEvents } from "@/components/events/other-live-events";
 import { getEventDisplayDate } from "@/lib/event-display";
 import { prisma } from "@/lib/prisma";
+import { ensureTicketCheckInCode } from "@/lib/ticket-check-in-code";
 
 export default async function TicketPage({ params }: { params: Promise<{ qrCode: string }> }) {
   const { qrCode } = await params;
@@ -33,6 +34,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
       }).format(displayDate);
   const isPaid = ticket.order.status === "PAID" || ticket.order.transaction?.status === "SUCCESS";
   const hasCheckedIn = Boolean(ticket.checkedInAt);
+  const checkInCode = isPaid ? await ensureTicketCheckInCode(ticket) : null;
 
   return (
     <main className="min-h-screen bg-ink pt-28 text-paper">
@@ -68,7 +70,7 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
             </div>
 
             <p className="mt-8 max-w-2xl text-sm leading-6 text-paper/52">
-              This page is opened by scanning the ticket QR code. Gate staff should validate this ticket before entry.
+              Show the QR code or give staff your six-character check-in code at the gate.
             </p>
           </div>
 
@@ -84,10 +86,12 @@ export default async function TicketPage({ params }: { params: Promise<{ qrCode:
                 <p className="mt-1 text-xs leading-5 text-paper/60">Reference: {ticket.order.transaction?.reference}</p>
               </div>
             </div>
-            <div className="mt-5 rounded-ui border border-white/10 p-4">
-              <p className="text-xs font-black uppercase text-paper/42">Ticket code</p>
-              <p className="mt-2 break-all font-mono text-xs text-paper/72">{ticket.qrCode}</p>
-            </div>
+            {checkInCode ? (
+              <div className="mt-5 rounded-ui border border-white/10 p-4">
+                <p className="text-xs font-black uppercase text-paper/62">Check-in code</p>
+                <p className="mt-2 font-mono text-3xl font-bold text-paper">{checkInCode}</p>
+              </div>
+            ) : null}
             <Link
               href="/events"
               className="focus-ring mt-5 inline-flex h-11 w-full items-center justify-center rounded-ui bg-gold px-4 text-sm font-black text-ink hover:bg-paper"

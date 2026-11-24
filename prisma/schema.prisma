@@ -225,6 +225,7 @@ model Ticket {
   attendeeEmail String?
   qrCode        String    @unique
   qrImageUrl    String?
+  checkInCode   String?   @unique @db.VarChar(6)
   // First check-in time. Multi-day tickets also record each day they were used.
   checkedInAt   DateTime?
   checkInDays   String[]  @default([])

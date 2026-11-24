@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { createAdminAuditLog } from "@/lib/admin-audit";
 import { getAdminSessionFromRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { normalizeTicketCode } from "@/lib/ticket-code";
+import { normalizeShortCheckInCode, normalizeTicketCode } from "@/lib/ticket-code";
 
 const checkInSchema = z.object({
-  code: z.string().min(8),
+  code: z.string().trim().min(6).max(2048),
   // The gate day picked on the check-in screen. Only matters for multi-day tiers.
   day: z.string().trim().max(40).optional(),
 });
@@ -17,12 +18,11 @@ function sameDay(a: string, b: string) {
   return a.trim().toLowerCase().replace(/\s+/g, " ") === b.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function serializeTicket(ticket: Awaited<ReturnType<typeof getTicketByQrCode>>, tier?: TierInfo) {
+function serializeTicket(ticket: Awaited<ReturnType<typeof getTicket>>, tier?: TierInfo) {
   if (!ticket) return null;
 
   return {
     id: ticket.id,
-    qrCode: ticket.qrCode,
     attendeeName: ticket.attendeeName,
     attendeeEmail: ticket.attendeeEmail,
     checkedInAt: ticket.checkedInAt,
@@ -45,9 +45,9 @@ function serializeTicket(ticket: Awaited<ReturnType<typeof getTicketByQrCode>>, 
   };
 }
 
-async function getTicketByQrCode(qrCode: string) {
+async function getTicket(where: Prisma.TicketWhereUniqueInput) {
   return prisma.ticket.findUnique({
-    where: { qrCode },
+    where,
     include: {
       event: true,
       order: {
@@ -73,16 +73,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: "invalid", message: "Enter or scan a valid ticket code." }, { status: 400 });
   }
 
-  const qrCode = normalizeTicketCode(parsed.data.code);
-  const ticket = await getTicketByQrCode(qrCode);
+  const checkInCode = normalizeShortCheckInCode(parsed.data.code);
+  const lookup = checkInCode ? { checkInCode } : { qrCode: normalizeTicketCode(parsed.data.code) };
+  if (lookup.qrCode !== undefined && lookup.qrCode.length < 8) {
+    return NextResponse.json({ status: "invalid", message: "Enter or scan a valid ticket code." }, { status: 400 });
+  }
+
+  const method = checkInCode ? "code" : "qr";
+  const ticket = await getTicket(lookup);
 
   if (!ticket) {
     await createAdminAuditLog({
       actorName: session.name,
       action: "ticket.checkin.not_found",
       entityType: "Ticket",
-      entityId: qrCode,
-      metadata: { qrCode },
+      metadata: { method },
       request,
     });
 
@@ -97,7 +102,7 @@ export async function POST(request: NextRequest) {
       action: "ticket.checkin.unpaid",
       entityType: "Ticket",
       entityId: ticket.id,
-      metadata: { qrCode, orderStatus: ticket.order.status, transactionStatus: ticket.order.transaction?.status },
+      metadata: { method, orderStatus: ticket.order.status, transactionStatus: ticket.order.transaction?.status },
       request,
     });
 
@@ -123,7 +128,7 @@ export async function POST(request: NextRequest) {
         action: "ticket.checkin.wrong_day",
         entityType: "Ticket",
         entityId: ticket.id,
-        metadata: { qrCode, gateDay: parsed.data.day, entryDays: tier.entryDays },
+        metadata: { method, gateDay: parsed.data.day, entryDays: tier.entryDays },
         request,
       });
 
@@ -142,7 +147,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           status: "choose_day",
-          message: `This ticket covers ${daysText}. Pick today's gate day above, then scan again.`,
+          message: `This ticket covers ${daysText}. Choose the gate day, then try again.`,
           ticket: serializeTicket(ticket, tier),
         },
         { status: 409 },
@@ -150,10 +155,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Only succeeds if this day is not recorded yet, so two quick scans cannot both get in.
-    const marked = await prisma.ticket.updateMany({
-      where: { id: ticket.id, NOT: { checkInDays: { has: day } } },
-      data: { checkInDays: { push: day } },
+    const marked = await prisma.$transaction(async (tx) => {
+      const result = await tx.ticket.updateMany({
+        where: { id: ticket.id, NOT: { checkInDays: { has: day } } },
+        data: { checkInDays: { push: day } },
+      });
+      if (result.count === 1) {
+        await tx.ticket.updateMany({ where: { id: ticket.id, checkedInAt: null }, data: { checkedInAt: new Date() } });
+      }
+      return result;
     });
+    const updated = await getTicket({ id: ticket.id });
 
     if (marked.count === 0) {
       await createAdminAuditLog({
@@ -161,18 +173,15 @@ export async function POST(request: NextRequest) {
         action: "ticket.checkin.duplicate",
         entityType: "Ticket",
         entityId: ticket.id,
-        metadata: { qrCode, day },
+        metadata: { method, day },
         request,
       });
 
       return NextResponse.json(
-        { status: "duplicate", message: `Already checked in for ${day}.`, ticket: serializeTicket(ticket, tier) },
+        { status: "duplicate", message: `Already checked in for ${day}.`, ticket: serializeTicket(updated, tier) },
         { status: 409 },
       );
     }
-
-    await prisma.ticket.updateMany({ where: { id: ticket.id, checkedInAt: null }, data: { checkedInAt: new Date() } });
-    const updated = await getTicketByQrCode(qrCode);
 
     await createAdminAuditLog({
       actorName: session.name,
@@ -180,7 +189,7 @@ export async function POST(request: NextRequest) {
       entityType: "Ticket",
       entityId: ticket.id,
       metadata: {
-        qrCode,
+        method,
         day,
         eventId: ticket.eventId,
         eventTitle: ticket.event.title,
@@ -197,34 +206,27 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (ticket.checkedInAt) {
+  const marked = await prisma.ticket.updateMany({
+    where: { id: ticket.id, checkedInAt: null },
+    data: { checkedInAt: new Date() },
+  });
+  const updatedTicket = await getTicket({ id: ticket.id });
+
+  if (marked.count === 0) {
     await createAdminAuditLog({
       actorName: session.name,
       action: "ticket.checkin.duplicate",
       entityType: "Ticket",
       entityId: ticket.id,
-      metadata: { qrCode, checkedInAt: ticket.checkedInAt },
+      metadata: { method, checkedInAt: updatedTicket?.checkedInAt?.toISOString() },
       request,
     });
 
     return NextResponse.json(
-      { status: "duplicate", message: "Ticket has already been checked in.", ticket: serializeTicket(ticket, tier) },
+      { status: "duplicate", message: "Ticket has already been checked in.", ticket: serializeTicket(updatedTicket, tier) },
       { status: 409 },
     );
   }
-
-  const updatedTicket = await prisma.ticket.update({
-    where: { id: ticket.id },
-    data: { checkedInAt: new Date() },
-    include: {
-      event: true,
-      order: {
-        include: {
-          transaction: true,
-        },
-      },
-    },
-  });
 
   await createAdminAuditLog({
     actorName: session.name,
@@ -232,7 +234,7 @@ export async function POST(request: NextRequest) {
     entityType: "Ticket",
     entityId: ticket.id,
     metadata: {
-      qrCode,
+      method,
       eventId: ticket.eventId,
       eventTitle: ticket.event.title,
       attendeeName: ticket.attendeeName,

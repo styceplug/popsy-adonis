@@ -5,6 +5,7 @@ import { getAppBaseUrl } from "@/lib/app-url";
 import { getEventDisplayDate } from "@/lib/event-display";
 import { sendTicketReceipt } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
+import { ensureTicketCheckInCode } from "@/lib/ticket-check-in-code";
 
 export async function POST(
   request: NextRequest,
@@ -67,16 +68,16 @@ export async function POST(
       quantity: item.quantity,
       totalKobo: item.totalKobo,
     })),
-    tickets: ticket.order.tickets.map((orderTicket) => ({
+    tickets: await Promise.all(ticket.order.tickets.map(async (orderTicket) => ({
       eventTitle: orderTicket.event.title,
       venue: orderTicket.event.venue,
       startsAt: getEventDisplayDate(orderTicket.event),
       attendeeName: orderTicket.attendeeName,
-      qrCode: orderTicket.qrCode,
+      checkInCode: await ensureTicketCheckInCode(orderTicket),
       qrImageUrl: orderTicket.qrImageUrl,
       qrImageHttpUrl: `${appBaseUrl}/api/tickets/${orderTicket.qrCode}/qr`,
       ticketUrl: `${appBaseUrl}/tickets/${orderTicket.qrCode}`,
-    })),
+    }))),
   });
 
   await createAdminAuditLog({

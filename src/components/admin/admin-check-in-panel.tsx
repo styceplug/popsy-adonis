@@ -8,7 +8,6 @@ type CheckInPayload = {
   status: "success" | "duplicate" | "not_found" | "unpaid" | "invalid" | "wrong_day" | "choose_day";
   message: string;
   ticket?: {
-    qrCode: string;
     attendeeName?: string | null;
     attendeeEmail?: string | null;
     checkedInAt?: string | null;
@@ -46,36 +45,44 @@ export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isScanningRef = useRef(false);
+  const isSubmittingRef = useRef(false);
   const [code, setCode] = useState("");
   const [result, setResult] = useState<CheckInPayload | null>(null);
   const [error, setError] = useState("");
+  const [checkInError, setCheckInError] = useState("");
   const [scannerNotice, setScannerNotice] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gateDay, setGateDay] = useState("");
 
   const checkIn = useCallback(async (nextCode: string) => {
-    if (!nextCode.trim() || isSubmitting) return;
+    const trimmedCode = nextCode.trim();
+    if (!trimmedCode || isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
-    setError("");
+    setCheckInError("");
+    setResult(null);
 
-    const response = await fetch("/api/admin/tickets/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: nextCode, day: gateDay || undefined }),
-    });
-    const payload = (await response.json().catch(() => null)) as CheckInPayload | null;
-
-    setIsSubmitting(false);
-
-    if (!payload) {
-      setError("Unable to read check-in response.");
-      return;
+    try {
+      const response = await fetch("/api/admin/tickets/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: trimmedCode, day: gateDay || undefined }),
+      });
+      const payload = (await response.json().catch(() => null)) as CheckInPayload | null;
+      if (!payload?.status) {
+        setCheckInError(payload?.message ?? "Unable to read check-in response.");
+        return;
+      }
+      setResult(payload);
+    } catch {
+      setCheckInError("Could not reach check-in. Check your connection and try again.");
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
-
-    setResult(payload);
-  }, [gateDay, isSubmitting]);
+  }, [gateDay]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -213,7 +220,7 @@ export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
             </select>
           </label>
           <p className="mt-2 text-xs leading-5 text-paper/58">
-            Set this to today at multi-day events, or their tickets will not scan. Normal one-entry tickets check in the same as always.
+            Choose today&apos;s gate day to admit multi-day tickets.
           </p>
         </div>
       ) : null}
@@ -248,8 +255,10 @@ export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
               setCode("");
               setResult(null);
               setError("");
+              setCheckInError("");
               setScannerNotice("");
             }}
+            disabled={isSubmitting}
             className="focus-ring inline-flex h-11 items-center gap-2 rounded-ui border border-white/12 px-4 text-sm font-black text-paper/68 transition hover:border-paper hover:text-paper"
           >
             <RotateCcw size={16} />
@@ -259,7 +268,7 @@ export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
         {scannerNotice ? (
           <p className="mt-4 rounded-ui border border-gold/35 bg-gold/10 p-3 text-sm text-gold">{scannerNotice}</p>
         ) : null}
-        {error ? <p className="mt-4 rounded-ui border border-lava/40 bg-lava/10 p-3 text-sm text-lava">{error}</p> : null}
+        {error ? <p role="alert" className="mt-4 rounded-ui border border-lava/40 bg-lava/10 p-3 text-sm text-lava">{error}</p> : null}
       </div>
 
       <aside className="rounded-ui border border-white/10 bg-white/[0.035] p-5">
@@ -267,23 +276,38 @@ export function AdminCheckInPanel({ gateDays = [] }: { gateDays?: string[] }) {
           <Keyboard size={15} />
           Manual check-in
         </p>
-        <textarea
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-          className="mt-4 min-h-28 w-full rounded-ui border border-white/10 bg-ink p-3 text-sm text-paper"
-          placeholder="Paste ticket URL or QR code"
-        />
-        <button
-          type="button"
-          disabled={!code.trim() || isSubmitting}
-          onClick={() => checkIn(code)}
-          className="focus-ring mt-3 inline-flex h-11 w-full items-center justify-center rounded-ui bg-gold px-4 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
+        <form
+          className="mt-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void checkIn(code);
+          }}
         >
-          {isSubmitting ? "Checking..." : "Check in ticket"}
-        </button>
+          <label htmlFor="ticket-check-in-code" className="text-sm font-bold text-paper/72">
+            Six-character code or ticket link
+          </label>
+          <input
+            id="ticket-check-in-code"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            autoCapitalize="characters"
+            autoComplete="off"
+            spellCheck={false}
+            className="focus-ring mt-2 h-12 w-full rounded-ui border border-white/10 bg-ink px-3 font-mono text-paper"
+            placeholder="e.g. K7M4X9"
+          />
+          <button
+            type="submit"
+            disabled={!code.trim() || isSubmitting}
+            className="focus-ring mt-3 inline-flex h-11 w-full items-center justify-center rounded-ui bg-gold px-4 text-sm font-black text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Checking..." : "Check in ticket"}
+          </button>
+        </form>
 
+        {checkInError ? <p role="alert" className="mt-4 rounded-ui border border-lava/40 bg-lava/10 p-3 text-sm text-lava">{checkInError}</p> : null}
         {result ? (
-          <div className={`mt-5 rounded-ui border p-4 ${statusStyles[result.status]}`}>
+          <div role="status" className={`mt-5 rounded-ui border p-4 ${statusStyles[result.status]}`}>
             <div className="flex items-center gap-2">
               {result.status === "success" ? <CheckCircle2 size={19} /> : <XCircle size={19} />}
               <p className="font-black">{result.message}</p>

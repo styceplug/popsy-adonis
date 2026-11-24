@@ -1,3 +1,8 @@
+export function normalizeShortCheckInCode(value: string) {
+  const trimmed = value.trim();
+  return /^[a-z0-9]{6}$/i.test(trimmed) ? trimmed.toUpperCase() : null;
+}
+
 export function normalizeTicketCode(value: string) {
   const trimmed = value.trim();
 
